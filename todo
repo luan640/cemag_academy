@@ -1,0 +1,30 @@
+Autenticacao
+    - Login
+    - Logout
+
+Users
+    - Cadastrar
+    - Atribuir função(Master, Leitor)
+
+Cadastro de time
+    - Cadastrar
+    - Editar
+    - Excluir
+
+Cadastro de funcionario 
+    - Cadastrar
+    - Selecionar mais de um time para o usuario
+    - Editar
+    - Excluir
+
+Lista de presença
+    - Coletar registro que o funcionario acessou o arquivo
+
+Upload
+    - Vídeo
+    - Pdf
+    - Slide
+    - Fotos
+
+Arquivos
+    - Designar os materiais para os grupos
