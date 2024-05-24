@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Add Client{% endblock %}
+
+{% block content %}
+
+<div>
+    <h1>Add Client</h1>
+
+    <!-- <p>Team Plan Max Clients: {{ team.plan.max_clients }}</p>
+    <p>Number of Clients: {{ team.clients.all|length }}</p> -->
+
+    <!-- {% if team.plan.max_clients > team.clients.all|length %} -->
+    <form method="post" action=".">
+        {% csrf_token %}
+
+        {{form.as_p}}
+
+        <button>Submit</button>
+    </form>
+    <!-- {% else %}
+        <div class="mt-6 px-6 py-4 bg-red-400 rounded-xl text-white">
+            You team have has reached maximum number of clients. Your owner must upgrade your plan!
+        </div>
+        
+    {% endif %} -->
+
+</div>
+
+{% endblock %}

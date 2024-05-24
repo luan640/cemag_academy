@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista pastas{% endblock %}
+
+{% block content %}
+
+<div>
+    <h1>Pastas</h1>
+
+    <a href="{% url 'add-pasta' %}">Add Pasta</a>
+
+    {% if pastas %}
+        
+        <div>
+            <p>Name</p>
+        </div>
+
+        {% for pasta in pastas %}
+
+            <div>
+                <p>
+                    <a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}}</a>
+                </p>
+            </div>
+
+        {% endfor %}
+
+    {% else %}
+
+        <p>Sem pastas</p>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
