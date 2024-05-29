@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Detalhes da Pasta{% endblock %}
+
+{% block content %}
+
+<div>
+    <h1>Detalhes da Pasta</h1>
+    <p>Nome: {{ pasta.nome }}</p>
+    <p>Descrição: {{ pasta.descricao }}</p>
+
+    <a href="{% url 'edit-pasta' pasta.pk %}">Editar</a>
+    <a href="{% url 'delete-pasta' pasta.pk %}" class="delete-link">Delete</a>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
+
+{% endblock %}

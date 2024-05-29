@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista materiais{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<div>
+    <h1>Materiais</h1>
+
+    <a href="{% url 'add-material' %}">Add Material</a>
+
+    {% if materiais %}
+
+    <div>
+        <p>Name</p>
+    </div>
+
+    {% for material in materiais %}
+
+    <div>
+        <p>
+            <a href="{% url 'detail-material' material.pk %}">{{material.nome}}</a>
+        </p>
+    </div>
+
+    {% endfor %}
+
+    {% else %}
+
+    <p>Sem material</p>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}
