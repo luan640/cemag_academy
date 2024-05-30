@@ -12,16 +12,17 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (None, {'fields': ('matricula', 'password')}),
         ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
-        ('Permissions', {'fields': ('is_staff', 'is_active')}),
+        ('Permissions', {'fields': ('is_staff', 'is_active', 'setores')}),  # Adicionando 'setores' aos campos de permissões
         ('Important dates', {'fields': ('last_login',)}),
     )
     add_fieldsets = (
         (None, {
             'classes': ('wide',),
-            'fields': ('matricula', 'password1', 'password2', 'is_staff', 'is_active')}
+            'fields': ('matricula', 'password1', 'password2', 'is_staff', 'is_active', 'setores')}  # Adicionando 'setores' aos campos para adicionar usuário
         ),
     )
     search_fields = ('matricula',)
     ordering = ('matricula',)
+    filter_horizontal = ('setores',)  # Adicionando o filtro horizontal para o campo 'setores'
 
 admin.site.register(CustomUser, CustomUserAdmin)

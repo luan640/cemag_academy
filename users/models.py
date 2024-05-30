@@ -2,6 +2,8 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from cadastros.models import Setor
+
 class CustomUserManager(BaseUserManager):
     def create_user(self, matricula, password=None, **extra_fields):
         if not matricula:
@@ -23,7 +25,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(blank=True)
     is_staff = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
-    
+    setores = models.ManyToManyField(Setor, related_name='users', blank=True)  # Adicionando relação muitos-para-muitos com Setor
+
     objects = CustomUserManager()
 
     USERNAME_FIELD = 'matricula'

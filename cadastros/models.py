@@ -1,5 +1,4 @@
 from django.db import models
-from materiais.models import Pasta
 
 class Area(models.Model):
 
@@ -13,7 +12,6 @@ class Setor(models.Model):
 
     area = models.ForeignKey(Area, related_name='setor_area', on_delete=models.DO_NOTHING)
     nome = models.CharField(max_length=100, primary_key=True)
-    pasta = models.ManyToManyField(Pasta, related_name='setor_pasta', blank=True)
 
     def __str__(self):
 
