@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Detalhes do material{% endblock %}
+
+{% block content %}
+
+<div>
+
+    <h1>Detalhes do Material</h1>
+    <p>Nome: {{ material.nome }}</p>
+    <p>Descrição: {{ material.descricao }}</p>
+    
+    {% if material.video %}
+    <p>Vídeo: 
+        <video width="560" height="315" controls>
+            <source src="{{ material.video.url }}" type="video/mp4">
+        </video>
+    </p>
+    {% endif %}
+    
+    {% if material.arquivo %}
+    <p>Arquivo: <a href="{{ material.arquivo.url }}">Download</a></p>
+    {% endif %}
+    
+    {% if material.fotos %}
+    <p>Foto: <img src="{{ material.fotos.url }}" alt="Foto do Material"></p>
+    {% endif %}
+    
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<!-- <script src="{% static 'js/confirm_delete_pasta.js' %}"></script> -->
+
+{% endblock %}

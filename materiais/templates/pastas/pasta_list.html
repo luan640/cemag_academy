@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista pastas{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<form action="{% url 'logout' %}" method="post">
+    {% csrf_token %}
+    <button type="submit">Logout</button>
+</form>
+
+<div>
+    <h1>Pastas</h1>
+
+    {% if request.user.is_staff %}
+    
+    <a href="{% url 'add-pasta' %}">Add Pasta</a>
+
+    {% endif %}
+
+    {% if pastas %}
+
+    <div>
+        <p>Name</p>
+    </div>
+
+    {% for pasta in pastas %}
+
+    <div>
+        <p>
+            <a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}} - {{pasta.descricao}}</a> 
+        </p>
+    </div>
+
+    {% endfor %}
+
+    {% else %}
+
+    <p>Sem pastas</p>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

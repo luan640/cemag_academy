@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Detalhes da Pasta{% endblock %}
+
+{% block content %}
+
+<div>
+    <h1>Detalhes da Pasta</h1>
+    <p>Nome: {{ pasta.nome }}</p>
+    <p>Descrição: {{ pasta.descricao }}</p>
+
+    <a href="{% url 'edit-pasta' pasta.pk %}">Editar</a>
+    <a href="{% url 'delete-pasta' pasta.pk %}" class="delete-link">Delete</a>
+
+</div>
+
+<div>  
+
+    <h1>Materiais</h1>
+    {% for material in materiais %}
+        <h2>{{ material.nome }}</h2>
+        <p>{{ material.descricao }}</p>
+        {% if material.video %}
+            <p>Vídeo: <video width="560" height="315" controls>
+                <source src="{{ material.video.url }}" type="video/mp4">
+                Seu navegador não suporta a reprodução de vídeos.
+            </video></p>
+        {% endif %}
+        {% if material.arquivo %}
+            <p>Arquivo: <a href="{{ material.arquivo.url }}">{{ material.arquivo.name }}</a></p>
+        {% endif %}
+        {% if material.fotos %}
+            <p>Foto: <img src="{{ material.fotos.url }}" alt="{{ material.nome }}" width="560" height="315"></p>
+        {% endif %}
+    {% endfor %}
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
+
+{% endblock %}
