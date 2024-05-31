@@ -2,17 +2,20 @@
 
 {% load static %}
 
-{% block title %}Detalhes da Pasta{% endblock %}
+{% block title %}Detalhes da Trilha{% endblock %}
 
 {% block content %}
 
 <div>
-    <h1>Detalhes da Pasta</h1>
+    <h1>Detalhes da Trilha</h1>
     <p>Nome: {{ pasta.nome }}</p>
     <p>Descrição: {{ pasta.descricao }}</p>
 
+    {% if request.user.is_staff %}
     <a href="{% url 'edit-pasta' pasta.pk %}">Editar</a>
     <a href="{% url 'delete-pasta' pasta.pk %}" class="delete-link">Delete</a>
+    <a href="{% url 'add-material' pasta.pk %}">Add material</a>
+    {% endif %}
 
 </div>
 

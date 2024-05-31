@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
-{% block title %}Editar Pasta{% endblock %}
+{% block title %}Editar Trilha{% endblock %}
 
 {% block content %}
 
 <div>
-    <h1>Editar Pasta</h1>
+    <h1>Editar Trilha</h1>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}

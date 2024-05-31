@@ -99,6 +99,26 @@ def material_add(request):
     })
 
 @login_required
+def material_add_in_pasta(request, pk):
+    pasta = get_object_or_404(Pasta, pk=pk)
+
+    if request.method == 'POST':
+        form = AddMaterial(request.POST, request.FILES)
+        if form.is_valid():
+            material = form.save(commit=False)
+            material.pasta = pasta  # Define a pasta associada
+            material.created_by = request.user
+            material.save()
+            return redirect('detail-pasta', pk=pasta.pk)
+    else:
+        form = AddMaterial()
+
+    return render(request, 'materiais/material_add.html', {
+        'form': form,
+        'pasta': pasta
+    })
+
+@login_required
 def material_list(request):
     materiais = Material.objects.all()
     return render(request, 'materiais/material_list.html', {

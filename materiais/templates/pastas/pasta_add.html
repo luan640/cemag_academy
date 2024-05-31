@@ -1,11 +1,11 @@
 {% extends 'base.html' %}
 
-{% block title %}Adicionar Pasta{% endblock %}
+{% block title %}Adicionar Trilha{% endblock %}
 
 {% block content %}
 
 <div>
-    <h1>Adicionar Nova Pasta</h1>
+    <h1>Adicionar Nova Trilha</h1>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}

@@ -7,7 +7,7 @@ from cadastros.models import Funcionario,Setor
 
 def validate_file_type(value):
     ext = os.path.splitext(value.name)[1]  # Obtém a extensão do arquivo
-    valid_extensions = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.mp4', '.mov', '.avi']
+    valid_extensions = ['.pdf', '.doc', '.docx', '.jpg', '.jpeg', '.png', '.mp4', '.mov', '.avi','.csv']
     if not ext.lower() in valid_extensions:
         raise ValidationError('Tipo de arquivo não suportado.')
 

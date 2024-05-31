@@ -27,4 +27,11 @@ class AddPasta(forms.ModelForm):
 class AddMaterial(forms.ModelForm):
     class Meta:
         model = Material
-        fields = ('nome','descricao','pasta','video','arquivo','fotos')
+        fields = ('nome', 'descricao', 'pasta', 'video', 'arquivo', 'fotos')
+        widgets = {
+            'pasta': forms.HiddenInput()  # Esconda o campo 'pasta'
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['pasta'].required = False  # Certifique-se de que o campo não é obrigatório no formulário

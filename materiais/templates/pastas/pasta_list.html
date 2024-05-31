@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Lista pastas{% endblock %}
+{% block title %}Lista trilhas{% endblock %}
 
 {% block content %}
 
@@ -18,19 +18,15 @@
 </form>
 
 <div>
-    <h1>Pastas</h1>
+    <h1>Trilhas</h1>
 
     {% if request.user.is_staff %}
     
-    <a href="{% url 'add-pasta' %}">Add Pasta</a>
+    <a href="{% url 'add-pasta' %}">Add Trilha</a>
 
     {% endif %}
 
     {% if pastas %}
-
-    <div>
-        <p>Name</p>
-    </div>
 
     {% for pasta in pastas %}
 
