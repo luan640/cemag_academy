@@ -9,8 +9,7 @@
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
         {{ form.as_p }}
-        <p>Trilha: {{ pasta.nome }}</p>
-        <input type="hidden" name="pasta" value="{{ pasta.pk }}">
+        
         <button type="submit">Salvar</button>
     </form>
 </div>

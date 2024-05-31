@@ -131,3 +131,20 @@ def material_detail(request, pk):
     return render(request, 'materiais/material_detail.html', {
         'material': material
     })
+
+@login_required
+def material_edit(request, pk_material, pk_pasta):
+    material = get_object_or_404(Material, pk=pk_material)
+    pasta = get_object_or_404(Pasta, pk=pk_pasta)
+
+    if request.method == 'POST':
+        form = AddMaterial(request.POST, instance=material)
+        if form.is_valid():
+            material = form.save(commit=False)
+            material.save()
+            form.save_m2m()  # Salva os campos ManyToMany após salvar o objeto principal
+            messages.success(request, 'Material editada com sucesso.')
+            return redirect('detail-pasta', pk=pasta.pk)
+    else:
+        form = AddMaterial(instance=material)
+    return render(request, 'materiais/material_edit.html', {'form': form})

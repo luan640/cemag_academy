@@ -37,7 +37,11 @@
         {% if material.fotos %}
             <p>Foto: <img src="{{ material.fotos.url }}" alt="{{ material.nome }}" width="560" height="315"></p>
         {% endif %}
+
+        <a href="{% url 'edit-material' material.pk pasta.pk %}">Editar</a>
     {% endfor %}
+
+    
 
 </div>
 
