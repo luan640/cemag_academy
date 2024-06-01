@@ -136,15 +136,24 @@ def material_detail(request, pk):
 def material_edit(request, pk_material, pk_pasta):
     material = get_object_or_404(Material, pk=pk_material)
     pasta = get_object_or_404(Pasta, pk=pk_pasta)
+    
+    # Verificar se o material pertence à pasta
+    if material.pasta != pasta:
+        messages.error(request, 'Material não pertence à pasta especificada.')
+        return redirect('detail-pasta', pk=pasta.pk)
 
     if request.method == 'POST':
-        form = AddMaterial(request.POST, instance=material)
+        form = AddMaterial(request.POST, request.FILES, instance=material)
         if form.is_valid():
             material = form.save(commit=False)
+            material.pasta = pasta  # Garante que a pasta está sendo corretamente atribuída
             material.save()
             form.save_m2m()  # Salva os campos ManyToMany após salvar o objeto principal
-            messages.success(request, 'Material editada com sucesso.')
+            messages.success(request, 'Material editado com sucesso.')
             return redirect('detail-pasta', pk=pasta.pk)
+        else:
+            messages.error(request, 'Erro ao editar o material. Verifique os dados informados.')
     else:
         form = AddMaterial(instance=material)
-    return render(request, 'materiais/material_edit.html', {'form': form})
+    
+    return render(request, 'materiais/material_edit.html', {'form': form, 'material': material, 'pasta': pasta})

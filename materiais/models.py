@@ -43,3 +43,12 @@ class Material(models.Model):
 
     class Meta:
         verbose_name_plural = "Materiais"
+
+class Visualizacao(models.Model):
+    funcionario = models.ForeignKey(Funcionario, related_name='visualizacoes', on_delete=models.CASCADE)
+    pasta = models.ForeignKey(Pasta, related_name='visualizacoes', on_delete=models.CASCADE)
+    material = models.ForeignKey(Material, related_name='visualizacoes', on_delete=models.CASCADE)
+    visualizado_em = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.funcionario} visualizou {self.material} em {self.visualizado_em}'
