@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 
-from .models import Pasta,Material
+from .models import Pasta,Material,Visualizacao
 from .forms import AddPasta,AddMaterial
 from cadastros.models import Funcionario
 
@@ -52,9 +52,13 @@ def pastas_detail(request, pk):
         # Se o setor do usuário estiver dentro dos setores da pasta OU
         # Se a matrícula do usuário estiver na lista de funcionários da pasta
         materiais = Material.objects.filter(pasta=pasta)
+        
+        visualizacoes = Visualizacao.objects.filter(funcionario_id=request.user.matricula, material__in=materiais).values_list('material_id', flat=True)
+
         return render(request, 'pastas/pasta_detail.html', {
             'pasta': pasta,
             'materiais': materiais,
+            'visualizacoes': visualizacoes,
         })
     else:
         return render(request, '403.html')
@@ -79,7 +83,7 @@ def pasta_delete(request, pk):
     pasta = get_object_or_404(Pasta, pk=pk)
     pasta.delete()
 
-    messages.success(request, 'Pasta excluída com sucesso.')
+    messages.success(request, 'Trilha excluída com sucesso.')
 
     return redirect('list-pasta')
 
@@ -157,3 +161,13 @@ def material_edit(request, pk_material, pk_pasta):
         form = AddMaterial(instance=material)
     
     return render(request, 'materiais/material_edit.html', {'form': form, 'material': material, 'pasta': pasta})
+
+@login_required
+def material_delete(request, pk_material, pk_pasta):
+    pasta = get_object_or_404(Pasta,pk=pk_pasta)
+    material = get_object_or_404(Material, pk=pk_material)
+    material.delete()
+
+    messages.success(request, 'Material excluído com sucesso.')
+
+    return redirect('detail-pasta', pk=pasta.pk)

@@ -1,12 +1,12 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const deleteLink = document.querySelector('.delete-link');
-    
-    if (deleteLink) {
+    const deleteLinks = document.querySelectorAll('.delete-link');
+
+    deleteLinks.forEach(function(deleteLink) {
         deleteLink.addEventListener('click', function(event) {
-            const confirmDelete = confirm('Você quer mesmo excluir essa trilha? Processo irreversível.');
+            const confirmDelete = confirm('Você quer mesmo excluir? Processo irreversível.');
             if (!confirmDelete) {
                 event.preventDefault();
             }
         });
-    }
+    });
 });

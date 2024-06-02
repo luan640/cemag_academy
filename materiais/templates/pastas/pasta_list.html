@@ -12,11 +12,6 @@
     </ul>
 {% endif %}
 
-<form action="{% url 'logout' %}" method="post">
-    {% csrf_token %}
-    <button type="submit">Logout</button>
-</form>
-
 <div>
     <h1>Trilhas</h1>
 

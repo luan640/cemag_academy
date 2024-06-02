@@ -15,7 +15,7 @@ urlpatterns = [
     path('material/<int:pk>/detail', views.material_detail, name='detail-material'),
     path('material/add/<int:pk>/', views.material_add_in_pasta, name='add-material'),
     path('material/<int:pk_material>/edit/<int:pk_pasta>/', views.material_edit, name='edit-material'),
-    # path('material/<int:pk>/delete/', views.pasta_delete, name='delete-pasta'),
+    path('material/<int:pk_material>/delete/<int:pk_pasta>/', views.material_delete, name='delete-material'),
 
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
