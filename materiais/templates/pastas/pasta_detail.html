@@ -11,11 +11,15 @@
     <p>Nome: {{ pasta.nome }}</p>
     <p>Descrição: {{ pasta.descricao }}</p>
 
-    {% if request.user.is_staff %}
-    <a href="{% url 'edit-pasta' pasta.pk %}">Editar</a>
-    <a href="{% url 'delete-pasta' pasta.pk %}" class="delete-link">Excluir</a>
-    <a href="{% url 'add-material' pasta.pk %}">Add material</a>
+    {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
+        <a href="{% url 'edit-pasta' pasta.pk %}">Editar</a>
+        <a href="{% url 'delete-pasta' pasta.pk %}" class="delete-link">Excluir</a>
+        <a href="{% url 'add-material' pasta.pk %}">Add material</a>
+        <a href="{% url 'criar-prova' pasta.pk %}">Add Prova</a>
+
     {% endif %}
+
+    <a id="provaDisponivel" href="{% url 'list-prova' pasta.pk %}">Provas disponíveis</a>
 
 </div>
 
@@ -24,35 +28,49 @@
     <p id="andamentoVisualizacoes"></p>
 
     <h1>Materiais</h1>
-    
+
     {% for material in materiais %}
 
-        <h2>{{ material.nome }}</h2>
-        <p>{{ material.descricao }}</p>
-        {% if material.video %}
-            <p>Vídeo:
-                <video width="560" height="315" controls>
-                    <source src="{{ material.video.url }}" type="video/mp4">
-                    Seu navegador não suporta a reprodução de vídeos.
-                </video>
-            </p>
-        {% endif %}
-        {% if material.arquivo %}
-            <p>Arquivo: <a href="{{ material.arquivo.url }}">{{ material.arquivo.name }}</a></p>
-        {% endif %}
-        {% if material.fotos %}
-            <p>Foto: <img src="{{ material.fotos.url }}" alt="{{ material.nome }}" width="560" height="315"></p>
-        {% endif %}
+    <h2>{{ material.nome }}</h2>
+    <p>{{ material.descricao }}</p>
+
+    {% if material.video %}
+    <p>Vídeo:
+        <video width="560" height="315" controls>
+            <source src="{{ material.video.url }}" type="video/mp4">
+            Seu navegador não suporta a reprodução de vídeos.
+        </video>
+    </p>
+    {% endif %}
+
+    {% if material.arquivo %}
+    <p>Arquivo: <a href="{{ material.arquivo.url }}">{{ material.arquivo.name }}</a></p>
+    {% endif %}
+
+    {% if material.fotos %}
+    <p>Foto: <img src="{{ material.fotos.url }}" alt="{{ material.nome }}"
+            width="560" height="315"></p>
+    {% endif %}
     
-        <input class="material-visualizado" type="checkbox" {% if material.id in visualizacoes %}checked{% endif %}> Visualizado
-        {% if request.user.is_staff %}
-            <a href="{% url 'edit-material' material.pk pasta.pk %}">Editar</a>
-            <!-- <a href="{% url 'delete-material' material.pk pasta.pk %}" class="delete-link">Excluir</a> -->
-        {% endif %}
+    {% if material.video_youtube %}
+    <iframe width="560" height="315" src="https://www.youtube.com/embed/{{material.video_youtube}}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+    {% endif %}
+
+    <input
+        class="material-visualizado"
+        type="checkbox"
+        data-material-id="{{ material.id }}"
+        data-pasta-id="{{ material.pasta.id }}"
+        data-url="{% url 'registrar_visualizacao' %}"
+        {% if material.id in visualizacoes %}checked{% endif %}
+    > Visualizado
+
+    {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
+    <a href="{% url 'edit-material' material.pk pasta.pk %}">Editar</a>
+    <a href="{% url 'delete-material' material.pk pasta.pk %}" class="delete-link">Excluir</a>
+    {% endif %}
 
     {% endfor %}
-
-
 
 </div>
 
@@ -62,5 +80,6 @@
 
 <script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
 <script src="{% static 'js/contador_andamento.js' %}"></script>
+<script src="{% static 'js/visualizador.js' %}"></script>
 
 {% endblock %}

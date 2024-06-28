@@ -10,7 +10,7 @@ def add_user(request):
         form = CustomUserCreationForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
-            user.is_staff = form.cleaned_data['is_staff']
+            # user.is_staff = form.cleaned_data['is_staff']
             user.save()
             # Se o formulário for válido e o usuário for adicionado com sucesso, você pode redirecionar para a mesma página ou atualizar a página atual
             return render(request, 'user/create_user.html', {'form': CustomUserCreationForm(), 'success_message': 'User added successfully.'})

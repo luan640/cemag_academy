@@ -3,7 +3,7 @@ from django.core.exceptions import ValidationError
 import os
 
 from users.models import CustomUser
-from cadastros.models import Funcionario,Setor
+from cadastros.models import Funcionario,Setor,AreaTrilha
 
 def validate_file_type(value):
     ext = os.path.splitext(value.name)[1]  # Obtém a extensão do arquivo
@@ -17,7 +17,7 @@ class Pasta(models.Model):
     descricao = models.TextField(null=True, blank=True)
     setores = models.ManyToManyField(Setor, related_name='pastas_setores', blank=True)
     funcionarios = models.ManyToManyField(Funcionario, related_name='pastas_funcionarios', blank=True)
-
+    area_trilha = models.ForeignKey(AreaTrilha, related_name='pasta_areatrilha', on_delete=models.CASCADE)
     created_by = models.ForeignKey(CustomUser, related_name='pasta_user', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
@@ -30,10 +30,10 @@ class Material(models.Model):
     pasta = models.ForeignKey(Pasta, related_name='pasta_material', on_delete=models.CASCADE)
     nome = models.CharField(max_length=200)
     descricao = models.TextField(null=True, blank=True)
+    video_youtube = models.CharField(max_length=200, null=True, blank=True)
     video = models.FileField(upload_to='videos/', null=True, blank=True, validators=[validate_file_type])
     arquivo = models.FileField(upload_to='arquivos/', null=True, blank=True, validators=[validate_file_type])
     fotos = models.ImageField(upload_to='fotos/', null=True, blank=True, validators=[validate_file_type])
-    
     created_by = models.ForeignKey(CustomUser, related_name='material_user', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)

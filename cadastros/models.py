@@ -1,8 +1,9 @@
+
 from django.db import models
 
 class Area(models.Model):
 
-    nome = models.CharField(max_length=100, primary_key=True)
+    nome = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
 
@@ -10,19 +11,26 @@ class Area(models.Model):
 
 class Setor(models.Model):
 
-    area = models.ForeignKey(Area, related_name='setor_area', on_delete=models.DO_NOTHING)
-    nome = models.CharField(max_length=100, primary_key=True)
+    area = models.ForeignKey(Area, related_name='setor_area', on_delete=models.CASCADE)
+    nome = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
 
         return self.nome
 
-
 class Funcionario(models.Model):
 
-    matricula = models.CharField(max_length=200, primary_key=True)
+    matricula = models.IntegerField(unique=True)
     nome = models.CharField(max_length=200)
-    setor = models.ManyToManyField(Setor, related_name='funcionario_setor')
+    setor = models.ForeignKey(Setor, related_name='funcionario_setor', on_delete=models.CASCADE) 
+
+    def __str__(self):
+        
+        return self.nome
+
+class AreaTrilha(models.Model):
+
+    nome = models.CharField(max_length=100, unique=True)
 
     def __str__(self):
         

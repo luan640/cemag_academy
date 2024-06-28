@@ -26,7 +26,38 @@ SECRET_KEY = 'django-insecure-ipvu9zm)b!zsyn^4_^bdas8s02davc2g#ys+_tl*+c0%j74jv(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['fc61-186-225-44-230.ngrok-free.app','127.0.0.1']
+# LOGGING = {
+#     'version': 1,
+#     'disable_existing_loggers': False,
+#     'handlers': {
+#         'console': {
+#             'level': 'DEBUG',
+#             'class': 'logging.StreamHandler',
+#         },
+#     },
+#     'loggers': {
+#         'django': {
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#         'cadastros': {  # Substitua 'myapp' pelo nome do seu aplicativo
+#             'handlers': ['console'],
+#             'level': 'DEBUG',
+#             'propagate': True,
+#         },
+#     },
+# }
+
+CSRF_COOKIE_SECURE = False  # Defina como True em produção
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'  # Pode ser 'Strict', 'Lax' ou 'None'
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://3d62-186-225-44-230.ngrok-free.app'
+]
+
+ALLOWED_HOSTS = ['3d62-186-225-44-230.ngrok-free.app','127.0.0.1']
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
@@ -45,7 +76,10 @@ INSTALLED_APPS = [
     'users',
     'cadastros',
     'materiais',
-
+    'avaliacoes',
+    'biblioteca',
+    
+    
 ]
 
 MIDDLEWARE = [
@@ -109,7 +143,7 @@ AUTH_PASSWORD_VALIDATORS = [
     # },
 ]
 
-LOGIN_REDIRECT_URL = '/materiais/pasta/'  # Define a URL de redirecionamento após o login
+LOGIN_REDIRECT_URL = '/home'  # Define a URL de redirecionamento após o login
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -120,12 +154,19 @@ TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+    # os.path.join(BASE_DIR, 'my_app/static'),
+]
+
+# settings.py
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

@@ -15,27 +15,39 @@
 <div>
     <h1>Trilhas</h1>
 
-    {% if request.user.is_staff %}
+    {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
     
     <a href="{% url 'add-pasta' %}">Add Trilha</a>
-
+    
     {% endif %}
 
     {% if pastas %}
 
     {% for pasta in pastas %}
 
+    {% if request.user.type == 'ADM' %}
+    
     <div>
-        <p>
-            <a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}} - {{pasta.descricao}}</a> 
-        </p>
+        <ul>
+            <li><a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}} - {{pasta.descricao}}</a> <a href="{% url 'frequencia-pasta' pasta.pk %}">Ficha de frequência</a></li>
+        </ul>
     </div>
+
+    {% else %}
+
+    <div>
+        <ul>
+            <li><a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}} - {{pasta.descricao}}</a></li>
+        </ul>
+    </div>
+
+    {% endif %}
 
     {% endfor %}
 
     {% else %}
 
-    <p>Sem pastas</p>
+    <p>Sem trilhas</p>
 
     {% endif %}
 
