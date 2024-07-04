@@ -1,0 +1,36 @@
+
+{% load custom_filters %} 
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ prova.titulo }}</title>
+</head>
+<body>
+    <h1>{{ prova.titulo }}</h1>
+    <p>{{ prova.descricao }}</p>
+
+    <form id="realizar-prova-form" method="post">
+        {% csrf_token %}
+        {% for questao in questoes %}
+            <div class="questao">
+                <h3>{{ questao.enunciado }}</h3>
+                {% if questao.tipo == 'objetiva' %}
+                    {% with questao.pk as questao_pk %}
+                        {% for alternativa in alternativas|get_item:questao_pk %}
+                            <div class="alternativa">
+                                <input type="radio" id="alternativa_{{ alternativa.id }}" name="questao_{{ questao.id }}" value="{{ alternativa.id }}" {% if forloop.first %}required{% endif %}>
+                                <label for="alternativa_{{ alternativa.id }}">{{ alternativa.texto }}</label>
+                            </div>
+                        {% endfor %}
+                    {% endwith %}
+                {% elif questao.tipo == 'dissertativa' %}
+                    <textarea name="questao_{{ questao.id }}" required></textarea>
+                {% endif %}
+            </div>
+        {% endfor %}
+        <button type="submit">Enviar Prova</button>
+    </form>
+
+</body>
+</html>

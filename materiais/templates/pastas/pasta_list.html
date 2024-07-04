@@ -2,6 +2,24 @@
 
 {% block title %}Lista trilhas{% endblock %}
 
+{% block links %}
+<style>
+    .btn-pastel {
+        background-color: #5da57c; /* Cor verde pastel */
+        color: white; /* Cor do texto */
+        border: none; /* Remover borda */
+    }
+
+    .btn-pastel:hover {
+        background-color: #41d882; /* Cor mais escura no hover */
+    }
+
+    .btn-pastel i {
+        margin-right: 5px; /* Espaço entre o ícone e o texto */
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 
 {% if messages %}
@@ -12,45 +30,92 @@
     </ul>
 {% endif %}
 
-<div>
-    <h1>Trilhas</h1>
+<h1>Trilhas de aprendizado</h1>
 
-    {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
-    
-    <a href="{% url 'add-pasta' %}">Add Trilha</a>
-    
-    {% endif %}
-
-    {% if pastas %}
-
-    {% for pasta in pastas %}
-
-    {% if request.user.type == 'ADM' %}
-    
-    <div>
-        <ul>
-            <li><a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}} - {{pasta.descricao}}</a> <a href="{% url 'frequencia-pasta' pasta.pk %}">Ficha de frequência</a></li>
-        </ul>
+<div class="row mb-3">
+    <div class="col-lg-8 mx-auto text-end">
+        <button class="btn btn-pastel" type="button" data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+            <i class="fas fa-plus"></i> Adicionar trilha
+        </button>
     </div>
-
-    {% else %}
-
-    <div>
-        <ul>
-            <li><a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}} - {{pasta.descricao}}</a></li>
-        </ul>
-    </div>
-
-    {% endif %}
-
-    {% endfor %}
-
-    {% else %}
-
-    <p>Sem trilhas</p>
-
-    {% endif %}
-
 </div>
 
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight"
+    aria-labelledby="offcanvasRightLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasRightLabel">Adicionar Trilha</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"
+            aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        {% include 'pastas/forms/pasta_add.html' %}
+    </div>
+</div>
+
+<div class="row">
+    
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">Trilhas</div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% if pastas %}
+                    {% for pasta in pastas %}
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100">
+                            <div>
+                                {% if request.user.type == 'ADM' %}
+                                <h3><a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}} - {{pasta.descricao}}</a> <a href="{% url 'frequencia-pasta' pasta.pk %}">Ficha de frequência</a></h3>
+                                {% else %}
+                                <h3><a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}} - {{pasta.descricao}}</a></h3>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100">
+                            <div>
+                                <h3>Sem trilhas</h3>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function submitTrilha(form) {
+        const formData = new FormData(form);
+        fetch(form.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Lidar com a resposta do servidor após o envio do formulário
+            if (data.success) {
+                // Formulário enviado com sucesso
+                // Fechar o offcanvas, atualizar a lista de livros, etc.
+            } else {
+                // Erro no envio do formulário
+                // Exibir mensagem de erro, etc.
+            }
+        })
+        .catch(error => {
+            console.error("Erro ao enviar formulário:", error);
+        });
+    }
+</script>
 {% endblock %}

@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% load custom_filters %}
+
+{% block title %}Correção de Questões Dissertativas{% endblock %}
+
+{% block content %}
+<div>
+    <h2>Corrigir Questões Dissertativas - {{ prova.titulo }}</h2>
+    <h3>Funcionário: {{ funcionario.matricula }} - {{ funcionario.first_name }} {{ funcionario.last_name }}</h3>
+
+    <form method="post">
+        {% csrf_token %}
+        {{ formset.management_form }}
+        {% for form, enunciado, resposta in questoes_e_respostas %}
+            <div class="questao">
+                <h4>{{ enunciado }}</h4>
+                <p>Resposta do usuário: {{ resposta }}</p>
+                {{ form.as_table }}
+            </div>
+        {% endfor %}
+            <button type="submit">Salvar Correções</button>
+    </form>
+    
+</div>
+{% endblock %}

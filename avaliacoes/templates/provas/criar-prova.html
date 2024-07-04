@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Criar Prova{% endblock %}
+
+{% block content %}
+
+<p>Você está criando a prova para a trilha: {{ pasta.nome }}</p>
+<p id="idTrilha">{{ pasta.pk }}</p>
+
+<form id="prova-form">
+    <label for="titulo">Título da Prova:</label>
+    <input type="text" id="titulo" name="titulo" required>
+
+    <label for="descricao">Descrição:</label>
+    <textarea id="descricao" name="descricao" required></textarea>
+
+    <h3>Questões</h3>
+    <div id="questoes-container"></div>
+
+    <button type="button" onclick="adicionarQuestao()">Adicionar
+        Questão</button>
+    <button type="submit">Salvar Prova</button>
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="{% static 'js/criar-prova.js' %}"></script>
+
+{% endblock %}

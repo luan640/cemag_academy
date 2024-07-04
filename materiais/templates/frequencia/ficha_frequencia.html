@@ -1,0 +1,142 @@
+{% load custom_filters %}
+
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Ficha de Frequência</title>
+        <style>
+            .header-container {
+            display: flex;
+            align-items: flex-start; /* Alinha a logo ao topo */
+            justify-content: space-between;
+            padding: 20px;
+            border-bottom: 1px solid #ccc;
+            }
+
+            .logo-container img {
+            max-width: 150px; /* Define um tamanho máximo para a logo */
+            height: auto;  /* Mantém a proporção da imagem */
+            }
+
+            .header-content table {
+            width: 300px; /* Largura fixa da tabela */
+            border-collapse: collapse; /* Mescla as bordas das células */
+            }
+
+            .header-content th, .header-content td {
+            padding: 8px;
+            border: 1px solid #ccc; /* Adiciona bordas às células */
+            text-align: left;
+            }
+        </style>
+    </head>
+    <body>
+
+        <div class="header-content">
+            <table>
+                <tr>
+                    <td rowspan="4">LOGO CEMAG</td>
+                    <td colspan="3" rowspan="2">FREQUÊNCIA DE TREINAMENTO E
+                        DESENVOLVIMENTO</td>
+                    <td>CÓDIGO:</td>
+                    <td>RQ GP-004-001</td>
+                </tr>
+                <tr>
+                    <td>DATA EMISSÃO:</td>
+                    <td>05/04/2024</td>
+                </tr>
+                <tr>
+                    <td colspan="3" rowspan="2">GESTÃO DE PESSOAS</td>
+                    <td>DATA REVISÃO:</td>
+                    <td>-</td>
+                </tr>
+                <tr>
+                    <td>PÁGINA:</td>
+                    <td>1/1</td>
+                </tr>
+            </table>
+        </div>
+
+        <hr>
+        <div class="header-content">
+
+            <table>
+                <tbody>
+                    <tr>
+                        <td colspan="5">{{ pasta }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Data/Horário: N/A</td>
+                        <td colspan="3">Instrutor: N/A</td>
+                    </tr>
+                    <tr>
+                        <td>Local: Online</td>
+                        <td>Setor: N/A</td>
+                        <td colspan="3">Tipo: Interno</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">Carga horária: 30min.</td>
+                        <td colspan="3">Data limite da avaliação: N/A</td>
+                    </tr>
+                </tbody>
+            </table>
+            <table>
+                <tbody>
+                    <tr>
+                        <td colspan="2" rowspan="2">Funcionário</td>
+                        <td colspan="2" rowspan="2">Data de visualização</td>
+                        <td colspan="2">Avaliação do Gestor</td>
+                    </tr>
+                    <tr>
+                        <td>Foi eficaz?</td>
+                        <td>Data de Avaliação</td>
+                    </tr>
+                    {% for funcionario in funcionarios %}
+                        {% for visualizacao in visualizacoes_por_funcionario %}
+                            {% if visualizacao.funcionario == funcionario.id %}
+                            <tr>
+                                <td colspan="2">{{ funcionario.matricula }} - {{ funcionario.nome }}</td>
+                                <td colspan="2">{{ visualizacao.visualizado_em }}</td>
+                                <td>Sim &#9744;Não &#9744;</td>
+                                <td> </td>
+                            </tr>
+                            {% endif %}
+                        {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- <table>
+                <thead>
+                    <tr>
+                        <th>Funcionário</th>
+                        <th>Data de visualização</th>
+                        <th>Avaliação do Gestor</th>
+                        <th>Foi eficaz?
+                            Sim | Não
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for funcionario in funcionarios %}
+                    {% for visualizacao in visualizacoes_por_funcionario %}
+                    {% if visualizacao.funcionario == funcionario.id %}
+                    <tr>
+                        <td>{{ funcionario.matricula }} - {{ funcionario.nome }}</td>
+                        <td>{{ visualizacao.visualizado_em }}</td>
+                        <td></td>
+                        <td>
+                            Sim &#9744;
+                            Não &#9744;
+                        </td>
+                    </tr>
+                    {% endif %}
+                    {% endfor %}
+                    {% endfor %}
+                </tbody>
+            </table> -->
+        
+        </div>        
+    </body>
+</html>

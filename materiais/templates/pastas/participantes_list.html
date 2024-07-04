@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Lista trilhas{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<div>
+    <h1>Participantes</h1>
+
+    <ul>
+        {% for participante in lista_participantes %}
+        <li>
+            <p>{{participante.matricula}} - {{participante.nome}}</p>
+            {% if participante.realizou_prova %}
+            <a href="{% url 'corrigir-prova' pk_prova=prova.pk pk_user=participante.matricula %}">Corrigir prova</a>
+            <a href="#">Refazer prova</a> <!-- Descartar prova anterior -->
+            {% else %}
+            <p>Participante ainda não realizou a prova</p>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+
+</div>
+
+{% endblock %}

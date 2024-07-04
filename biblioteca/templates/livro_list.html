@@ -1,0 +1,366 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block title %}Biblioteca{% endblock %}
+
+{% block links %}
+<style>
+
+    .lightbox {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        padding-top: 60px;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.8);
+    }
+
+    .lightbox-content {
+        margin: auto;
+        display: block;
+        width: 50%;
+        max-width: 500px;
+    }
+
+    .lightbox-close {
+        position: absolute;
+        right: 35px;
+        color: #f1f1f1;
+        font-size: 40px;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .lightbox-close:hover,
+    .lightbox-close:focus {
+        color: #bbb;
+        text-decoration: none;
+        cursor: pointer;
+    }
+    
+    .list-group-item {
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 15px;
+    margin-bottom: 15px;
+    }
+
+    .list-group-item .img-thumbnail {
+        border: none;
+        padding: 0;
+    }
+
+    .bookDetailsBox {
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: 10px;
+        justify-content: end;
+    }
+
+    .bookProperty {
+        display: flex;
+        margin-right: 15px;
+    }
+
+    .property_label {
+        font-weight: bold;
+        margin-right: 5px;
+    }
+
+    .property_value {
+        color: #333;
+    }
+
+    .book-rating {
+        display: flex;
+        align-items: center;
+    }
+
+    .book-rating-interest-score, .book-rating-quality-score {
+        font-weight: bold;
+    }
+
+    .star-rating {
+        font-size: 0;
+        white-space: nowrap;
+        display: inline-block;
+        width: 125px; /* Diminuído para ajustar ao layout */
+        height: 25px; /* Diminuído para ajustar ao layout */
+        overflow: hidden;
+        position: relative;
+        background:
+            url('data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iMjBweCIgaGVpZ2h0PSIyMHB4IiB2aWV3Qm94PSIwIDAgMjAgMjAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDIwIDIwIiB4bWw6c3BhY2U9InByZXNlcnZlIj48cG9seWdvbiBmaWxsPSIjREREREREIiBwb2ludHM9IjEwLDAgMTMuMDksNi41ODMgMjAsNy42MzkgMTUsMTIuNzY0IDE2LjE4LDIwIDEwLDE2LjU4MyAzLjgyLDIwIDUsMTIuNzY0IDAsNy42MzkgNi45MSw2LjU4MyAiLz48L3N2Zz4=');  
+        background-size: contain;
+    }
+
+    .star-rating i {
+        opacity: 0;
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 20%;
+        z-index: 1;
+        background: 
+            url('data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iMjBweCIgaGVpZ2h0PSIyMHB4IiB2aWV3Qm94PSIwIDAgMjAgMjAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDIwIDIwIiB4bWw6c3BhY2U9InByZXNlcnZlIj48cG9seWdvbiBmaWxsPSIjRkZERjg4IiBwb2ludHM9IjEwLDAgMTMuMDksNi41ODMgMjAsNy42MzkgMTUsMTIuNzY0IDE2LjE4LDIwIDEwLDE2LjU4MyAzLjgyLDIwIDUsMTIuNzY0IDAsNy42MzkgNi45MSw2LjU4MyAiLz48L3N2Zz4=');  
+        background-size: contain;
+    }
+
+    .star-rating input { 
+        -moz-appearance: none;
+        -webkit-appearance: none;
+        opacity: 0;
+        display: inline-block;
+        width: 20%;
+        height: 100%; 
+        margin: 0;
+        padding: 0;
+        z-index: 2;
+        position: relative;
+    }
+
+    .star-rating input:hover + i,
+    .star-rating input:checked + i {
+        opacity: 1;    
+    }
+
+    .star-rating i ~ i {
+        width: 40%;
+    }
+
+    .star-rating i ~ i ~ i {
+        width: 60%;
+    }
+
+    .star-rating i ~ i ~ i ~ i {
+        width: 80%;
+    }
+
+    .star-rating i ~ i ~ i ~ i ~ i {
+        width: 100%;
+    }
+    .star-rating:hover {
+        transform: scale(1.2);
+    }
+
+    .star {
+        color: gold;
+        pointer-events: none; /* Para que o efeito hover seja no contêiner */
+    }
+
+    .btn-pastel {
+        background-color: #5da57c; /* Cor verde pastel */
+        color: white; /* Cor do texto */
+        border: none; /* Remover borda */
+    }
+
+    .btn-pastel:hover {
+        background-color: #41d882; /* Cor mais escura no hover */
+    }
+
+    .btn-pastel i {
+        margin-right: 5px; /* Espaço entre o ícone e o texto */
+    }
+
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+<ul>
+    {% for message in messages %}
+    <li>{{ message }}</li>
+    {% endfor %}
+</ul>
+{% endif %}
+
+<h1>Biblioteca Cemag</h1>
+
+<div class="row mb-3">
+    <div class="col-lg-8 mx-auto text-end">
+        <button class="btn btn-pastel" type="button" data-bs-toggle="offcanvas"
+            data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+            <i class="fas fa-plus"></i> Adicionar livro
+        </button>
+    </div>
+</div>
+
+<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight"
+    aria-labelledby="offcanvasRightLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="offcanvasRightLabel">Adicionar Livro</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"
+            aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        {% include 'forms/livro_add.html' %}
+    </div>
+</div>
+
+<div class="row">
+    
+    <div class="col-lg-8 mx-auto">
+        <div class="card">
+            <div class="card-header">Livros</div>
+            <div class="card-body">
+                <div class="list-group">
+                    {% for livro in livros %}
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100">
+                            {% if livro.capa %}
+                            <img src="{{ livro.capa.url }}" class="img-thumbnail" alt="{{ livro.titulo }}" onclick="openLightbox('{{ livro.capa.url }}')" style="width: 150px; height: auto; margin-right: 15px;">
+                            {% else %}
+                            <img src="{% static 'img/Image_not_available.png' %}" class="img-thumbnail" alt="Sem capa disponível" style="width: 150px; height: auto; margin-right: 15px;">
+                            {% endif %}
+                            <div>
+                                <h3><a href="{{ livro.arquivo_pdf.url }}" target="_blank" style="text-decoration: underline;">{{ livro.titulo }}</a></h3>
+                                <div style="color: #333; font-size: 10pt; margin-bottom: 10px;">
+                                    {{ livro.created_by.first_name }} {{ livro.created_by.last_name }}
+                                </div>
+                                <div class="authors" style="font-style: italic;">
+                                    {{ livro.autor }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="details">
+                            <div class="bookDetailsBox">
+                                <div class="bookProperty property_year">
+                                    <div class="property_label">Ano:</div>
+                                    <div class="property_value">{{ livro.ano }}</div>
+                                </div>
+                                <div class="bookProperty property_language">
+                                    <div class="property_label">Idioma:</div>
+                                    <div class="property_value text-capitalize">{{livro.idioma}}</div>
+                                </div>
+                                <div class="bookProperty property_rating">
+                                    <div class="book-rating" title="Avaliação">
+                                        <span id="rating-{{ livro.pk }}" class="book-rating-interest-score">{{ livro.media_ratings }}</span> /
+                                        <span class="book-rating-quality-score">5,0</span>
+                                        <div class="star-rating" data-livro-id="{{ livro.pk }}">
+                                            {% for i in 5|range_custom %}
+                                                <input type="radio" name="rating-{{ livro.pk }}" id="rating-{{ livro.pk }}-{{ i }}" value="{{ i }}" {% if i <= livro.media_ratings %}checked{% endif %}><i>&#9733;</i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="lightbox" class="lightbox">
+    <span class="lightbox-close">&times;</span>
+    <img class="lightbox-content" id="lightbox-img">
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Abrir a lightbox
+    function openLightbox(imgSrc) {
+        document.getElementById('lightbox').style.display = 'block';
+        document.getElementById('lightbox-img').src = imgSrc;
+    }
+
+    // Fechar a lightbox
+    function closeLightbox() {
+        document.getElementById('lightbox').style.display = 'none';
+    }
+
+    // Fechar a lightbox ao clicar no "x"
+    document.querySelector('.lightbox-close').onclick = function() {
+        closeLightbox();
+    }
+
+    // Fechar a lightbox ao clicar fora da imagem
+    document.getElementById('lightbox').onclick = function(event) {
+        if (event.target == this) {
+            closeLightbox();
+        }
+    }
+</script>
+<script>
+    function loadOffcanvasContent(url) {
+        fetch(url, {
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'  // Indica que é uma requisição AJAX
+            }
+        })
+        .then(response => response.json())  // Parse a resposta JSON
+        .then(data => {
+            const offcanvasContent = document.getElementById('offcanvasContent');
+            if (offcanvasContent) {
+                offcanvasContent.innerHTML = data.form_html; // Atualiza o conteúdo com o HTML do formulário
+
+                // Adiciona um event listener para o envio do formulário via AJAX
+                document.getElementById('addLivroForm').addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    submitLivroForm(this);
+                });
+            } else {
+                console.error("Elemento de conteúdo do offcanvas não encontrado.");
+            }
+        })
+        .catch(error => {
+            console.error("Erro ao carregar conteúdo do offcanvas:", error);
+        });
+    }
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var starRatings = document.querySelectorAll('.star-rating input');
+    
+        starRatings.forEach(function(input) {
+            input.addEventListener('change', function() {
+                var rating = this.value;
+                var livroId = this.closest('.star-rating').getAttribute('data-livro-id');
+                
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', '{% url "add-rating" %}', true);
+                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
+    
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            var response = JSON.parse(xhr.responseText);
+                            if (response.success) {
+                                alert('Avaliação enviada com sucesso!');
+                                // Atualizar dinamicamente a exibição do rating médio do livro
+                                var novoRating = parseFloat(response.rating).toFixed(1).toString().replace(".",",");
+                                updateRatingDisplay(livroId, novoRating);
+                            } else {
+                                alert('Erro ao enviar avaliação: ' + response.message);
+                            }
+                        } else {
+                            alert('Erro ao enviar avaliação. Código de status: ' + xhr.status);
+                        }
+                    }
+                };    
+                xhr.send('livro_id=' + livroId + '&rating=' + rating);
+            });
+        });
+
+        function updateRatingDisplay(livroId, novoRating) {
+            var ratingElement = document.querySelector('#rating-' + livroId);
+            if (ratingElement) {
+                ratingElement.textContent = novoRating;
+            }
+        }
+
+    });
+</script>
+    
+{% endblock %}

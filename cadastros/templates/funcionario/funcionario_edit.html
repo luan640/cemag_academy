@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Funcionario{% endblock %}
+
+{% block content %}
+
+<div>
+    <h1>Editar Funcionario</h1>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Salvar</button>
+    </form>
+</div>
+
+{% endblock %}

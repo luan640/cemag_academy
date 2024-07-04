@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% load custom_filters %}
+
+{% block title %}Lista trilhas{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+    <ul>
+        {% for message in messages %}
+            <li>{{ message }}</li>
+        {% endfor %}
+    </ul>
+{% endif %}
+
+<div>
+    <h1>Provas para a trilha: {{ pasta.nome }}</h1>
+
+    <ul>
+        {% for prova in provas %}  
+            <li>
+                <p>{{ prova.titulo }}</p> 
+                {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
+                    {% if realizou_provas|get_item:prova.id %}    
+                        <a href="{% url 'gerar-certificado' prova.pk %}">Baixar certificado</a>
+                        <a href="#">Visualizar prova</a>
+                    {% else %}
+                        <a href="{% url 'realizar-prova' prova.pk %}">Realizar prova</a>
+                    {% endif %}
+    
+                    <a href="#">Excluir</a>  
+                    <a href="{% url 'list-participantes' prova.pk %}">Participantes</a>
+                {% else %}
+                    <a href="{% url 'realizar-prova' prova.pk %}">Realizar prova</a>
+                {% endif %}
+
+                Percentual de Acerto: {{ acertos_por_prova|get_item:prova.id|default_if_none:"0.00" }}%  
+                
+            </li>
+        {% empty %}
+            <li>Não há provas disponíveis para esta trilha.</li>
+        {% endfor %}
+
+
+    </ul>
+</div>
+
+{% endblock %}

@@ -1,0 +1,58 @@
+<form method="post" enctype="multipart/form-data" action="{% url 'add-livro' %}">
+    {% csrf_token %}
+    <div class="row mb-3">
+        <div class="col-sm-12">
+            <label for="titulo">Título:</label>
+            <input class="form-control" type="text" id="titulo" name="titulo" required>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-sm-12">
+            <label for="autor">Autor:</label>
+            <input class="form-control" type="text" id="autor" name="autor" required>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-sm-6">
+            <label for="idioma">Idioma:</label>
+            <select class="form-control" id="idioma" name="idioma" required>
+                <option value="Português">Português</option>
+                <option value="Inglês">Inglês</option>
+                <option value="Espanhol">Espanhol</option>
+                <option value="Francês">Francês</option>
+            </select>
+        </div>
+        <div class="col-sm-6">
+            <label for="ano">Ano:</label>
+            <input class="form-control" type="number" id="ano" name="ano" required>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-sm-12">
+            <label for="arquivo_pdf">Arquivo PDF:</label>
+            <input class="form-control" type="file" id="arquivo_pdf" name="arquivo_pdf" accept=".pdf" required>
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-sm-12">
+            <label for="capa">Capa:</label>
+            <input class="form-control" type="file" id="capa" name="capa" accept=".jpg, .jpeg, .png">
+        </div>
+    </div>
+    <div class="row mb-3">
+        <div class="col-sm-12 text-end">
+            <button class="btn btn-success" type="submit">Salvar</button>
+        </div>
+    </div>
+</form>
+
+{% if form_errors %}
+<div class="errors">
+    <h3>Erros no formulário:</h3>
+    <ul>
+        {% for field, errors in form_errors.items %}
+            <li>{{ field }}: {{ errors|join:", " }}</li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
