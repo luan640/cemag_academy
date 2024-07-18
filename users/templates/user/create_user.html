@@ -3,14 +3,54 @@
 {% block title %}Adicionar Usuario{% endblock %}
 
 {% block content %}
-
 <div>
     <h1>Adicionar Novo Usuario</h1>
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Salvar</button>
+        <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
+            <div class="card">
+                <div class="card-header fw-bold"><h4 class="m-2">Cadastro de Usuário</h4></div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-sm-6 mt-4">
+                            {{ form.matricula.label_tag }}
+                            {{ form.matricula }}
+                        </div>
+                        <div class="col-sm-6 mt-4">
+                            {{ form.type.label_tag }}
+                            {{ form.type }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6 mt-4">
+                            {{ form.first_name.label_tag }}
+                            {{ form.first_name }}
+                        </div>
+                        <div class="col-sm-6 mt-4">
+                            {{ form.last_name.label_tag }}
+                            {{ form.last_name }}
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-4 mt-4 align-content-end">
+                            {{ form.email.label_tag }}
+                            {{ form.email }}
+                        </div>
+                        <div class="col-sm-4 mt-4 align-content-end">
+                            {{ form.password1.label_tag }}
+                            {{ form.password1 }}
+                        </div>
+                        <div class="col-sm-4 mt-4 align-content-end">
+                            {{ form.password2.label_tag }}
+                            {{ form.password2 }}
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-end">
+                        <button class="btn btn-primary mt-4" type="submit">Salvar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </form>
 </div>
-
 {% endblock %}

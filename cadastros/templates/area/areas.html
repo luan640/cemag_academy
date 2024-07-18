@@ -15,12 +15,20 @@
     </form>
 </div>
 
-<div>
-    <ul>
-        {% for area in areas %}
-        <li><a href="{% url 'edit-area' area.pk %}">{{ area.nome }}</a> <a href="{% url 'delete-area' area.pk %}" class="delete-link">Excluir</a></li>
-        {% endfor %}
-    </ul>
+<div class="col-lg-8 mx-auto" style="margin-top: 50px;">
+    <div class="card">
+        <div class="card-header fw-bold">Lista de Setores</div>
+        <div class="card-body">
+            <ul style="padding: 0;">
+                {% for area in areas %}
+                <li class="d-flex justify-content-between fw-bold mb-2">
+                    <a href="{% url 'edit-area' area.pk %}" style="width: 80%;">{{ area.nome }}</a>
+                    <a href="{% url 'delete-area' area.pk %}" class="delete-link"><i class="fa-solid fa-trash" style="color: red;"></i></a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 </div>
 
 {% endblock %}

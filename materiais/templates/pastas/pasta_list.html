@@ -63,10 +63,19 @@
                     {% if pastas %}
                     {% for pasta in pastas %}
                     <div class="list-group-item list-group-item-action flex-column align-items-start">
-                        <div class="d-flex w-100">
+                        <div class="w-100">
                             <div>
                                 {% if request.user.type == 'ADM' %}
-                                <h3><a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}} - {{pasta.descricao}}</a> <a href="{% url 'frequencia-pasta' pasta.pk %}">Ficha de frequência</a></h3>
+                                <div class="d-flex justify-content-between">
+                                    <h3>
+                                        <a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}} - {{pasta.descricao}}</a>
+                                    </h3>
+                                    <h3>
+                                        <a href="{% url 'frequencia-pasta' pasta.pk %}" title="Ficha de frequência">
+                                            <i class="fa-solid fa-list-check"></i>
+                                        </a>
+                                    </h3>
+                                </div>
                                 {% else %}
                                 <h3><a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}} - {{pasta.descricao}}</a></h3>
                                 {% endif %}

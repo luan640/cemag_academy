@@ -7,7 +7,7 @@
 {% block content %}
 
 <div>
-    <h1>Adicionar Novo Funcionário</h1>
+    <h1>Adicionar Novo Setor</h1>
     <form method="post">
         {% csrf_token %}
         {{ form.as_p }}
@@ -15,15 +15,39 @@
     </form>
 </div>
 
-<div>
-    <ul>
-        {% for setor in setores %}
-        <li><a href="{% url 'edit-setor' setor.pk %}">{{setor.nome}} - {{setor.area}}</a> <a href="{% url 'delete-setor' setor.pk %}" class="delete-link">Excluir</a></li>
-        
-        
-        {% endfor %}
-    </ul>
+<div class="col-lg-8 mx-auto" style="margin-top: 50px;">
+    <div class="card">
+        <div class="card-header fw-bold">Lista de Setores</div>
+        <div class="card-body">
+            <ul style="padding: 0;">
+                {% for setor in setores %}
+                <li class="d-flex justify-content-between fw-bold mb-2">
+                    <a href="{% url 'edit-setor' setor.pk %}" style="width: 80%;">{{setor.nome}} - {{setor.area}}</a>
+                    <a href="{% url 'delete-setor' setor.pk %}" class="delete-link"><i class="fa-solid fa-trash" style="color: red;"></i></a>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
 </div>
+
+<div class="modal fade" id="addFuncionarioModal" tabindex="-1" aria-labelledby="addFuncionarioModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addFuncionarioModalLabel">Adicionar Novo Funcionário</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-primary">Salvar</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
 {% endblock %}
 
