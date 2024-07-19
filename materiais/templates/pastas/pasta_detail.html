@@ -6,8 +6,42 @@
 
 {% block content %}
 
+<style>
+      /* Estilo para a sobreposição da imagem */
+      .img-overlay {
+        position: relative;
+        display: inline-block;
+    }
+
+    .img-overlay img {
+        cursor: pointer;
+        transition: transform 0.3s ease;
+    }
+
+    /* Fundo da sobreposição que aparece quando a imagem é clicada */
+    .overlay-bg {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        justify-content: center;
+        align-items: center;
+        z-index: 1050; /* Coloque um z-index maior para garantir que fique à frente */
+    }
+
+    .overlay-bg img {
+        max-width: 80%; /* Ajuste o tamanho da imagem ampliada */
+        max-height: 80%;
+        border: 3px solid white; /* Adicione uma borda branca para contraste */
+        border-radius: 10px; /* Adicione bordas arredondadas */
+    }
+</style>
+
 <div class="row">
-    <div class="col-sm-7 order-2 order-sm-1" style="margin-bottom: 80px;">
+    <div class="col-md-7 order-2 order-md-1" style="margin-bottom: 80px;">
         <h1 class="mb-4 mt-4">Materiais</h1>
 
         {% for material in materiais %}
@@ -24,7 +58,7 @@
                                     <i style="width: 50px; height: auto;" class="fa-regular fa-circle-play"></i>
                                     <h5 class="mb-1">{{ material.nome }}</h5>
                                 </div>
-                                <div class="d-flex flex-column flex-sm-row justify-content-between" style="gap: 5px;">
+                                <div class="d-flex flex-column flex-md-row justify-content-between" style="gap: 5px;">
                                     {% if material.video_youtube or material.video %}
                                     <small style="font-weight: bold; border: 2px solid gray; border-radius: 10px;
                                     height: 38px;padding: 5px;">Vídeo</small>
@@ -66,48 +100,61 @@
             </div>
         </div>
 
-        <!-- Modal -->
-        <div class="modal fade" id="modal{{ material.pk }}" tabindex="-1" aria-labelledby="modalLabel{{ material.pk }}" aria-hidden="true" data-bs-backdrop="static" >
-            <div class="modal-dialog">
+        <div class="overlay-bg" id="overlayBg">
+            <img src="" alt="Imagem em destaque" id="overlayImg">
+        </div>
+        
+        <div class="modal fade" id="modal{{ material.pk }}" tabindex="-1" aria-labelledby="modalLabel{{ material.pk }}" aria-hidden="true" data-bs-backdrop="static">
+            <div class="modal-dialog" style="margin-top: 100px;">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="modalLabel{{ material.pk }}">{{ material.nome }}</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>{{ material.descricao }}</p>
+                    <div class="modal-body" style="padding: 0;">
                         {% if material.video %}
-                        <p>Vídeo:
-                            <video class="w-100" style="height: 400px;" controls>
-                                <source src="{{ material.video.url }}" type="video/mp4">
-                                Seu navegador não suporta a reprodução de vídeos.
-                            </video>
-                        </p>
+                        <video class="w-100" style="height: 400px;" controls preload="metadata">
+                            <source src="{{ material.video.url }}" type="video/mp4">
+                            Seu navegador não suporta a reprodução de vídeos.
+                        </video>
                         {% endif %}
-
+        
                         {% if material.video_youtube %}
-                        <iframe class="w-100" style="height: 400px;" src="https://www.youtube.com/embed/{{ material.video_youtube }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                        {% endif %}
-
-                        {% if material.fotos %}
-                        <p>Foto: <img src="{{ material.fotos.url }}" alt="{{ material.nome }}"
-                                class="w-100" style="height: 400px;"></p>
+                        <iframe class="w-100" style="height: 400px; border-radius: 7px;" src="https://www.youtube.com/embed/{{ material.video_youtube }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
                         {% endif %}
                         
-                        {% if material.arquivo %}
-                        <p>Arquivo: <a href="{{ material.arquivo.url }}">{{ material.arquivo.name }}</a></p>
-                        {% endif %}
-
+                        <div style="padding: 20px; overflow-y: auto; height: 300px;">
+                            <div class="d-flex justify-content-between">
+                                <h5 class="mb-4">{{ material.nome }}</h5>
+                                <div class="d-flex justify-content-end" style="gap: 20px;">
+                                    {% if material.fotos %}
+                                    <p>
+                                        <button class="btn btn-secondary img-overlay" data-img-url="{{ material.fotos.url }}">
+                                            <i class="fa-solid fa-image" title="Imagem"></i>
+                                        </button>
+                                    </p>
+                                    {% endif %}
+                
+                                    {% if material.arquivo %}
+                                    <p>
+                                        <button class="btn btn-secondary" data-file-url="{{ material.arquivo.url }}" onclick="window.open(this.getAttribute('data-file-url'), '_blank')">
+                                            <i class="fa-solid fa-file" title="Arquivo"></i>
+                                        </button>
+                                    </p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <p>{{ material.descricao }}</p>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                     </div>
                 </div>
             </div>
         </div>
         {% endfor %}
     </div>
-    <div class="col-sm-5 order-1 order-sm-2">
+    <div class="col-md-5 order-1 order-md-2">
         <h1 class="mb-4 mt-4">Detalhes da Trilha</h1>
         <div class="card">
-            <div class="card-body" style="height: 280px;">
+            <div class="card-body" style="height: 100%;">
                 <p class="d-none" id="andamentoVisualizacoes"></p>
                 <div class="d-flex align-items-baseline" style="gap: 15px;">
                     <p>Progresso: </p>
@@ -115,17 +162,39 @@
                         <div id="progressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
                     </div>
                 </div>
-                <p>Nome: {{ pasta.nome }}</p>
-                <p>Descrição: {{ pasta.descricao }}</p>
-            
+                <div class="card p-3">
+                    <div>
+                        <div class="d-flex align-items-baseline" style="gap: 10px;">
+                            <i class="fa-solid fa-file-signature"></i><strong><p>Nome: </p></strong><p style="font-weight: 600;">{{ pasta.nome }}</p>
+                        </div>
+                        <div class="d-flex align-items-baseline" style="gap: 10px;">
+                            <i class="fa-regular fa-comments"></i><strong><p style="margin: 0;">Descrição: </p></strong><p style="margin: 0; font-weight: 600;"> {{ pasta.descricao }}</p>
+                        </div>
+                    </div>    
+                </div>
+
+                <div class="card p-3" id="card_provaDisponivel">
+                    <div class="d-flex justify-content-between">
+                        <strong><a id="provaDisponivel" href="{% url 'list-prova' pasta.pk %}" style="width: 150px;">Provas disponíveis</a></strong>
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px; height: 30px;">
+                            <path id="statusIconCheck" fill="#008000" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/>
+                            <path id="statusIconXmark" fill="#ff0000" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/>
+                        </svg>
+                    </div>
+                </div>                              
+
                 {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
-                    <a href="{% url 'edit-pasta' pasta.pk %}">Editar</a>
-                    <a href="{% url 'delete-pasta' pasta.pk %}" class="delete-link">Excluir</a>
-                    <a href="{% url 'add-material' pasta.pk %}">Add material</a>
-                    <a href="{% url 'criar-prova' pasta.pk %}">Add Prova</a>
+                <div class="d-flex justify-content-between mt-2">
+                    <div>
+                        <a href="{% url 'delete-pasta' pasta.pk %}" class="btn btn-dark delete-link" style="margin: 5px; margin-left: 0;">Excluir</a>
+                        <a href="{% url 'edit-pasta' pasta.pk %}" class="btn btn-light" >Editar</a>
+                    </div>
+                    <div style="text-align: end;">
+                        <a href="{% url 'add-material' pasta.pk %}" class="btn btn-primary" style="margin: 5px; margin-right: 0;">Add material</a>
+                        <a href="{% url 'criar-prova' pasta.pk %}" class="btn btn-primary">Add Prova</a>
+                    </div>
+                </div>
                 {% endif %}
-            
-                <a id="provaDisponivel" href="{% url 'list-prova' pasta.pk %}" style="display: none; width: 150px;">Provas disponíveis</a>
             </div>
         </div>
     </div>
@@ -143,6 +212,8 @@
     const andamentoVisualizacoes = document.getElementById('andamentoVisualizacoes');
     const botaoProvas = document.getElementById('provaDisponivel'); // Seleciona o botão
     const progressBar = document.getElementById('progressBar'); // Seleciona a barra de progresso
+    const statusIconCheck = document.getElementById('statusIconCheck'); // Ícone de check
+    const statusIconXmark = document.getElementById('statusIconXmark'); // Ícone de xmark
 
     function updatePercentage() {
         const totalCheckboxes = checkboxes.length;
@@ -159,14 +230,37 @@
 
         // Atualiza o estilo da barra de progresso e o texto dentro dela
         progressBar.style.width = percentage + '%';
+        botaoProvas.style.textDecoration = 'none'
         progressBar.textContent = percentage.toFixed(2) + '%';
         progressBar.setAttribute('aria-valuenow', percentage.toFixed(2));
 
-        // Mostra/esconde o botão com base no progresso
+        // Remove as classes bg-success, bg-warning, bg-danger
+        progressBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+
+        // Adiciona a classe correta com base na porcentagem
         if (percentage === 100) {
-            botaoProvas.style.display = 'block'; // Ou 'inline-block' se preferir
+            progressBar.classList.add('bg-success');
+        } else if (percentage > 25 && percentage < 100) {
+            progressBar.classList.add('bg-warning');
         } else {
-            botaoProvas.style.display = 'none';
+            progressBar.classList.add('bg-danger');
+        }
+
+        // Atualiza os ícones e o estado do botão com base no progresso
+        if (percentage === 100) {
+            statusIconCheck.style.display = 'block';
+            statusIconXmark.style.display = 'none';
+            botaoProvas.removeAttribute('disabled');
+            botaoProvas.textContent = 'Provas disponíveis'
+            botaoProvas.style.color = '#0d6efd';
+            botaoProvas.style.pointerEvents = 'auto'; // Habilita o botão
+        } else {
+            statusIconCheck.style.display = 'none';
+            statusIconXmark.style.display = 'block';
+            botaoProvas.setAttribute('disabled', 'true');
+            botaoProvas.textContent = 'Provas indisponíveis'
+            botaoProvas.style.color = 'gray';
+            botaoProvas.style.pointerEvents = 'none'; // Desabilita o botão
         }
     }
 
@@ -177,6 +271,33 @@
     });
 });
 
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const overlayBg = document.getElementById('overlayBg');
+    const overlayImg = document.getElementById('overlayImg');
+
+    document.querySelectorAll('.img-overlay').forEach(button => {
+        button.addEventListener('click', function () {
+            const imgUrl = this.getAttribute('data-img-url');
+            // Exibe a imagem em uma visualização ou modal, ou feche o modal atual
+            const modal = this.closest('.modal');
+            if (modal) {
+                const modalInstance = bootstrap.Modal.getInstance(modal);
+                if (modalInstance) {
+                    modalInstance.hide();
+                }
+                // Aqui você pode adicionar lógica para exibir a imagem se necessário
+                window.open(imgUrl, '_blank');
+            }
+        });
+    });
+
+    overlayBg.addEventListener('click', function () {
+        overlayBg.style.display = 'none';
+    });
+});
 </script>
 
 {% endblock %}
