@@ -15,35 +15,45 @@
 {% endif %}
 
 <div>
-    <h1>Provas para a trilha: {{ pasta.nome }}</h1>
 
-    <ul>
-        {% for prova in provas %}  
-            <li>
-                <p>{{ prova.titulo }}</p> 
-                {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
-                    {% if realizou_provas|get_item:prova.id %}    
-                        <a href="{% url 'gerar-certificado' prova.pk %}">Baixar certificado</a>
-                        <a href="#">Visualizar prova</a>
-                    {% else %}
-                        <a href="{% url 'realizar-prova' prova.pk %}">Realizar prova</a>
-                    {% endif %}
-    
-                    <a href="#">Excluir</a>  
-                    <a href="{% url 'list-participantes' prova.pk %}">Participantes</a>
-                {% else %}
-                    <a href="{% url 'realizar-prova' prova.pk %}">Realizar prova</a>
-                {% endif %}
-
-                Percentual de Acerto: {{ acertos_por_prova|get_item:prova.id|default_if_none:"0.00" }}%  
+    <div class="col-md-5 order-1 order-md-2">
+        <h1>Provas para a trilha: {{ pasta.nome }}</h1>
+        <div class="card">
+            <div class="card-body" style="height: 100%;">                         
+                <ul>
+                    {% for prova in provas %}  
+                        <li>
+                            <div class="d-flex align-items-baseline" style="gap: 15px;">
+                                <p>Percentual de Acerto: </p>
+                                <div class="progress w-100" style="height: 2rem;font-size: 17px;font-weight: 700;">
+                                    <div id="progressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                                </div>
+                            </div> 
+                            <p>{{ prova.titulo }}</p> 
+                            {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
+                                {% if realizou_provas|get_item:prova.id %}    
+                                    <a href="{% url 'gerar-certificado' prova.pk %}">Baixar certificado</a>
+                                    <a href="#">Visualizar prova</a>
+                                {% else %}
+                                    <a href="{% url 'realizar-prova' prova.pk %}">Realizar prova</a>
+                                {% endif %}
                 
-            </li>
-        {% empty %}
-            <li>Não há provas disponíveis para esta trilha.</li>
-        {% endfor %}
-
-
-    </ul>
+                                <a href="#">Excluir</a>  
+                                <a href="{% url 'list-participantes' prova.pk %}">Participantes</a>
+                            {% else %}
+                                <a href="{% url 'realizar-prova' prova.pk %}">Realizar prova</a>
+                            {% endif %}
+            
+                            Percentual de Acerto: {{ acertos_por_prova|get_item:prova.id|default_if_none:"0.00" }}%  
+                            
+                        </li>
+                    {% empty %}
+                        <li>Não há provas disponíveis para esta trilha.</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock %}

@@ -10,20 +10,43 @@
     <h1>Adicionar Novo Funcionário</h1>
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Salvar</button>
+        <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
+            <div class="card">
+                <div class="card-header fw-bold">Adicionar Funcionário</div>
+                <div class="card-body">
+                    <div class="row justify-content-center align-items-end">
+                        <div class="col-sm-3 mt-4">
+                            {{ form.matricula.label_tag }}
+                            {{ form.matricula }}
+                        </div>
+                        <div class="col-sm-4 mt-4">
+                            {{ form.nome.label_tag }}
+                            {{ form.nome }}
+                        </div>
+                        <div class="col-sm-3 mt-4">
+                            {{ form.setor.label_tag }}
+                            {{ form.setor }}
+                        </div>
+                        <div class="col-sm-2 mt-4">
+                            <button class="btn btn-primary" type="submit">Salvar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </form>
 </div>
+
 
 <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
     <div class="card">
         <div class="card-header fw-bold">Lista de Funcionários</div>
         <div class="card-body">
-            <ul style="padding: 0;">
+            <ul class="list-group">
                 {% for funcionario in funcionarios %}
-                <li class="d-flex justify-content-between fw-bold mb-2">
-                    <a href="{% url 'edit-funcionario' funcionario.pk %}" style="width: 80%;">{{ funcionario.matricula }} - {{ funcionario.nome }}</a> 
-                    <a href="{% url 'delete-funcionario' funcionario.pk %}" class="delete-link"><i class="fa-solid fa-trash" style="color: red;"></i></a>
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <a href="{% url 'edit-funcionario' funcionario.pk %}" class="flex-grow-1" style="width: 80%;">{{ funcionario.matricula }} - {{ funcionario.nome }}</a> 
+                    <a href="{% url 'delete-funcionario' funcionario.pk %}" class="btn btn-link p-0 delete-link"><i class="fa-solid fa-trash" style="color: red;"></i></a>
                 </li>                  
                 {% endfor %}
             </ul>

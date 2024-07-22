@@ -68,7 +68,7 @@
                                 {% if request.user.type == 'ADM' %}
                                 <div class="d-flex justify-content-between">
                                     <h3>
-                                        <a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}} - {{pasta.descricao}}</a>
+                                        <a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}}</a>
                                     </h3>
                                     <h3>
                                         <a href="{% url 'frequencia-pasta' pasta.pk %}" title="Ficha de frequência">
@@ -77,7 +77,7 @@
                                     </h3>
                                 </div>
                                 {% else %}
-                                <h3><a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}} - {{pasta.descricao}}</a></h3>
+                                <h3><a href="{% url 'detail-pasta' pasta.pk %}">{{pasta.nome}}</a></h3>
                                 {% endif %}
                             </div>
                         </div>

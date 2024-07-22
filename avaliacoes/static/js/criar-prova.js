@@ -11,17 +11,17 @@ function adicionarQuestao() {
     questaoDiv.className = 'questao';
     questaoDiv.innerHTML = `
         <label for="questao-${questaoIndex}-enunciado">Enunciado da Questão:</label>
-        <textarea id="questao-${questaoIndex}-enunciado" name="questoes[${questaoIndex}][enunciado]" required></textarea>
+        <textarea class="form-control" id="questao-${questaoIndex}-enunciado" name="questoes[${questaoIndex}][enunciado]" required></textarea>
         
         <label for="questao-${questaoIndex}-tipo">Tipo:</label>
-        <select id="questao-${questaoIndex}-tipo" name="questoes[${questaoIndex}][tipo]" onchange="selecionarTipoQuestao(this, ${questaoIndex})" required>
+        <select class="form-control" id="questao-${questaoIndex}-tipo" name="questoes[${questaoIndex}][tipo]" onchange="selecionarTipoQuestao(this, ${questaoIndex})" required>
             <option value="dissertativa">Dissertativa</option>
             <option value="objetiva">Objetiva</option>
         </select>
 
         <div id="alternativas-container-${questaoIndex}" style="display: none;">
             <h4>Alternativas</h4>
-            <button type="button" onclick="adicionarAlternativa(${questaoIndex})">Adicionar Alternativa</button>
+            <button class="btn btn-primary" type="button" onclick="adicionarAlternativa(${questaoIndex})">Adicionar Alternativa</button>
             <div class="alternativas"></div>
         </div>
     `;
@@ -45,10 +45,10 @@ function adicionarAlternativa(questaoIndex) {
     alternativaDiv.className = 'alternativa';
     alternativaDiv.innerHTML = `
         <label for="questao-${questaoIndex}-alternativa-${alternativaIndex}-texto">Alternativa:</label>
-        <input type="text" id="questao-${questaoIndex}-alternativa-${alternativaIndex}-texto" name="questoes[${questaoIndex}][alternativas][${alternativaIndex}][texto]" required>
+        <input class="form-control" type="text" id="questao-${questaoIndex}-alternativa-${alternativaIndex}-texto" name="questoes[${questaoIndex}][alternativas][${alternativaIndex}][texto]" required>
         
         <label for="questao-${questaoIndex}-alternativa-${alternativaIndex}-correta">Correta:</label>
-        <input type="checkbox" id="questao-${questaoIndex}-alternativa-${alternativaIndex}-correta" name="questoes[${questaoIndex}][alternativas][${alternativaIndex}][correta]">
+        <input class="form-control" type="checkbox" id="questao-${questaoIndex}-alternativa-${alternativaIndex}-correta" name="questoes[${questaoIndex}][alternativas][${alternativaIndex}][correta]">
     `;
     alternativasContainer.appendChild(alternativaDiv);
 }

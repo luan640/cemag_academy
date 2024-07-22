@@ -7,29 +7,48 @@
 {% block content %}
 
 <div>
-    <h1>Adicionar Novo Setor</h1>
-    <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Salvar</button>
-    </form>
+  <h1>Adicionar Novo Funcionário</h1>
+  <form method="post">
+      {% csrf_token %}
+      <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
+          <div class="card">
+              <div class="card-header fw-bold">Adicionar Funcionário</div>
+              <div class="card-body">
+                  <div class="row justify-content-center align-items-end">
+                      <div class="col-sm-4 mt-4">
+                          {{ form.area.label_tag }}
+                          {{ form.area }}
+                      </div>
+                      <div class="col-sm-3 mt-4">
+                          {{ form.nome.label_tag }}
+                          {{ form.nome }}
+                      </div>
+                      <div class="col-sm-2 mt-4">
+                          <button class="btn btn-primary" type="submit">Salvar</button>
+                      </div>
+                  </div>
+              </div>
+          </div>
+      </div>
+  </form>
 </div>
 
 <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
-    <div class="card">
-        <div class="card-header fw-bold">Lista de Setores</div>
-        <div class="card-body">
-            <ul style="padding: 0;">
-                {% for setor in setores %}
-                <li class="d-flex justify-content-between fw-bold mb-2">
-                    <a href="{% url 'edit-setor' setor.pk %}" style="width: 80%;">{{setor.nome}} - {{setor.area}}</a>
-                    <a href="{% url 'delete-setor' setor.pk %}" class="delete-link"><i class="fa-solid fa-trash" style="color: red;"></i></a>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
+  <div class="card">
+      <div class="card-header fw-bold">Lista de Setores</div>
+      <div class="card-body">
+          <ul class="list-group">
+              {% for setor in setores %}
+              <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <a href="{% url 'edit-setor' setor.pk %}" class="flex-grow-1">{{ setor.nome }} - {{ setor.area }}</a>
+                  <a href="{% url 'delete-setor' setor.pk %}" class="btn btn-link p-0 delete-link"><i class="fa-solid fa-trash text-danger"></i></a>
+              </li>
+              {% endfor %}
+          </ul>
+      </div>
+  </div>
 </div>
+
 
 <div class="modal fade" id="addFuncionarioModal" tabindex="-1" aria-labelledby="addFuncionarioModalLabel" aria-hidden="true">
     <div class="modal-dialog">

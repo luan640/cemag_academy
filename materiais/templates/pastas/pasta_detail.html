@@ -168,7 +168,13 @@
                             <i class="fa-solid fa-file-signature"></i><strong><p>Nome: </p></strong><p style="font-weight: 600;">{{ pasta.nome }}</p>
                         </div>
                         <div class="d-flex align-items-baseline" style="gap: 10px;">
-                            <i class="fa-regular fa-comments"></i><strong><p style="margin: 0;">Descrição: </p></strong><p style="margin: 0; font-weight: 600;"> {{ pasta.descricao }}</p>
+                            <div>
+                                <i class="fa-regular fa-comments"></i>
+                            </div>
+                            <div>
+                                <strong><p style="margin: 0;">Descrição: </p></strong>
+                                <p style="margin: 0; font-weight: 600;"> {{ pasta.descricao }}</p>
+                            </div>
                         </div>
                     </div>    
                 </div>
@@ -190,8 +196,8 @@
                         <a href="{% url 'edit-pasta' pasta.pk %}" class="btn btn-light" >Editar</a>
                     </div>
                     <div style="text-align: end;">
-                        <a href="{% url 'add-material' pasta.pk %}" class="btn btn-primary" style="margin: 5px; margin-right: 0;">Add material</a>
-                        <a href="{% url 'criar-prova' pasta.pk %}" class="btn btn-primary">Add Prova</a>
+                        <a href="{% url 'add-material' pasta.pk %}" class="btn btn-dark" style="margin: 5px; margin-right: 0;">Add material</a>
+                        <a href="{% url 'criar-prova' pasta.pk %}" class="btn btn-dark">Add Prova</a>
                     </div>
                 </div>
                 {% endif %}
@@ -281,16 +287,7 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('.img-overlay').forEach(button => {
         button.addEventListener('click', function () {
             const imgUrl = this.getAttribute('data-img-url');
-            // Exibe a imagem em uma visualização ou modal, ou feche o modal atual
-            const modal = this.closest('.modal');
-            if (modal) {
-                const modalInstance = bootstrap.Modal.getInstance(modal);
-                if (modalInstance) {
-                    modalInstance.hide();
-                }
-                // Aqui você pode adicionar lógica para exibir a imagem se necessário
-                window.open(imgUrl, '_blank');
-            }
+            window.open(imgUrl, '_blank');
         });
     });
 

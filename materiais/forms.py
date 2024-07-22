@@ -41,12 +41,17 @@ class AddMaterial(forms.ModelForm):
         model = Material
         fields = ('nome', 'descricao', 'pasta', 'video', 'arquivo', 'fotos', 'video_youtube')
         widgets = {
-            'pasta': forms.HiddenInput()  # Esconda o campo 'pasta'
+            'pasta': forms.HiddenInput(),  # Esconda o campo 'pasta'
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 0, 'cols': 0})
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['pasta'].required = False  # Certifique-se de que o campo não é obrigatório no formulário
+
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.HiddenInput):
+                field.widget.attrs.update({'class': 'form-control'})
 
     def save(self, commit=True):
         material = super().save(commit=False)

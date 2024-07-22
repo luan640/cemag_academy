@@ -6,22 +6,34 @@
 
 {% block content %}
 
-<p>Você está criando a prova para a trilha: {{ pasta.nome }}</p>
-<p id="idTrilha">{{ pasta.pk }}</p>
+<h1>Criar prova</h1>
+<p id="idTrilha" class="d-none">{{ pasta.pk }}</p>
 
 <form id="prova-form">
-    <label for="titulo">Título da Prova:</label>
-    <input type="text" id="titulo" name="titulo" required>
-
-    <label for="descricao">Descrição:</label>
-    <textarea id="descricao" name="descricao" required></textarea>
-
-    <h3>Questões</h3>
-    <div id="questoes-container"></div>
-
-    <button type="button" onclick="adicionarQuestao()">Adicionar
-        Questão</button>
-    <button type="submit">Salvar Prova</button>
+    <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
+        <div class="card">
+            <div class="card-header fw-bold"><h4 class="m-2">{{ pasta.nome }} - {{ pasta.pk }}</h4></div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-6">
+                        <label for="titulo">Título da Prova:</label>
+                        <input class="form-control" type="text" id="titulo" name="titulo" required>
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="descricao">Descrição:</label>
+                        <textarea class="form-control" id="descricao" name="descricao" required></textarea>
+                    </div>
+                
+                    <h3>Questões</h3>
+                    <div id="questoes-container"></div>
+                </div>
+            </div>
+            <div class="card-footer d-flex justify-content-between">
+                <button class="btn btn-primary" type="button" onclick="adicionarQuestao()">Adicionar Questão</button>
+                <button class="btn btn-success" type="submit">Salvar Prova</button>
+            </div>
+        </div>
+    </div>
 </form>
 
 {% endblock %}
@@ -29,5 +41,6 @@
 {% block scripts %}
 
 <script src="{% static 'js/criar-prova.js' %}"></script>
+
 
 {% endblock %}
