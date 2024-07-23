@@ -8,8 +8,30 @@
     <h1>Editar Funcionario</h1>
     <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Salvar</button>
+        <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
+            <div class="card">
+                <div class="card-header fw-bold">Editar Funcionario</div>
+                <div class="card-body">
+                    <div class="row justify-content-center align-items-end">
+                        <div class="col-sm-3 mt-4">
+                            {{ form.matricula.label_tag }}
+                            {{ form.matricula }}
+                        </div>
+                        <div class="col-sm-4 mt-4">
+                            {{ form.nome.label_tag }}
+                            {{ form.nome }}
+                        </div>
+                        <div class="col-sm-3 mt-4">
+                            {{ form.setor.label_tag }}
+                            {{ form.setor }}
+                        </div>
+                        <div class="col-sm-2 mt-4">
+                            <button class="btn btn-primary" type="submit">Salvar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </form>
 </div>
 

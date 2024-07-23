@@ -12,23 +12,26 @@
     </ul>
 {% endif %}
 
-<div>
+
+<div class="col-md-9">
     <h1>Participantes</h1>
-
-    <ul>
-        {% for participante in lista_participantes %}
-        <li>
-            <p>{{participante.matricula}} - {{participante.nome}}</p>
-            {% if participante.realizou_prova %}
-            <a href="{% url 'corrigir-prova' pk_prova=prova.pk pk_user=participante.matricula %}">Corrigir prova</a>
-            <a href="#">Refazer prova</a> <!-- Descartar prova anterior -->
-            {% else %}
-            <p>Participante ainda não realizou a prova</p>
-            {% endif %}
-        </li>
-        {% endfor %}
-    </ul>
-
+    <div class="card">    
+        <div class="card-body" style="height: 100%;">                     
+            <div class="list-group">
+                {% for participante in lista_participantes %}
+                    <div class="list-group-item flex-column align-items-start" style="gap: 15px;">
+                        <p>{{participante.matricula}} - {{participante.nome}}</p>
+                        {% if participante.realizou_prova %}
+                        <a href="#"><button class="btn btn-primary mb-2">Refazer prova</button></a> <!-- Descartar prova anterior -->
+                        <a href="{% url 'corrigir-prova' pk_prova=prova.pk pk_user=participante.matricula %}"><button class="btn btn-primary mb-2">Corrigir prova</button></a>
+                        {% else %}
+                        <strong>Participante ainda não realizou a prova</strong>
+                        {% endif %}
+                    </div> 
+                {% endfor %}
+            </div>
+        </div>
+    </div>
 </div>
 
 {% endblock %}

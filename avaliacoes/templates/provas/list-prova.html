@@ -14,46 +14,78 @@
     </ul>
 {% endif %}
 
-<div>
 
-    <div class="col-md-5 order-1 order-md-2">
-        <h1>Provas para a trilha: {{ pasta.nome }}</h1>
-        <div class="card">
-            <div class="card-body" style="height: 100%;">                         
-                <ul>
+<div class="col-md-9">
+    <h1>Provas para a trilha: {{ pasta.nome }}</h1>
+    <div class="card">    
+        <div class="card-body" style="height: 100%;">                     
+                <div class="list-group">
                     {% for prova in provas %}  
-                        <li>
-                            <div class="d-flex align-items-baseline" style="gap: 15px;">
-                                <p>Percentual de Acerto: </p>
-                                <div class="progress w-100" style="height: 2rem;font-size: 17px;font-weight: 700;">
-                                    <div id="progressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
-                                </div>
-                            </div> 
-                            <p>{{ prova.titulo }}</p> 
-                            {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
-                                {% if realizou_provas|get_item:prova.id %}    
-                                    <a href="{% url 'gerar-certificado' prova.pk %}">Baixar certificado</a>
-                                    <a href="#">Visualizar prova</a>
+                    <div class="list-group-item flex-column align-items-start" style="gap: 15px;">
+                    {% with percentual_acerto=acertos_por_prova|get_item:prova.id|default_if_none:"0.00" %}
+                        <p style="font-weight: 600;">Percentual de Acerto: </p>
+                        <div class="progress w-100 mb-4" style="height: 2rem;font-size: 17px;font-weight: 700;">
+                            <div id="progressBar" class="progress-bar bg-success acertos_prova" role="progressbar" aria-valuenow="{{ percentual_acerto }}" aria-valuemin="0" aria-valuemax="100">{{ percentual_acerto }} %</div>
+                        </div>
+                        <div class="list-group">
+                            <div class="list-group-item flex-column align-items-start">
+                                <p style="font-weight: 600;">{{ prova.titulo }}</p> 
+                                <div class="d-flex justify-content-between flex-column flex-md-row text-center">
+                                {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
+                                    <div>
+                                        <a href="#"><button class="btn btn-danger mb-4" style="width: 160px;">Excluir</button></a>  
+                                        <a href="{% url 'list-participantes' prova.pk %}"><button class="btn btn-primary mb-4" style="width: 160px;">Participantes</button></a>
+                                    </div>
+                                    {% if realizou_provas|get_item:prova.id %}   
+                                    <div>
+                                        <a href="#"><button class="btn btn-primary mb-4" style="width: 160px;">Visualizar prova</button></a>
+                                        <a href="{% url 'gerar-certificado' prova.pk %}"><button class="btn btn-success mb-4" style="width: 160px;">Baixar certificado</button></a>
+                                    </div> 
+                                    {% else %}
+                                    <div class="d-flex justify-content-between">
+                                        <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Realizar prova</button></a>
+                                    </div>
+                                    {% endif %}
                                 {% else %}
-                                    <a href="{% url 'realizar-prova' prova.pk %}">Realizar prova</a>
+                                    <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-primary mb-4" style="width: 160px;">Realizar prova</button></a>
                                 {% endif %}
-                
-                                <a href="#">Excluir</a>  
-                                <a href="{% url 'list-participantes' prova.pk %}">Participantes</a>
-                            {% else %}
-                                <a href="{% url 'realizar-prova' prova.pk %}">Realizar prova</a>
-                            {% endif %}
-            
-                            Percentual de Acerto: {{ acertos_por_prova|get_item:prova.id|default_if_none:"0.00" }}%  
-                            
-                        </li>
+                                </div>
+                            </div>
+                        </div>
+                    {% endwith %}
+                    </div> 
                     {% empty %}
-                        <li>Não há provas disponíveis para esta trilha.</li>
-                    {% endfor %}
-                </ul>
+                    <p>Não há provas disponíveis para esta trilha.</p>
+            {% endfor %}
             </div>
         </div>
     </div>
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+    document.addEventListener('DOMContentLoaded',function() {
+        const acertos_prova = document.querySelectorAll(".acertos_prova")
+        console.log(acertos_prova)
+        acertos_prova.forEach(element => {
+            let acertosProvaValue = element.getAttribute('aria-valuenow');
+            acertosProvaValue = parseInt(acertosProvaValue)
+            element.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+            if (acertosProvaValue === 100) {
+                element.classList.add('bg-success');
+                element.style.width = acertosProvaValue + '%';
+            } else if (acertosProvaValue > 25 && acertosProvaValue < 100) {
+                element.classList.add('bg-warning');
+                element.style.width = acertosProvaValue + '%';
+            } else {
+                element.classList.add('bg-danger');
+                element.style.width = 0 + '%'
+            }
+        });
+    })
+</script>
 
 {% endblock %}

@@ -42,7 +42,7 @@ class AddMaterial(forms.ModelForm):
         fields = ('nome', 'descricao', 'pasta', 'video', 'arquivo', 'fotos', 'video_youtube')
         widgets = {
             'pasta': forms.HiddenInput(),  # Esconda o campo 'pasta'
-            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 0, 'cols': 0})
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 6, 'cols': 50})
         }
 
     def __init__(self, *args, **kwargs):
