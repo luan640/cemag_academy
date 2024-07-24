@@ -28,6 +28,10 @@ class AddPasta(forms.ModelForm):
         self.fields['setores'].queryset = Setor.objects.all()
         self.fields['setores'].required = False  # Torna o campo não obrigatório
 
+        for field_name, field in self.fields.items():
+            if not isinstance(field.widget, forms.HiddenInput) and not isinstance(field.widget, forms.CheckboxSelectMultiple):
+                field.widget.attrs.update({'class': 'form-control'})
+
 
     def save(self, commit=True):
         pasta = super().save(commit=False)

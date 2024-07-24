@@ -48,7 +48,7 @@ function adicionarAlternativa(questaoIndex) {
         <input class="form-control" type="text" id="questao-${questaoIndex}-alternativa-${alternativaIndex}-texto" name="questoes[${questaoIndex}][alternativas][${alternativaIndex}][texto]" required>
         
         <label for="questao-${questaoIndex}-alternativa-${alternativaIndex}-correta">Correta:</label>
-        <input class="form-control" type="checkbox" id="questao-${questaoIndex}-alternativa-${alternativaIndex}-correta" name="questoes[${questaoIndex}][alternativas][${alternativaIndex}][correta]">
+        <input type="checkbox" id="questao-${questaoIndex}-alternativa-${alternativaIndex}-correta" name="questoes[${questaoIndex}][alternativas][${alternativaIndex}][correta]">
     `;
     alternativasContainer.appendChild(alternativaDiv);
 }
