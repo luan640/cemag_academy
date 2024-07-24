@@ -40,17 +40,17 @@
             </div>
     
             <div class="col-lg-5 mb-5 mb-lg-0">
-                <div class="card">
-                    <div class="card-body py-5 px-md-5">
+                <div class="card rounded" style="background-color: #262629; border: 1px solid #424242;">
+                    <div class="card-body py-5 px-md-5" >
                         <div>
-                            <h2 class="fw-bold mb-4">Login</h2>
+                            <h2 class="fw-bold mb-4" style="color: lightgray;">Login</h2>
                         </div>
                         <!-- Form -->
                         <form method="post">
                             {% csrf_token %}
                             <!-- 2 column grid layout with text inputs for the first and last names -->
                             <!-- Email input -->
-                            <div data-mdb-input-init class="form-outline mb-4">
+                            <div data-mdb-input-init class="form-outline mb-4" style="color: lightgray;">
                                 {{ form.as_p }}
                             </div>
                             <div class="text-end">
