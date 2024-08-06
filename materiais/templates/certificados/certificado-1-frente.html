@@ -2,25 +2,29 @@
   <div class="header">
     <div class="corner-image">
       <img src="{% static 'img/SELO 50 ANOS ISOLADO_Prancheta 1.png' %}"
-        width="150" height="150" alt="Item do Certificado">
+        width="100" height="100" alt="Item do Certificado">
       <img src="{% static 'img/logo-cemagL.png' %}" width="200"
         height="100"
         alt="Item do Certificado">
     </div>
-    <img src="{% static 'img/item_certificado.png' %}"
-      alt="Item do Certificado">
   </div>
-  <h1>CERTIFICADO</h1>
-  <p>Certificamos que, para os devidos fins, o(a) funcionário(a)</p>
-  <h2>{{funcionario.nome}}</h2>
-  <div class="content">
+  <div>
+    <div style="text-align: center; margin-top: 100px;">
+      <img src="{% static 'img/item_certificado.png' %}"
+      alt="Item do Certificado">
+      <h1>CERTIFICADO</h1>
+      <p>Certificamos que, para os devidos fins, o(a) funcionário(a)</p>
+      <h2>{{funcionario.nome}}</h2>
+    </div>
+  </div>
+  <div style="text-align: center; margin-top: 30px;">
     <p>
       Concluiu o treinamento em<br>
       {{ prova.pasta.nome }} no dia {{dados_prova.data_realizacao}},<br>
       na CEMAG - Ceará Máquinas Agrícolas Ltda.
     </p>
+    <p>Fortaleza, {% now "d/m/Y" %}</p>
   </div>
-  <p>Fortaleza, {% now "d/m/Y" %}</p>
   <div class="assinaturas">
     <div class="assinatura">
       <p>_____________________________________</p>

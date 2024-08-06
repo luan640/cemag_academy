@@ -33,13 +33,13 @@
                                 <div class="d-flex justify-content-between flex-column flex-md-row text-center">
                                 {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
                                     <div>
-                                        <a href="#"><button class="btn btn-danger mb-4" style="width: 160px;">Excluir</button></a>  
-                                        <a href="{% url 'list-participantes' prova.pk %}"><button class="btn btn-primary mb-4" style="width: 160px;">Participantes</button></a>
+                                        <a href="#"><button class="btn btn-dark mb-4" style="width: 160px;">Excluir</button></a>  
+                                        <a href="{% url 'list-participantes' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Participantes</button></a>
                                     </div>
                                     {% if realizou_provas|get_item:prova.id %}   
                                     <div>
-                                        <a href="#"><button class="btn btn-primary mb-4" style="width: 160px;">Visualizar prova</button></a>
-                                        <a href="{% url 'gerar-certificado' prova.pk %}"><button class="btn btn-success mb-4" style="width: 160px;">Baixar certificado</button></a>
+                                        <a href="#"><button class="btn btn-light mb-4" style="width: 160px;">Visualizar prova</button></a>
+                                        <a href="{% url 'gerar-certificado' prova.pk pasta.pk %}"><button class="btn btn-success mb-4" style="width: 160px;">Baixar certificado</button></a>
                                     </div> 
                                     {% else %}
                                     <div class="d-flex justify-content-between">
@@ -47,7 +47,7 @@
                                     </div>
                                     {% endif %}
                                 {% else %}
-                                    <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-primary mb-4" style="width: 160px;">Realizar prova</button></a>
+                                    <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Realizar prova</button></a>
                                 {% endif %}
                                 </div>
                             </div>

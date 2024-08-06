@@ -337,7 +337,7 @@ def list_participantes(request, pk):
 #     return response
     
 #     # return render(request, "certificados/certificado1.html")
-def gerar_certificado(request, pk):
+def gerar_certificado(request, pk, pk_pasta):
     
     prova = get_object_or_404(Prova, pk=pk)
     
@@ -345,9 +345,11 @@ def gerar_certificado(request, pk):
         
     funcionario = get_object_or_404(Funcionario, matricula=request.user.matricula)
 
+    materiais = Material.objects.filter(pasta_id=pk_pasta)
             
     context = {'funcionario':funcionario,
                'prova':prova,
-               'dados_prova':prova_realizada} 
+               'dados_prova':prova_realizada,
+               'materiais':materiais}
 
     return render(request, 'certificados/certificado1.html', context=context)

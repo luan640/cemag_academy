@@ -11241,3 +11241,51 @@ body {
   font-size: 0.75rem;
   border-radius: 0.375rem !important;
 }
+
+.header .corner-image {
+  display: flex;
+  justify-content: space-between;
+}
+#html-template{
+  background-image: url("/static/img/fundo_certificado.png");
+  height: 815px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative;
+}
+#html-template1{
+  background-image: url("/static/img/fundo_certificado.png");
+  height: 815px;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  position: relative;
+}
+.assinaturas {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+.assinatura {
+  width: 45%;
+  text-align: center;
+}
+#downloadBtn {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  padding: 10px 20px;
+  font-size: 16px;
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+}
+#downloadBtn:hover {
+  background-color: #0056b3;
+}
+.page-break {
+  page-break-before: always;
+}

@@ -1,7 +1,9 @@
-<h1>CONTEÚDO</h1>
-<ul>
-  <li>Conteudo 1</li>
-  <li>Conteudo 2</li>
-  <li>Conteudo 3</li>
-  <li>Conteudo 4</li>
-</ul>
+
+<div style="text-align: center;">
+  <div>
+    <h1 style="margin: 0; padding-top: 50px;">CONTEUDO</h1>
+    {% for material in materiais %}
+      <p>{{material.nome}}</p>
+    {% endfor %}
+  </div>
+</div>
