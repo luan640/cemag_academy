@@ -1,26 +1,7 @@
 <form method="post" action="{% url 'add-pasta' %}">
     {% csrf_token %}
-    <label for="id_nome">Nome:</label>
-    <input class="form-control" type="text" id="id_nome" name="nome" required><br><br>
-
-    <label for="id_descricao">Descrição:</label>
-    <textarea class="form-control" id="id_descricao" name="descricao"></textarea><br><br>
-
-    <label for="id_area_trilha">Área/Trilha:</label>
-    <input class="form-control" type="text" id="id_area_trilha" name="area_trilha"><br><br>
-
-    <fieldset class="form-control" id="setoresFieldset">
-        <legend>Setores:</legend>
-        <!-- Setores serão adicionados dinamicamente -->
-    </fieldset><br>
-
-    <fieldset class="form-control" id="funcionariosFieldset">
-        <legend>Funcionários:</legend>
-        <!-- Funcionários serão adicionados dinamicamente -->
-    </fieldset><br>
-    <div class="d-flex justify-content-end">
-        <button class="btn btn-primary" type="submit">Salvar</button>
-    </div>
+        {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Salvar</button>
 </form>
 
 {% if form_errors %}

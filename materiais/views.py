@@ -43,27 +43,41 @@ def pastas_add(request):
             form.save_m2m()  # Salva os campos ManyToMany após salvar o objeto principal
             messages.success(request, 'Pasta adicionada com sucesso.')
             return redirect('list-pasta')
-    else:
-        form = AddPasta()
-    return render(request, 'pastas/pasta_add.html', {'form': form})
+        
+    return redirect('list-pasta')
 
 @login_required
 def pastas_list(request):
+    form = AddPasta()
     if request.user.type == 'ADM':
         pastas = Pasta.objects.all()
     elif request.user.type == 'LID':
-        pastas = Pasta.objects.filter(created_by=request.user)
+        setor_do_usuario_object = Funcionario.objects.get(matricula=request.user.matricula)
+        setor_do_usuario = setor_do_usuario_object.setor
+        pastas = Pasta.objects.filter(
+            Q(created_by=request.user) |
+            Q(setores=setor_do_usuario) |
+            Q(funcionarios__matricula=request.user.matricula)
+        ).distinct()
     else:
         setor_do_usuario_object = Funcionario.objects.get(matricula=request.user.matricula)
         setor_do_usuario = setor_do_usuario_object.setor
         pastas = Pasta.objects.filter(
             Q(setores=setor_do_usuario) |
-            Q(funcionarios__matricula=request.user.matricula) 
-        )
-        
-                
+            Q(funcionarios__matricula=request.user.matricula)
+        ).distinct()
 
-    return render(request, 'pastas/pasta_list.html', {'pastas': pastas})
+    # Pegar os nomes dos criadores das pastas
+    pastas_com_criadores = []
+    for pasta in pastas:
+        criador = CustomUser.objects.get(id=pasta.created_by_id)
+        criador_nome_completo = f"{criador.first_name} {criador.last_name}"
+        pastas_com_criadores.append({
+            'pasta': pasta,
+            'criador_nome_completo': criador_nome_completo
+        })
+
+    return render(request, 'pastas/pasta_list.html', {'pastas_com_criadores': pastas_com_criadores, 'form': form})
 
 @login_required
 def pastas_detail(request, pk):

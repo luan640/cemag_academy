@@ -40,6 +40,18 @@ def salvar_prova(request, pk):
         return JsonResponse({'status': 'success'})
     return JsonResponse({'status': 'error'}, status=400)
 
+def delete_prova(request, pk):
+
+    if request.method == 'POST':
+
+        prova = get_object_or_404(Prova, pk=pk)
+
+        prova.delete()
+
+        messages.success(request, 'Prova excluído com sucesso.')
+
+        return redirect('list-prova',pk=prova.pasta_id)
+
 def list_prova(request, pk):
     
     pasta = Pasta.objects.get(pk=pk)
@@ -129,7 +141,36 @@ def realizar_prova(request, pk):
         'questoes': questoes,
         'alternativas': alternativas_dict
     })
+
+def visualizar_prova(request, pk):
+    prova = get_object_or_404(Prova, pk=pk)
+    questoes = prova.questao_prova.all()
     
+    alternativas_dict = {}
+    alternativas_selecionadas = {}  # Dicionário para armazenar IDs das alternativas selecionadas e respostas dissertativas
+
+    for questao in questoes:
+        # Obter alternativas para cada questão
+        alternativas_questao = Alternativa.objects.filter(questao=questao)
+        
+        # Armazenar as alternativas no dicionário usando o ID da questão como chave
+        alternativas_dict[questao.pk] = alternativas_questao
+
+        # Tentar obter a resposta para a questão atual
+        resposta = Resposta.objects.get(questao=questao, funcionario=request.user)
+        
+        if resposta.alternativa_selecionada_id is not None:
+            alternativas_selecionadas[questao.pk] = resposta.alternativa_selecionada_id
+        else:
+            alternativas_selecionadas[questao.pk] = resposta.texto  # Adicionar o texto da resposta dissertativa
+
+    return render(request, 'provas/visualizar-prova.html', {
+        'prova': prova,
+        'questoes': questoes,
+        'alternativas': alternativas_dict,
+        'alternativa_selecionada': alternativas_selecionadas  # Passar o dicionário de respostas selecionadas
+    })
+
 def corrigir_questoes_dissertativas(request, pk_prova, pk_user):
     prova = get_object_or_404(Prova, pk=pk_prova)
 

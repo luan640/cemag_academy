@@ -173,11 +173,11 @@
 {% block content %}
 
 {% if messages %}
-<ul>
     {% for message in messages %}
-    <li>{{ message }}</li>
+    <div class="alert alert-success" role="alert">
+        {{ message }}
+    </div>
     {% endfor %}
-</ul>
 {% endif %}
 
 <h1>Biblioteca Cemag</h1>

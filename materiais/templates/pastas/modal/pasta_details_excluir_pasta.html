@@ -1,0 +1,23 @@
+<!-- MODAL EXCLUIR PASTA  -->
+<div class="modal fade" id="modalExcluirPasta" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modalExcluirPastaLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 60px;">
+        <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="modalExcluirPastaLabel">Excluir a Pasta</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <p style="margin: 0;">Você quer mesmo excluir a pasta {{ pasta.nome }}?</p>
+            <code>Processo irreversível</code>
+        </div>
+        <div class="modal-footer">
+            <form action="{% url 'delete-pasta' pasta.pk %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">Excluir</button>
+            </form>
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL EXCLUIR PASTA  -->

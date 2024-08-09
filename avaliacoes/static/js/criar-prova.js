@@ -3,30 +3,60 @@ document.getElementById('prova-form').addEventListener('submit', function(event)
     salvarProva();
 });
 
+let questaoCounter = 0;
+let alternativaCounter = 0;
+
 function adicionarQuestao() {
     const questoesContainer = document.getElementById('questoes-container');
-    const questaoIndex = questoesContainer.children.length;
+    const questaoIndex = questaoCounter++;
 
     const questaoDiv = document.createElement('div');
     questaoDiv.className = 'questao';
     questaoDiv.innerHTML = `
-        <label for="questao-${questaoIndex}-enunciado">Enunciado da Questão:</label>
-        <textarea class="form-control" id="questao-${questaoIndex}-enunciado" name="questoes[${questaoIndex}][enunciado]" required></textarea>
-        
-        <label for="questao-${questaoIndex}-tipo">Tipo:</label>
-        <select class="form-control" id="questao-${questaoIndex}-tipo" name="questoes[${questaoIndex}][tipo]" onchange="selecionarTipoQuestao(this, ${questaoIndex})" required>
-            <option value="dissertativa">Dissertativa</option>
-            <option value="objetiva">Objetiva</option>
-        </select>
+        <div class="row">
+            <div class="col-sm-6 mb-4">
+                <label for="questao-${questaoIndex}-enunciado">Enunciado da Questão:</label>
+                <textarea class="form-control" id="questao-${questaoIndex}-enunciado" name="questoes[${questaoIndex}][enunciado]" required></textarea>
+            </div>
+            <div class="col-sm-5 mb-4">
+                <label for="questao-${questaoIndex}-tipo">Tipo:</label>
+                <select class="form-control" id="questao-${questaoIndex}-tipo" name="questoes[${questaoIndex}][tipo]" onchange="selecionarTipoQuestao(this, ${questaoIndex})" required>
+                    <option value="dissertativa">Dissertativa</option>
+                    <option value="objetiva">Objetiva</option>
+                </select>
+            </div>
+            <div class="col-sm-1 mt-4">
+                <a id="excluir-questao-${questaoIndex}" class="btn btn-danger">
+                    <i class="fa-solid fa-trash"></i>
+                </a>
+            </div>
+        </div>
 
         <div id="alternativas-container-${questaoIndex}" style="display: none;">
             <h4>Alternativas</h4>
             <button class="btn btn-primary" type="button" onclick="adicionarAlternativa(${questaoIndex})">Adicionar Alternativa</button>
             <div class="alternativas"></div>
         </div>
+        <hr>
     `;
     questoesContainer.appendChild(questaoDiv);
+
+    // Adicionar o manipulador de eventos de exclusão
+    document.getElementById(`excluir-questao-${questaoIndex}`).addEventListener('click', function() {
+        excluirQuestao(questaoIndex);
+    });
 }
+
+function excluirQuestao(index) {
+    const questaoDiv = document.getElementById(`questao-${index}-enunciado`).closest('.questao');
+    questaoDiv.remove();
+}
+
+function excluirAlternativa(questaoIndex, alternativaIndex) {
+    const alternativaDiv = document.getElementById(`questao-${questaoIndex}-alternativa-${alternativaIndex}-texto`).closest('.alternativa');
+    alternativaDiv.remove();
+}
+
 
 function selecionarTipoQuestao(selectElement, questaoIndex) {
     const alternativasContainer = document.getElementById(`alternativas-container-${questaoIndex}`);
@@ -39,19 +69,36 @@ function selecionarTipoQuestao(selectElement, questaoIndex) {
 
 function adicionarAlternativa(questaoIndex) {
     const alternativasContainer = document.querySelector(`#alternativas-container-${questaoIndex} .alternativas`);
-    const alternativaIndex = alternativasContainer.children.length;
+    const alternativaIndex = alternativaCounter++;
+    
 
     const alternativaDiv = document.createElement('div');
     alternativaDiv.className = 'alternativa';
     alternativaDiv.innerHTML = `
-        <label for="questao-${questaoIndex}-alternativa-${alternativaIndex}-texto">Alternativa:</label>
-        <input class="form-control" type="text" id="questao-${questaoIndex}-alternativa-${alternativaIndex}-texto" name="questoes[${questaoIndex}][alternativas][${alternativaIndex}][texto]" required>
-        
-        <label for="questao-${questaoIndex}-alternativa-${alternativaIndex}-correta">Correta:</label>
-        <input type="checkbox" id="questao-${questaoIndex}-alternativa-${alternativaIndex}-correta" name="questoes[${questaoIndex}][alternativas][${alternativaIndex}][correta]">
+        <div class="row">
+            <div class="col-sm-8 mb-4">
+                <label for="questao-${questaoIndex}-alternativa-${alternativaIndex}-texto">Alternativa:</label>
+                <input class="form-control" type="text" id="questao-${questaoIndex}-alternativa-${alternativaIndex}-texto" name="questoes[${questaoIndex}][alternativas][${alternativaIndex}][texto]" required>
+            </div>
+            <div class="col-sm-2 mt-4">
+                <label for="questao-${questaoIndex}-alternativa-${alternativaIndex}-correta">Correta:</label>
+                <input type="checkbox" id="questao-${questaoIndex}-alternativa-${alternativaIndex}-correta" name="questoes[${questaoIndex}][alternativas][${alternativaIndex}][correta]">
+            </div>
+            <div class="col-sm-2 mt-4">
+                <a id="excluir-alternativa-${questaoIndex}-${alternativaIndex}" class="btn btn-danger">
+                    <i class="fa-solid fa-trash"></i>
+                </a>
+            </div>
+        </div>
     `;
     alternativasContainer.appendChild(alternativaDiv);
+
+    // Adicionar o manipulador de eventos de exclusão
+    document.getElementById(`excluir-alternativa-${questaoIndex}-${alternativaIndex}`).addEventListener('click', function() {
+        excluirAlternativa(questaoIndex, alternativaIndex);
+    });
 }
+
 
 function salvarProva() {
     const form = document.getElementById('prova-form');
@@ -83,6 +130,7 @@ function salvarProva() {
         provaData.questoes.push(questao);
     });
 
+    
     // Enviar provaData para o servidor usando AJAX
     const xhr = new XMLHttpRequest();
     const pastaId = document.getElementById('idTrilha').innerText;

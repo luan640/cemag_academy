@@ -22,7 +22,8 @@ def painel_home(request):
         #pastas que o usuario tem acesso
         setor_do_usuario_object = Funcionario.objects.get(matricula=request.user.matricula)
         setor_do_usuario = setor_do_usuario_object.setor
-        pastas = Pasta.objects.filter(Q(setores=setor_do_usuario) | Q(funcionarios__matricula=request.user.matricula))
+        pastas = Pasta.objects.filter(Q(setores=setor_do_usuario) | Q(funcionarios__matricula=request.user.matricula)).distinct()
+
         
         progresso_trilha = ProgressoTrilha(funcionario, pastas)
         progresso_pasta = progresso_trilha.calcular_progresso_trilhas()
@@ -64,7 +65,7 @@ def painel_home_superuser(request):
     #pastas que o usuario tem acesso
     setor_do_usuario_object = Funcionario.objects.get(matricula=request.user.matricula)
     setor_do_usuario = setor_do_usuario_object.setor
-    pastas = Pasta.objects.filter(Q(setores=setor_do_usuario) | Q(funcionarios__matricula=request.user.matricula))
+    pastas = Pasta.objects.filter(Q(setores=setor_do_usuario) | Q(funcionarios__matricula=request.user.matricula)).distinct()
 
     print(pastas)
 

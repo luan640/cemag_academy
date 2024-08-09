@@ -21,6 +21,7 @@ class AddPasta(forms.ModelForm):
         fields = ('nome', 'descricao', 'area_trilha', 'setores', 'funcionarios')
         widgets = {
             'setores': forms.CheckboxSelectMultiple,
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'cols': 40})
         }
 
     def __init__(self, *args, **kwargs):
@@ -60,17 +61,17 @@ class AddMaterial(forms.ModelForm):
     def save(self, commit=True):
         material = super().save(commit=False)
         
-        # Renomear o arquivo de vídeo, se houver
-        if self.cleaned_data.get('video'):
-            material.video.name = self.rename_file(material.video, 'video')
+        # Renomear o arquivo de vídeo, se houver e se for diferente do original
+        if self.cleaned_data.get('video') and self.cleaned_data['video'] != material.video:
+            material.video.name = self.rename_file(self.cleaned_data['video'], 'video')
         
-        # Renomear o arquivo de documento, se houver
-        if self.cleaned_data.get('arquivo'):
-            material.arquivo.name = self.rename_file(material.arquivo, 'arquivo')
+        # Renomear o arquivo de documento, se houver e se for diferente do original
+        if self.cleaned_data.get('arquivo') and self.cleaned_data['arquivo'] != material.arquivo:
+            material.arquivo.name = self.rename_file(self.cleaned_data['arquivo'], 'arquivo')
         
-        # Renomear o arquivo de foto, se houver
-        if self.cleaned_data.get('fotos'):
-            material.fotos.name = self.rename_file(material.fotos, 'fotos')
+        # Renomear o arquivo de foto, se houver e se for diferente do original
+        if self.cleaned_data.get('fotos') and self.cleaned_data['fotos'] != material.fotos:
+            material.fotos.name = self.rename_file(self.cleaned_data['fotos'], 'fotos')
 
         if commit:
             material.save()

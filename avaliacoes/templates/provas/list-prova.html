@@ -7,11 +7,11 @@
 {% block content %}
 
 {% if messages %}
-    <ul>
-        {% for message in messages %}
-            <li>{{ message }}</li>
-        {% endfor %}
-    </ul>
+    {% for message in messages %}
+    <div class="alert alert-success" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
 {% endif %}
 
 
@@ -19,44 +19,72 @@
     <h1>Provas para a trilha: {{ pasta.nome }}</h1>
     <div class="card">    
         <div class="card-body" style="height: 100%;">                     
-                <div class="list-group">
-                    {% for prova in provas %}  
-                    <div class="list-group-item flex-column align-items-start" style="gap: 15px;">
-                    {% with percentual_acerto=acertos_por_prova|get_item:prova.id|default_if_none:"0.00" %}
-                        <p style="font-weight: 600;">Percentual de Acerto: </p>
-                        <div class="progress w-100 mb-4" style="height: 2rem;font-size: 17px;font-weight: 700;">
-                            <div id="progressBar" class="progress-bar bg-success acertos_prova" role="progressbar" aria-valuenow="{{ percentual_acerto }}" aria-valuemin="0" aria-valuemax="100">{{ percentual_acerto }} %</div>
+            <div class="list-group">
+                {% for prova in provas %}  
+                <div class="list-group-item flex-column align-items-start" style="gap: 15px;">
+                {% with percentual_acerto=acertos_por_prova|get_item:prova.id|default_if_none:"0.00" %}
+                    <p style="font-weight: 600;">Percentual de Acertos: </p>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <div class="progress w-100 mb-4 m-4 mt-0" style="height: 0.5rem;font-weight: 700;">
+                            <div id="progressBar" class="progress-bar bg-success acertos_prova" role="progressbar" aria-valuenow="{{ percentual_acerto|floatformat:2 }}" aria-valuemin="0" aria-valuemax="100"></div>
                         </div>
-                        <div class="list-group">
-                            <div class="list-group-item flex-column align-items-start">
-                                <p style="font-weight: 600;">{{ prova.titulo }}</p> 
-                                <div class="d-flex justify-content-between flex-column flex-md-row text-center">
-                                {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
-                                    <div>
-                                        <a href="#"><button class="btn btn-dark mb-4" style="width: 160px;">Excluir</button></a>  
-                                        <a href="{% url 'list-participantes' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Participantes</button></a>
-                                    </div>
-                                    {% if realizou_provas|get_item:prova.id %}   
-                                    <div>
-                                        <a href="#"><button class="btn btn-light mb-4" style="width: 160px;">Visualizar prova</button></a>
-                                        <a href="{% url 'gerar-certificado' prova.pk pasta.pk %}"><button class="btn btn-success mb-4" style="width: 160px;">Baixar certificado</button></a>
-                                    </div> 
-                                    {% else %}
-                                    <div class="d-flex justify-content-between">
-                                        <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Realizar prova</button></a>
-                                    </div>
-                                    {% endif %}
-                                {% else %}
-                                    <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Realizar prova</button></a>
-                                {% endif %}
+                        <p class="fw-bold" style="color: rgb(128, 128, 128);">{{ percentual_acerto|floatformat:2 }}%</p>
+                    </div>
+                    <div class="list-group">
+                        <div class="list-group-item flex-column align-items-start">
+                            <p style="font-weight: 600;">{{ prova.titulo }}</p> 
+                            <div class="d-flex justify-content-between flex-column flex-md-row text-center">
+                            {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
+                                <div>
+                                    <a><button type="button" class="btn btn-dark mb-4" style="width: 160px;" data-bs-toggle="modal" data-bs-target="#exampleModal{{ prova.pk }}">Excluir</button></a>  
+                                    <a href="{% url 'list-participantes' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Participantes</button></a>
                                 </div>
+                                {% if realizou_provas|get_item:prova.id %}
+                                    <div>
+                                        <a href="{% url 'visualizar-prova' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Visualizar prova</button></a>
+                                        {% if percentual_acerto >= 70 %}   
+                                        <a href="{% url 'gerar-certificado' prova.pk pasta.pk %}"><button class="btn btn-success mb-4" style="width: 160px;">Baixar certificado</button></a>
+                                        {% endif %}
+                                    </div> 
+                                {% else %}
+                                <div class="d-flex justify-content-between">
+                                    <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Realizar prova</button></a>
+                                </div>
+                                {% endif %}
+                            {% else %}
+                                <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Realizar prova</button></a>
+                            {% endif %}
                             </div>
                         </div>
-                    {% endwith %}
-                    </div> 
-                    {% empty %}
-                    <p>Não há provas disponíveis para esta trilha.</p>
-            {% endfor %}
+                    </div>
+                {% endwith %}
+                </div> 
+
+                <!-- Modal -->
+                <div class="modal fade" id="exampleModal{{ prova.pk }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="exampleModalLabel{{ prova.pk }}" aria-hidden="true">
+                    <div class="modal-dialog">
+                      <div class="modal-content">
+                        <div class="modal-header">
+                          <h1 class="modal-title fs-5" id="exampleModalLabel{{ prova.pk }}">Confirmar exclusão</h1>
+                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <p style="margin: 0;">Tem certeza que deseja excluir a prova "{{ prova.titulo }}"?</p>
+                            <code>Processo irreversível</code>
+                        </div>
+                        <div class="modal-footer">
+                            <form method="post" action="{% url 'deletar-prova' prova.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-danger">Excluir</button>
+                            </form>
+                        </div>
+                      </div>
+                    </div>
+                </div>
+                
+                {% empty %}
+                <p>Não há provas disponíveis para esta trilha.</p>
+                {% endfor %}
             </div>
         </div>
     </div>

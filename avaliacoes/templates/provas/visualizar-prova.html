@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% load custom_filters %}
+
+{% block title %}Lista trilhas{% endblock %}
+
+{% block content %}
+
+<h1>{{ prova.titulo }}</h1>
+<p>{{ prova.descricao }}</p>
+
+<form id="visualizar-prova-form" method="post">
+    {% csrf_token %}
+        {% for questao in questoes %}
+            <div class="questao mb-4">
+                <h3>{{ questao.enunciado }}</h3>
+                {% if questao.tipo == 'objetiva' %}
+                    {% with questao.pk as questao_pk %}
+                        {% for alternativa in alternativas|get_item:questao_pk %}
+                            <div class="alternativa">
+                                <input type="radio" id="alternativa_{{ alternativa.id }}" name="questao_{{ questao.id }}" value="{{ alternativa.id }}" 
+                                {% if alternativa.id == alternativa_selecionada|get_item:questao_pk %}checked {% endif %} disabled>
+                                <label for="alternativa_{{ alternativa.id }}">
+                                    {{ alternativa.texto }}
+                                </label>
+                            </div>
+                        {% endfor %}
+                    {% endwith %}
+                {% elif questao.tipo == 'dissertativa' %}
+                <div style="width: 320px;">
+                    <textarea class="form-control" name="questao_{{ questao.id }}" rows="2" cols="10" disabled >{{ alternativa_selecionada|get_item:questao.pk }}
+                    </textarea>
+                </div>
+                {% endif %}
+            </div>
+        {% endfor %}
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+
+{% endblock %}
