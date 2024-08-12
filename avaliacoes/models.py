@@ -1,9 +1,16 @@
 from django.db import models
+from datetime import datetime
 
 from materiais.models import Pasta
 from users.models import CustomUser
 
 import uuid 
+
+class HistoricoProva(models.Model):
+
+    pasta=models.ForeignKey(Pasta, on_delete=models.CASCADE, related_name='pasta_name')
+    data_realizacao = models.DateTimeField(default=datetime(2020, 1, 1))
+    nota_final = models.FloatField()
 
 class Prova(models.Model):
     

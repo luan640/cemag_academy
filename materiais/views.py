@@ -292,7 +292,7 @@ def list_participantes(request, pk):
     
     # Listar participantes usando o setor
     setor_participantes = Funcionario.objects.filter(setor__in=setores)
-    
+
     # Combinar os participantes e remover duplicados
     list_participantes = set()
     

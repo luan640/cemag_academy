@@ -1,9 +1,17 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const deleteLinks = document.querySelectorAll('.delete-link');
+    const deleteLinks = document.querySelectorAll('.delete-link, .delete-link-refazer-prova');
+
+    console.log(deleteLinks)
 
     deleteLinks.forEach(function(deleteLink) {
         deleteLink.addEventListener('click', function(event) {
-            const confirmDelete = confirm('Você quer mesmo excluir? Processo irreversível.');
+            let message = 'Você quer mesmo excluir? Processo irreversível.';
+            
+            if (deleteLink.classList.contains('delete-link-refazer-prova')) {
+                message = 'Você quer mesmo refazer esta prova?';
+            }
+
+            const confirmDelete = confirm(message);
             if (!confirmDelete) {
                 event.preventDefault();
             }

@@ -3,10 +3,12 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 
-from .models import Prova, Questao, Alternativa, Resposta,ProvaRealizada
+from .models import Prova, Questao, Alternativa, Resposta,ProvaRealizada, HistoricoProva
 from cadastros.models import Funcionario
 from materiais.models import Pasta
 from users.models import CustomUser
+
+from django.db.models import Sum
 
 from .forms import CorrigirRespostaDissertativaFormSet,CorrigirRespostaDissertativaForm
 
@@ -52,6 +54,23 @@ def delete_prova(request, pk):
 
         return redirect('list-prova',pk=prova.pasta_id)
 
+def calcular_nota(prova,funcionario):
+    questoes = Questao.objects.filter(prova=prova)
+
+    respostas = Resposta.objects.filter(
+        questao__in=questoes, 
+        funcionario=funcionario
+    ).aggregate(total=Sum('nota'))
+
+    # Obtém o total somado (retorna None se não houver respostas, por isso o `or 0`)
+    total_respostas = respostas['total'] or 0
+
+    # Conta o número total de questões da prova
+    total_questoes = questoes.count()
+
+    return total_respostas, total_questoes
+        
+
 def list_prova(request, pk):
     
     pasta = Pasta.objects.get(pk=pk)
@@ -70,15 +89,9 @@ def list_prova(request, pk):
     acertos_por_prova = {}
     
     for prova in provas:
-        questoes = Questao.objects.filter(prova=prova)
-        
-        respostas_corretas = Resposta.objects.filter(
-            questao__in=questoes, funcionario=funcionario, nota=1
-        ).count()  # Conta apenas as respostas corretas
-
-        total_questoes = questoes.count()
-
-        percentual_acerto = (respostas_corretas / total_questoes) * 100 if total_questoes > 0 else 0
+        total_respostas, total_questoes = calcular_nota(prova,funcionario)
+        # Calcula o percentual de acerto
+        percentual_acerto = (total_respostas/total_questoes) * 100 if total_questoes > 0 else 0
         acertos_por_prova[prova.id] = percentual_acerto
 
     return render(request, 'provas/list-prova.html', {
@@ -204,3 +217,34 @@ def corrigir_questoes_dissertativas(request, pk_prova, pk_user):
     }
         
     return render(request, 'provas/corrigir_questoes_dissertativas.html', context)
+
+def refazer_prova(request, pk_prova,pk_user):
+    prova = get_object_or_404(Prova, pk=pk_prova)
+    id_pasta = prova.pasta.id
+
+    funcionario = get_object_or_404(CustomUser, matricula=pk_user)  # Busca o usuário pelo ID
+
+    prova_realizada = ProvaRealizada.objects.get(prova=prova, usuario=funcionario)
+
+    respostas_anteriores = Resposta.objects.filter(
+        questao__prova=prova, 
+        funcionario=funcionario  # objeto Funcionario
+    )
+    
+    # Obtém o objeto Pasta correspondente ao id_pasta
+    pasta = get_object_or_404(Pasta, id=id_pasta)
+
+    total_respostas, total_questoes = calcular_nota(prova,funcionario)
+    # Calcula o percentual de acerto
+    nota_final = (total_respostas/total_questoes) * 10 if total_questoes > 0 else 0
+
+    HistoricoProva.objects.create(
+        pasta=pasta,
+        data_realizacao=prova_realizada.data_realizacao,
+        nota_final=nota_final
+    )
+
+    prova_realizada.delete()
+    respostas_anteriores.delete()
+    
+    return redirect('list-prova', pk=prova.pasta_id)

@@ -12,14 +12,18 @@
     <form method="post">
         {% csrf_token %}
         {{ formset.management_form }}
-        {% for form, enunciado, resposta in questoes_e_respostas %}
-            <div class="questao">
-                <h4>{{ enunciado }}</h4>
-                <p>Resposta do usuário: {{ resposta }}</p>
-                {{ form.as_table }}
-            </div>
-        {% endfor %}
-            <button class="btn btn-primary" type="submit">Salvar Correções</button>
+        {% if questoes_e_respostas %}
+            {% for form, enunciado, resposta in questoes_e_respostas %}
+                <div class="questao">
+                    <h4>{{ enunciado }}</h4>
+                    <p>Resposta do usuário: {{ resposta }}</p>
+                    {{ form.as_table }}
+                </div>
+            {% endfor %}
+                <button class="btn btn-primary" type="submit">Salvar Correções</button>
+            {% else %}
+            <strong>Não possui questões dissertativas</strong>
+        {% endif %}
     </form>
     
 </div>

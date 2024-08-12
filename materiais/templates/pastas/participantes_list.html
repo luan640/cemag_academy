@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block title %}Lista trilhas{% endblock %}
 
 {% block content %}
@@ -22,8 +24,12 @@
                     <div class="list-group-item flex-column align-items-start" style="gap: 15px;">
                         <p>{{participante.matricula}} - {{participante.nome}}</p>
                         {% if participante.realizou_prova %}
-                        <a href="#"><button class="btn btn-primary mb-2">Refazer prova</button></a> <!-- Descartar prova anterior -->
-                        <a href="{% url 'corrigir-prova' pk_prova=prova.pk pk_user=participante.matricula %}"><button class="btn btn-primary mb-2">Corrigir prova</button></a>
+                            {% if participante.matricula == request.user.matricula %}
+                                <strong>Não poderá acessar seus próprios dados</strong>
+                                {% else %}
+                                <a href="{% url 'refazer-prova' pk_prova=prova.pk pk_user=participante.matricula %}" class="delete-link-refazer-prova"><button class="btn btn-primary mb-2">Refazer prova</button></a> <!-- Descartar prova anterior -->
+                                <a href="{% url 'corrigir-prova' pk_prova=prova.pk pk_user=participante.matricula %}"><button class="btn btn-primary mb-2">Corrigir prova</button></a>
+                            {% endif %}
                         {% else %}
                         <strong>Participante ainda não realizou a prova</strong>
                         {% endif %}
@@ -34,4 +40,8 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+    <script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
 {% endblock %}

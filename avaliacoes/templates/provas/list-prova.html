@@ -2,13 +2,15 @@
 
 {% load custom_filters %}
 
+{% load static %}
+
 {% block title %}Lista trilhas{% endblock %}
 
 {% block content %}
 
 {% if messages %}
     {% for message in messages %}
-    <div class="alert alert-success" role="alert">
+    <div class="alert alert-info" role="alert">
         {{ message }}
     </div>
     {% endfor %}
@@ -35,8 +37,11 @@
                             <p style="font-weight: 600;">{{ prova.titulo }}</p> 
                             <div class="d-flex justify-content-between flex-column flex-md-row text-center">
                             {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
-                                <div>
-                                    <a><button type="button" class="btn btn-dark mb-4" style="width: 160px;" data-bs-toggle="modal" data-bs-target="#exampleModal{{ prova.pk }}">Excluir</button></a>  
+                                <div class="d-flex flex-column flex-md-row text-center" style="gap: 5px;">
+                                    <form action="{% url 'deletar-prova' prova.pk %}" method="post">
+                                        {% csrf_token %}
+                                        <button class="btn btn-dark mb-4 delete-link" type="submit" style="width: 160px;">Excluir</button>
+                                    </form> 
                                     <a href="{% url 'list-participantes' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Participantes</button></a>
                                 </div>
                                 {% if realizou_provas|get_item:prova.id %}
@@ -59,28 +64,6 @@
                     </div>
                 {% endwith %}
                 </div> 
-
-                <!-- Modal -->
-                <div class="modal fade" id="exampleModal{{ prova.pk }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="exampleModalLabel{{ prova.pk }}" aria-hidden="true">
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h1 class="modal-title fs-5" id="exampleModalLabel{{ prova.pk }}">Confirmar exclusão</h1>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p style="margin: 0;">Tem certeza que deseja excluir a prova "{{ prova.titulo }}"?</p>
-                            <code>Processo irreversível</code>
-                        </div>
-                        <div class="modal-footer">
-                            <form method="post" action="{% url 'deletar-prova' prova.pk %}">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-danger">Excluir</button>
-                            </form>
-                        </div>
-                      </div>
-                    </div>
-                </div>
                 
                 {% empty %}
                 <p>Não há provas disponíveis para esta trilha.</p>
@@ -93,6 +76,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded',function() {
@@ -102,15 +86,15 @@
             let acertosProvaValue = element.getAttribute('aria-valuenow');
             acertosProvaValue = parseInt(acertosProvaValue)
             element.classList.remove('bg-success', 'bg-warning', 'bg-danger');
-            if (acertosProvaValue === 100) {
+            if (acertosProvaValue >= 70 && acertosProvaValue <= 100) {
                 element.classList.add('bg-success');
                 element.style.width = acertosProvaValue + '%';
-            } else if (acertosProvaValue > 25 && acertosProvaValue < 100) {
+            } else if (acertosProvaValue >= 40 && acertosProvaValue < 70) {
                 element.classList.add('bg-warning');
                 element.style.width = acertosProvaValue + '%';
             } else {
                 element.classList.add('bg-danger');
-                element.style.width = 0 + '%'
+                element.style.width = acertosProvaValue + '%'
             }
         });
     })
