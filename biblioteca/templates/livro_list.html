@@ -7,6 +7,22 @@
 {% block links %}
 <style>
 
+    .responsive-div {
+        width: 250px;
+        background-color: #f3f3f3;
+        padding: 10px;
+        border-radius: 10px;
+        font-weight: 600;
+        border: 2px solid rgb(229, 229, 229);
+    }
+
+    /* Media query for mobile devices */
+    @media (max-width: 768px) {
+        .responsive-div {
+            width: 130px;
+        }
+    }
+
     .lightbox {
         display: none;
         position: fixed;
@@ -214,17 +230,26 @@
                     <div class="list-group-item list-group-item-action flex-column align-items-start">
                         <div class="d-flex w-100">
                             {% if livro.capa %}
-                            <img src="{{ livro.capa.url }}" class="img-thumbnail" alt="{{ livro.titulo }}" onclick="openLightbox('{{ livro.capa.url }}')" style="width: 150px; height: auto; margin-right: 15px;">
+                            <img src="{{ livro.capa.url }}" class="img-thumbnail" alt="{{ livro.titulo }}" onclick="openLightbox('{{ livro.capa.url }}')" style="width: 100px; height: 180px; margin-right: 15px;">
                             {% else %}
                             <img src="{% static 'img/Image_not_available.png' %}" class="img-thumbnail" alt="Sem capa disponível" style="width: 150px; height: auto; margin-right: 15px;">
                             {% endif %}
                             <div>
-                                <h3><a href="{{ livro.arquivo_pdf.url }}" target="_blank" style="text-decoration: underline;">{{ livro.titulo }}</a></h3>
-                                <div style="color: #333; font-size: 10pt; margin-bottom: 10px;">
+                                <h3><a href="{{ livro.arquivo_pdf.url }}" target="_blank" style="text-decoration: underline; font-size: 21px;">{{ livro.titulo }}</a></h3>
+                                <div style="color: #333; font-size: 12px; margin-bottom: 10px;">
                                     {{ livro.created_by.first_name }} {{ livro.created_by.last_name }}
                                 </div>
                                 <div class="authors" style="font-style: italic;">
                                     {{ livro.autor }}
+                                </div>
+                                <div class="d-flex justify-content-between mt-4 responsive-div" style="font-size: 12px;">
+                                    Marcar como visualizado<input
+                                    style="width: 30px;"
+                                    type="checkbox"
+                                    class="livro-visualizado ms-2"
+                                    data-livro-id="{{ livro.id }}"
+                                    data-url="{% url 'registrar_visualizacao_livro' %}"
+                                    {% if livro.id in visualizacoes %}checked{% endif %}>
                                 </div>
                             </div>
                         </div>
@@ -240,7 +265,7 @@
                                 </div>
                                 <div class="bookProperty property_rating">
                                     <div class="book-rating" title="Avaliação">
-                                        <span id="rating-{{ livro.pk }}" class="book-rating-interest-score">{{ livro.media_ratings }}</span> /
+                                        <span id="rating-{{ livro.pk }}" class="book-rating-interest-score">{{ livro.media_ratings|floatformat:1 }}</span> /
                                         <span class="book-rating-quality-score">5,0</span>
                                         <div class="star-rating" data-livro-id="{{ livro.pk }}">
                                             {% for i in 5|range_custom %}
@@ -267,6 +292,8 @@
 {% endblock %}
 
 {% block scripts %}
+
+<script src="{% static 'js/visualizador_livro.js' %}"></script>
 <script>
     // Abrir a lightbox
     function openLightbox(imgSrc) {

@@ -67,10 +67,10 @@ function selecionarTipoQuestao(selectElement, questaoIndex) {
     }
 }
 
+// Certifique-se de que as alternativas têm IDs e names únicos
 function adicionarAlternativa(questaoIndex) {
     const alternativasContainer = document.querySelector(`#alternativas-container-${questaoIndex} .alternativas`);
-    const alternativaIndex = alternativaCounter++;
-    
+    const alternativaIndex = alternativasContainer.children.length; // Usar o número atual de alternativas
 
     const alternativaDiv = document.createElement('div');
     alternativaDiv.className = 'alternativa';
@@ -129,6 +129,8 @@ function salvarProva() {
         }
         provaData.questoes.push(questao);
     });
+
+    console.log(JSON.stringify(provaData))
 
     
     // Enviar provaData para o servidor usando AJAX

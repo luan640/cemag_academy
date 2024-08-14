@@ -12,8 +12,9 @@
 <form id="visualizar-prova-form" method="post">
     {% csrf_token %}
         {% for questao in questoes %}
+        <hr>
             <div class="questao mb-4">
-                <h3>{{ questao.enunciado }}</h3>
+                <p><strong class="mb-4">{{ questao.enunciado|linebreaksbr }}</strong></p>
                 {% if questao.tipo == 'objetiva' %}
                     {% with questao.pk as questao_pk %}
                         {% for alternativa in alternativas|get_item:questao_pk %}
@@ -34,6 +35,7 @@
                 {% endif %}
             </div>
         {% endfor %}
+        <hr>
 </form>
 
 {% endblock %}

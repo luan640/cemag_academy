@@ -57,7 +57,11 @@
                                 </div>
                                 {% endif %}
                             {% else %}
-                                <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Realizar prova</button></a>
+                                {% if realizou_provas|get_item:prova.id %}
+                                    <a href="{% url 'visualizar-prova' prova.pk %}"><button class="btn btn-primary mb-4" style="width: 160px;">Visualizar prova</button></a>
+                                {% else %}
+                                    <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-primary mb-4" style="width: 160px;">Realizar prova</button></a>
+                                {% endif %}
                             {% endif %}
                             </div>
                         </div>

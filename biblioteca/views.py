@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
 
-from .models import Livro,Rating
+from .models import Livro,Rating,VisualizacaoLivro
 from .forms import AddLivro,RatingForm
 
 def calculate_media_rating_livro(id_livro):
@@ -23,6 +23,13 @@ def calculate_media_rating_livro(id_livro):
 
 def list_livro(request):
     livros = Livro.objects.all()
+
+    # Obtendo os IDs dos livros visualizados pelo usuário
+    visualizacoes = VisualizacaoLivro.objects.filter(
+        user=request.user  # Use o objeto Funcionario
+    ).values_list('livro_id', flat=True)
+    
+    visualizacao_ids = set(visualizacoes)  # Converter para conjunto para eficiência
     
     for livro in livros:
         ratings = livro.ratings.all()
@@ -36,7 +43,9 @@ def list_livro(request):
     
     return render(request, 'livro_list.html', {
         'livros': livros,
+        'visualizacoes': visualizacao_ids  # Passar IDs dos livros visualizados
     })
+
 
 def livro_add(request):
     if request.method == 'POST':
@@ -69,6 +78,29 @@ def livro_add(request):
 
     return redirect('list-livro')
 
+def registrar_visualizacao_livro(request):
+    if request.method == 'POST':
+        livro_id = request.POST.get('livro_id')
+
+        try:
+            livro = get_object_or_404(Livro, pk=livro_id)
+
+            visualizacao = VisualizacaoLivro.objects.get(
+                user=request.user,  # Use o objeto Funcionario
+                livro=livro
+            )
+
+            visualizacao.delete()
+            return JsonResponse({'status': 'desmarcado'})
+
+        except VisualizacaoLivro.DoesNotExist:
+            visualizacao = VisualizacaoLivro(
+                user=request.user,  # Use o objeto Funcionario
+                livro=livro
+            )
+            visualizacao.save()
+            return JsonResponse({'status': 'marcado'})
+        
 @csrf_exempt
 @login_required
 def add_rating(request):

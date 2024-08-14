@@ -26,6 +26,7 @@ def criar_prova(request, pk):
 def salvar_prova(request, pk):
     if request.method == 'POST':
         data = json.loads(request.body)
+        print(data)
         pasta = get_object_or_404(Pasta, pk=pk)
         prova = Prova.objects.create(pasta=pasta, titulo=data['titulo'], status=True)
         
