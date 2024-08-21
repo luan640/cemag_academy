@@ -230,7 +230,7 @@
                     <div class="list-group-item list-group-item-action flex-column align-items-start">
                         <div class="d-flex w-100">
                             {% if livro.capa %}
-                            <img src="{{ livro.capa.url }}" class="img-thumbnail" alt="{{ livro.titulo }}" onclick="openLightbox('{{ livro.capa.url }}')" style="width: 100px; height: 180px; margin-right: 15px;">
+                            <img src="{{ livro.capa.url }}" class="img-thumbnail" alt="{{ livro.titulo }}" onclick="openLightbox('{{ livro.capa.url }}')" style="width: 130px; height: 180px; margin-right: 15px;">
                             {% else %}
                             <img src="{% static 'img/Image_not_available.png' %}" class="img-thumbnail" alt="Sem capa disponível" style="width: 150px; height: auto; margin-right: 15px;">
                             {% endif %}

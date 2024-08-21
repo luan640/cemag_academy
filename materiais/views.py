@@ -219,6 +219,20 @@ def material_delete(request, pk_material, pk_pasta):
 
     return redirect('detail-pasta', pk=pasta.pk)
 
+@login_required
+def jornada_detail(request,pk_user=None):
+    
+    if request.method == 'POST':
+        funcionario = get_object_or_404(Funcionario, pk=pk_user)
+
+    return render(request, 'jornada/jornada_funcionario.html', {
+    })
+
+@login_required
+def jornada_detail_unique(request):
+
+    return render(request, 'jornada/jornada_funcionario.html', {"dict"})
+
 def registrar_visualizacao(request):
     if request.method == 'POST':
         material_id = request.POST.get('material_id')

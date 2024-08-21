@@ -21,6 +21,9 @@ urlpatterns = [
     path('material/<int:pk_material>/delete/<int:pk_pasta>/', views.material_delete, name='delete-material'),
     path('material/registrar-visualizacao/', views.registrar_visualizacao, name='registrar_visualizacao'),
 
+    path('jornada/detail/', views.jornada_detail, name='jornada_detail'),
+    path('jornada/detail/<int:pk_user>', views.jornada_detail, name='jornada_detail_unique'),
+
     
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

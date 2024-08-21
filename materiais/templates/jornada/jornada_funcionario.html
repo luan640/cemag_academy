@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Lista trilhas{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-success" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+{% endif %}
+
+<div class="row justify-content-center" style="margin-bottom: 50px;">
+    <div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 text-center">
+        <h1 style="font-weight: 700;"><label for="">Filtrar Funcionário</label></h1>
+        <p class="fw-medium" style="color: #6e6e77;">Explore o desempenho e progresso de cada colaborador</p>
+        <div class="input-group">
+            <input class="form-control" type="text" placeholder="Pesquisar jornada do funcionário..." aria-label="Pesquisar jornada do funcionário" aria-describedby="search-icon">
+            <span class="input-group-text bg-white" id="search-icon">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </span>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center g-4 mb-4">
+    <div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+        <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Livros lidos</h5>
+              <p class="card-text placeholder-glow">
+                <span class="placeholder col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-50 col-12 rounded-3"></span>
+              </p>
+            </div>
+          </div>
+    </div>
+    <div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+        <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Total de atividades concluídas</h5>
+              <p class="card-text placeholder-glow">
+                <span class="placeholder col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-50 col-12 rounded-3"></span>
+              </p>
+            </div>
+          </div>
+    </div>
+    <div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+      <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Certificações obtidas</h5>
+            <p class="card-text placeholder-glow">
+              <span class="placeholder col-12 rounded-3"></span>
+              <span class="placeholder w-25 col-12 rounded-3"></span>
+              <span class="placeholder w-25 col-12 rounded-3"></span>
+              <span class="placeholder w-25 col-12 rounded-3"></span>
+              <span class="placeholder w-25 col-12 rounded-3"></span>
+              <span class="placeholder w-25 col-12 rounded-3"></span>
+              <span class="placeholder w-50 col-12 rounded-3"></span>
+            </p>
+          </div>
+        </div>
+  </div>
+</div>
+
+<div class="row justify-content-center g-4 mb-4">
+    <div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+        <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Número de provas realizadas</h5>
+              <p class="card-text placeholder-glow">
+                <span class="placeholder col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-50 col-12 rounded-3"></span>
+              </p>
+            </div>
+          </div>
+    </div>
+    <div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+        <div class="card">
+            <div class="card-body">
+              <h5 class="card-title">Pontuação por prova</h5>
+              <p class="card-text placeholder-glow">
+                <span class="placeholder col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-25 col-12 rounded-3"></span>
+                <span class="placeholder w-50 col-12 rounded-3"></span>
+              </p>
+            </div>
+          </div>
+    </div>
+    <div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
+      <div class="card">
+          <div class="card-body">
+            <h5 class="card-title">Quais cursos ele completou?</h5>
+            <p class="card-text placeholder-glow">
+              <span class="placeholder col-12 rounded-3"></span>
+              <span class="placeholder w-25 col-12 rounded-3"></span>
+              <span class="placeholder w-25 col-12 rounded-3"></span>
+              <span class="placeholder w-25 col-12 rounded-3"></span>
+              <span class="placeholder w-25 col-12 rounded-3"></span>
+              <span class="placeholder w-25 col-12 rounded-3"></span>
+              <span class="placeholder w-50 col-12 rounded-3"></span>
+            </p>
+          </div>
+        </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+
+{% endblock %}
