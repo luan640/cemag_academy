@@ -220,18 +220,34 @@ def material_delete(request, pk_material, pk_pasta):
     return redirect('detail-pasta', pk=pasta.pk)
 
 @login_required
-def jornada_detail(request,pk_user=None):
-    
-    if request.method == 'POST':
-        funcionario = get_object_or_404(Funcionario, pk=pk_user)
+def jornada_detail(request):
+    # Caso não seja uma requisição AJAX, renderiza a página com os funcionários iniciais
+    funcionarios_iniciais = Funcionario.objects.all().order_by('nome')[:5]
 
     return render(request, 'jornada/jornada_funcionario.html', {
+        'funcionarios_iniciais': funcionarios_iniciais
     })
 
 @login_required
-def jornada_detail_unique(request):
+def jornada_detail_unique(request,matricula):
 
-    return render(request, 'jornada/jornada_funcionario.html', {"dict"})
+    try:
+        funcionario = Funcionario.objects.get(matricula=matricula)
+
+    except Funcionario.DoesNotExist:
+        # Se o funcionário não existir, retorne um erro
+        return JsonResponse({'error': 'Funcionário não encontrado'}, status=404)
+    
+    visualizacoes = Visualizacao.objects.filter(funcionario=funcionario)
+
+    materiais_visualizados = [visualizacao.material.nome for visualizacao in visualizacoes]
+
+    qtd_videos_visualizados = visualizacoes.count()
+
+    return JsonResponse({
+        'qtd_videos_visualizados': qtd_videos_visualizados,
+        'lista_materiais_visualizados':materiais_visualizados
+    })
 
 def registrar_visualizacao(request):
     if request.method == 'POST':

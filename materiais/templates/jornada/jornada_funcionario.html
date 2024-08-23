@@ -19,118 +19,198 @@
         <h1 style="font-weight: 700;"><label for="">Filtrar Funcionário</label></h1>
         <p class="fw-medium" style="color: #6e6e77;">Explore o desempenho e progresso de cada colaborador</p>
         <div class="input-group">
-            <input class="form-control" type="text" placeholder="Pesquisar jornada do funcionário..." aria-label="Pesquisar jornada do funcionário" aria-describedby="search-icon">
-            <span class="input-group-text bg-white" id="search-icon">
-                <i class="fa-solid fa-magnifying-glass"></i>
-            </span>
+          <input class="form-control custom-select custom-select-sm fw-semibold" list="encodings" id="filterInput" type="text" placeholder="Pesquisar jornada do funcionário..." aria-label="Pesquisar jornada do funcionário" aria-describedby="search-icon">
+          <datalist id="encodings">
+            {% for funcionario in funcionarios_iniciais %}
+              <option value="{{ funcionario.nome }}" data-matricula="{{ funcionario.matricula }}">{{ funcionario.nome }}</option>
+            {% endfor %}
+          </datalist>
+          <span id="filtrar_funcionario" class="input-group-text bg-white" id="search-icon">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
         </div>
     </div>
 </div>
 
 <div class="row justify-content-center g-4 mb-4">
-    <div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
-        <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Livros lidos</h5>
-              <p class="card-text placeholder-glow">
-                <span class="placeholder col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-50 col-12 rounded-3"></span>
-              </p>
+    <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-3">
+      <div class="accordion" id="accordionExample">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingOne">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
+                <h5>Livros Lidos</h5><span class="badge bg-primary rounded-pill" style="margin-left: 10px; margin-bottom: 5px;">0</span>
+              </button>
+            </h2>
+            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
+              <div class="accordion-body">
+                <ul class="list-group">
+
+                </ul>
+              </div>
             </div>
-          </div>
-    </div>
-    <div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
-        <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Total de atividades concluídas</h5>
-              <p class="card-text placeholder-glow">
-                <span class="placeholder col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-50 col-12 rounded-3"></span>
-              </p>
-            </div>
-          </div>
-    </div>
-    <div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
-      <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Certificações obtidas</h5>
-            <p class="card-text placeholder-glow">
-              <span class="placeholder col-12 rounded-3"></span>
-              <span class="placeholder w-25 col-12 rounded-3"></span>
-              <span class="placeholder w-25 col-12 rounded-3"></span>
-              <span class="placeholder w-25 col-12 rounded-3"></span>
-              <span class="placeholder w-25 col-12 rounded-3"></span>
-              <span class="placeholder w-25 col-12 rounded-3"></span>
-              <span class="placeholder w-50 col-12 rounded-3"></span>
-            </p>
           </div>
         </div>
+    </div>
+    <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-3">
+      <div class="accordion" id="accordionExampleTwo">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingTwo">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTwo" aria-expanded="false" aria-controls="collapseTwo">
+                <h5>Total de atividades concluídas</h5>
+              </button>
+            </h2>
+            <div id="collapseTwo" class="accordion-collapse collapse" aria-labelledby="headingTwo" data-bs-parent="#accordionExample">
+              <div class="accordion-body">
+                <ul class="list-group">
+
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-3">
+      <div class="accordion" id="accordionExampleThree">
+          <div class="accordion-item">
+            <h2 class="accordion-header" id="headingThree">
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
+                <h5>Certificações globais</h5>
+              </button>
+            </h2>
+            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExample">
+              <div class="accordion-body">
+                <ul class="list-group">
+
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+    </div>
+</div>
+
+<div class="row justify-content-center g-4 mb-4">
+  <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-3">
+    <div class="accordion" id="accordionExampleFour">
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingFour">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
+              <h5>Provas</h5>
+            </button>
+          </h2>
+          <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+              <ul class="list-group">
+
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
   </div>
-</div>
+  <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-3">
+    <div class="accordion" id="accordionExampleFive">
+        <div class="accordion-item">
+          <h2 class="accordion-header" id="headingFive">
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
+              <h5>Cursos finalizados</h5>
+            </button>
+          </h2>
+          <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#accordionExample">
+            <div class="accordion-body">
+              <ul class="list-group">
 
-<div class="row justify-content-center g-4 mb-4">
-    <div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
-        <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Número de provas realizadas</h5>
-              <p class="card-text placeholder-glow">
-                <span class="placeholder col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-50 col-12 rounded-3"></span>
-              </p>
+              </ul>
             </div>
-          </div>
-    </div>
-    <div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
-        <div class="card">
-            <div class="card-body">
-              <h5 class="card-title">Pontuação por prova</h5>
-              <p class="card-text placeholder-glow">
-                <span class="placeholder col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-25 col-12 rounded-3"></span>
-                <span class="placeholder w-50 col-12 rounded-3"></span>
-              </p>
-            </div>
-          </div>
-    </div>
-    <div class="col-12 col-sm-12 col-md-3 col-lg-3 col-xl-3">
-      <div class="card">
-          <div class="card-body">
-            <h5 class="card-title">Quais cursos ele completou?</h5>
-            <p class="card-text placeholder-glow">
-              <span class="placeholder col-12 rounded-3"></span>
-              <span class="placeholder w-25 col-12 rounded-3"></span>
-              <span class="placeholder w-25 col-12 rounded-3"></span>
-              <span class="placeholder w-25 col-12 rounded-3"></span>
-              <span class="placeholder w-25 col-12 rounded-3"></span>
-              <span class="placeholder w-25 col-12 rounded-3"></span>
-              <span class="placeholder w-50 col-12 rounded-3"></span>
-            </p>
           </div>
         </div>
+      </div>
   </div>
 </div>
 
 {% endblock %}
 
 {% block scripts %}
+
+<script>
+
+  function filtrarOpcoes() {
+    const inputValue = document.getElementById('filterInput').value.toLowerCase();
+    const datalist = document.getElementById('encodings');
+    const options = Array.from(datalist.querySelectorAll('option'));
+
+    // Filtra as opções que começam com o valor digitado e ordena lexicograficamente
+    const opcoesFiltradas = options
+      .filter(option => option.value.toLowerCase().startsWith(inputValue))
+      .sort((a, b) => a.value.localeCompare(b.value))
+      .slice(0, 5); // Pega as 5 primeiras opções filtradas
+
+    // Oculta e desabilita todas as opções inicialmente
+    options.forEach(option => {
+      option.style.display = 'none';
+      option.disabled = true;
+    });
+
+    // Exibe e habilita apenas as opções filtradas
+    opcoesFiltradas.forEach(option => {
+      option.style.display = '';
+      option.disabled = false;
+    });
+  }
+
+  // Adiciona os eventos para filtrar as opções
+  const inputElement = document.getElementById('filterInput');
+  inputElement.addEventListener('input', filtrarOpcoes);
+  inputElement.addEventListener('click', filtrarOpcoes);
+  inputElement.addEventListener('focus', filtrarOpcoes);
+
+  document.getElementById('filtrar_funcionario').addEventListener('click', function() {
+  const inputElement = document.getElementById('filterInput');
+  const funcionarioNome = inputElement.value;
+
+  // Recupera todas as opções do datalist
+  const options = Array.from(document.querySelectorAll('#encodings option'));
+  // Encontra a opção que corresponde ao nome digitado
+  const option = options.find(opt => opt.value === funcionarioNome);
+
+  if (option) {
+    const funcionarioMatricula = option.getAttribute('data-matricula');
+
+    // Envia uma requisição para o backend com o id do funcionário
+    fetch(`/materiais/jornada/detail/${funcionarioMatricula}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': '{{ csrf_token }}', // CSRF Token se necessário
+      }
+    })
+    .then(response => response.json())
+    .then(data => {
+      // Lógica para lidar com a resposta do backend
+      console.log(data);
+      
+      // Atualize a página ou faça algo com os dados retornados
+      const listGroup = document.querySelector('#collapseOne .list-group');
+      listGroup.innerHTML = ''; // Limpa a lista existente
+
+      if (data.lista_materiais_visualizados.length > 0) {
+        data.lista_materiais_visualizados.forEach(material => {
+          const listItem = document.createElement('li');
+          listItem.className = 'list-group-item';
+          listItem.textContent = material;
+          listGroup.appendChild(listItem);
+        });
+      } else {
+        listGroup.innerHTML = '<li class="list-group-item">Nenhum material visualizado.</li>';
+      }
+    })
+    .catch(error => console.error('Erro:', error));
+  } else {
+    alert("Funcionário não encontrado.");
+  }
+});
+
+
+</script>
 
 {% endblock %}

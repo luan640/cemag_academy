@@ -54,10 +54,10 @@ CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'  # Pode ser 'Strict', 'Lax' ou 'None'
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://cb66-177-19-132-134.ngrok-free.app'
+    'https://a7cb-177-19-132-134.ngrok-free.app'
 ]
 
-ALLOWED_HOSTS = ['cb66-177-19-132-134.ngrok-free.app','127.0.0.1']
+ALLOWED_HOSTS = ['a7cb-177-19-132-134.ngrok-free.app','127.0.0.1']
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'

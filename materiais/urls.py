@@ -22,7 +22,7 @@ urlpatterns = [
     path('material/registrar-visualizacao/', views.registrar_visualizacao, name='registrar_visualizacao'),
 
     path('jornada/detail/', views.jornada_detail, name='jornada_detail'),
-    path('jornada/detail/<int:pk_user>', views.jornada_detail, name='jornada_detail_unique'),
+    path('jornada/detail/<int:matricula>', views.jornada_detail_unique, name='jornada_detail_unique')
 
     
     
