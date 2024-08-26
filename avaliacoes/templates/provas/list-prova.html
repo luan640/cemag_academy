@@ -16,62 +16,89 @@
     {% endfor %}
 {% endif %}
 
-
-<div class="col-md-9">
-    <h1>Provas para a trilha: {{ pasta.nome }}</h1>
-    <div class="card">    
-        <div class="card-body" style="height: 100%;">                     
-            <div class="list-group">
-                {% for prova in provas %}  
-                <div class="list-group-item flex-column align-items-start" style="gap: 15px;">
-                {% with percentual_acerto=acertos_por_prova|get_item:prova.id|default_if_none:"0.00" %}
-                    <p style="font-weight: 600;">Percentual de Acertos: </p>
-                    <div class="d-flex justify-content-between align-items-baseline">
-                        <div class="progress w-100 mb-4 m-4 mt-0" style="height: 0.5rem;font-weight: 700;">
-                            <div id="progressBar" class="progress-bar bg-success acertos_prova" role="progressbar" aria-valuenow="{{ percentual_acerto|floatformat:2 }}" aria-valuemin="0" aria-valuemax="100"></div>
+<div class="row">
+    <div class="col-md-7 order-2 order-md-1">
+        <h1 class="mb-4 mt-4" style="font-size: 25px;">Provas para a trilha: {{ pasta.nome }}</h1>
+        <div class="card">    
+            <div class="card-body" style="height: 100%;">                     
+                <div class="list-group">
+                    {% for prova in provas %}  
+                    <div class="list-group-item flex-column align-items-start" style="gap: 15px;">
+                        {% with percentual_acerto=acertos_por_prova|get_item:prova.id|default_if_none:"0.00" %}
+                        <p style="font-weight: 600;">Percentual de Acertos: </p>
+                        <div class="d-flex justify-content-between align-items-baseline">
+                            <div class="progress w-100 mb-4 m-4 mt-0" style="height: 0.5rem;font-weight: 700;">
+                                <div id="progressBar" class="progress-bar bg-success acertos_prova" role="progressbar" aria-valuenow="{{ percentual_acerto|floatformat:2 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <p class="fw-bold" style="color: rgb(128, 128, 128);">{{ percentual_acerto|floatformat:2 }}%</p>
                         </div>
-                        <p class="fw-bold" style="color: rgb(128, 128, 128);">{{ percentual_acerto|floatformat:2 }}%</p>
-                    </div>
-                    <div class="list-group">
-                        <div class="list-group-item flex-column align-items-start">
-                            <p style="font-weight: 600;">{{ prova.titulo }}</p> 
-                            <div class="d-flex justify-content-between flex-column flex-md-row text-center">
-                            {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
-                                <div class="d-flex flex-column flex-md-row text-center" style="gap: 5px;">
-                                    <form action="{% url 'deletar-prova' prova.pk %}" method="post">
-                                        {% csrf_token %}
-                                        <button class="btn btn-dark mb-4 delete-link" type="submit" style="width: 160px;">Excluir</button>
-                                    </form> 
-                                    <a href="{% url 'list-participantes' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Participantes</button></a>
-                                </div>
-                                {% if realizou_provas|get_item:prova.id %}
-                                    <div>
+                        <div class="list-group">
+                            <div class="list-group-item">
+                                <p style="font-weight: 600;">{{ prova.titulo }}</p> 
+                                <div class="row">
+                                    {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
+                                    <div class="col-md-6 text-center">
+                                        <a href="{% url 'deletar-prova' prova.pk %}"><button class="btn btn-dark mb-4 delete-link" type="submit" style="width: 160px;">Excluir</button></a>
+                                        <a href="{% url 'list-participantes' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Participantes</button></a>
+                                    </div>
+                                    {% if realizou_provas|get_item:prova.id %}
+                                    <div class="col-md-6 text-center">
                                         <a href="{% url 'visualizar-prova' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Visualizar prova</button></a>
-                                        {% if percentual_acerto >= 70 %}   
-                                        <a href="{% url 'gerar-certificado' prova.pk pasta.pk %}"><button class="btn btn-success mb-4" style="width: 160px;">Baixar certificado</button></a>
-                                        {% endif %}
                                     </div> 
+                                    {% else %}
+                                    <div class="col-md-6 text-center">
+                                        <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Realizar prova</button></a>
+                                    </div>
+                                    {% endif %}
                                 {% else %}
-                                <div class="d-flex justify-content-between">
-                                    <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Realizar prova</button></a>
+                                    {% if realizou_provas|get_item:prova.id %}
+                                    <div class="col-md-6">
+                                        <a href="{% url 'visualizar-prova' prova.pk %}"><button class="btn btn-primary mb-4" style="width: 160px;">Visualizar prova</button></a>
+                                    </div>
+                                    {% else %}
+                                    <div class="col-md-6">
+                                        <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-primary mb-4" style="width: 160px;">Realizar prova</button></a>
+                                    </div>
+                                    {% endif %}
+                                {% endif %}
                                 </div>
-                                {% endif %}
-                            {% else %}
-                                {% if realizou_provas|get_item:prova.id %}
-                                    <a href="{% url 'visualizar-prova' prova.pk %}"><button class="btn btn-primary mb-4" style="width: 160px;">Visualizar prova</button></a>
-                                {% else %}
-                                    <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-primary mb-4" style="width: 160px;">Realizar prova</button></a>
-                                {% endif %}
-                            {% endif %}
                             </div>
                         </div>
+                    {% endwith %}
+                    </div> 
+                    
+                    {% empty %}
+                    <p>Não há provas disponíveis para esta trilha.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5 order-1 order-md-2">
+        <h1 class="mb-4 mt-4" style="font-size: 25px;">Certificado</h1>
+        <div class="card">
+            <div class="card-body" style="height: 100%;">
+            {% if baixar_certificado and prova_certificado %}
+            <div class="card p-3">
+                <div>
+                    <div class="d-flex align-items-baseline" style="gap: 10px;">
+                        <div>
+                            <i class="fa-regular fa-comments"></i>
+                        </div>
+                        <div>
+                            <strong><p style="margin: 0;">Status do certificado: </p></strong>
+                            <p style="margin: 0; font-weight: 600;"></p>
+                        </div>
+                        <a href="{% url 'gerar-certificado' prova_certificado.pk pasta.pk %}" target="_blank">
+                            <button class="btn btn-success" style="width: 160px;">Baixar certificado</button>
+                        </a>
                     </div>
-                {% endwith %}
-                </div> 
-                
-                {% empty %}
-                <p>Não há provas disponíveis para esta trilha.</p>
-                {% endfor %}
+                </div>    
+            </div>
+            {% else %}
+            <h5>Você ainda não completou todas as provas ou não atingiu o resultado esperado para baixar o certificado.</h5>
+            {% endif %}                        
             </div>
         </div>
     </div>

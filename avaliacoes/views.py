@@ -80,27 +80,36 @@ def list_prova(request, pk):
     # Obtém o usuário atual e o funcionário correspondente
     funcionario = CustomUser.objects.get(matricula=request.user.matricula)
 
-    realizou_provas = {}  # Dicionário para armazenar se o usuário realizou cada prova
+    # Dicionário para armazenar se o usuário realizou cada prova
+    realizou_provas = {}  
+
+    # Dicionário para armazenar os acertos por prova
+    acertos_por_prova = {}
+
+    validacao_do_certificado = 0
+    baixar_certificado = False
 
     for prova in provas:
         realizou_prova = ProvaRealizada.objects.filter(usuario=request.user, prova=prova).exists()
         realizou_provas[prova.id] = realizou_prova  # Armazena True/False no dicionário
-
-    # Dicionário para armazenar os acertos por prova
-    acertos_por_prova = {}
-    
-    for prova in provas:
         total_respostas, total_questoes = calcular_nota(prova,funcionario)
+
         # Calcula o percentual de acerto
         percentual_acerto = (total_respostas/total_questoes) * 100 if total_questoes > 0 else 0
         acertos_por_prova[prova.id] = percentual_acerto
-
+        if percentual_acerto >= 70:
+            validacao_do_certificado += 1
+    
+    baixar_certificado = validacao_do_certificado == len(provas)
+    prova_certificado = provas.first() if baixar_certificado and provas.exists() else None
+        
     return render(request, 'provas/list-prova.html', {
         'pasta': pasta,
         'provas': provas,
         'acertos_por_prova': acertos_por_prova,  # Passa o dicionário para o template
         'realizou_provas':realizou_provas,
-        
+        'baixar_certificado': baixar_certificado,
+        'prova_certificado':prova_certificado
     })
 
 def realizar_prova(request, pk):

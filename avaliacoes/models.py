@@ -58,13 +58,13 @@ class ProvaRealizada(models.Model):
     data_realizacao = models.DateTimeField(auto_now_add=True)
     identificador_finalizado = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     
-    def calcular_nota(self):
-        respostas = Resposta.objects.filter(prova_realizada=self)
-        nota_total = 0
-        for resposta in respostas:
-            if resposta.nota:  # Verifica se a nota não é nula (para questões dissertativas ainda não corrigidas)
-                nota_total += resposta.nota
-        return nota_total
+    # def calcular_nota(self):
+    #     respostas = Resposta.objects.filter(questao__prova=self.prova, funcionario=self.usuario)
+    #     nota_total = 0
+    #     for resposta in respostas:
+    #         if resposta.nota:  # Verifica se a nota não é nula (para questões dissertativas ainda não corrigidas)
+    #             nota_total += resposta.nota
+    #     return nota_total
     
     class Meta:
         unique_together = ('usuario', 'prova')

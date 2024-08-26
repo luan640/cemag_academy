@@ -8,8 +8,10 @@ from django.template.loader import get_template
 from django.conf import settings  # Importe o módulo settings
 
 from .models import Pasta,Material,Visualizacao
+from avaliacoes.views import calcular_nota
 from .forms import AddPasta,AddMaterial,VisualizacaoForm
 from cadastros.models import Funcionario,Setor
+from biblioteca.models import VisualizacaoLivro
 from avaliacoes.models import ProvaRealizada, Prova
 from users.models import CustomUser
 
@@ -67,6 +69,7 @@ def pastas_list(request):
             Q(funcionarios__matricula=request.user.matricula)
         ).distinct()
 
+    print(pastas)
     # Pegar os nomes dos criadores das pastas
     pastas_com_criadores = []
     for pasta in pastas:
@@ -233,20 +236,48 @@ def jornada_detail_unique(request,matricula):
 
     try:
         funcionario = Funcionario.objects.get(matricula=matricula)
-
+        usuario = CustomUser.objects.get(matricula=matricula)
     except Funcionario.DoesNotExist:
         # Se o funcionário não existir, retorne um erro
         return JsonResponse({'error': 'Funcionário não encontrado'}, status=404)
     
+    # Enviando dados dos "Cursos finalizados"
     visualizacoes = Visualizacao.objects.filter(funcionario=funcionario)
+    materiais_visualizados = [f"{visualizacao.pasta.nome} - {visualizacao.material.nome}" for visualizacao in visualizacoes]
 
-    materiais_visualizados = [visualizacao.material.nome for visualizacao in visualizacoes]
+    provas_realizadas = ProvaRealizada.objects.filter(usuario=usuario)
 
-    qtd_videos_visualizados = visualizacoes.count()
+    livros_visualizados = VisualizacaoLivro.objects.filter(user=usuario)
+
+    lista_provas_realizadas = []
+
+    for prova_realizada in provas_realizadas:
+        total_respostas, total_questoes = calcular_nota(prova_realizada.prova,usuario)  # Chama a função calcular_nota
+        nota_final = (total_respostas/total_questoes) * 10 if total_questoes > 0 else 0
+        nota_final = round(nota_final,2)
+        lista_provas_realizadas.append({
+            'prova_titulo': prova_realizada.prova.titulo,
+            'data_realizacao': prova_realizada.data_realizacao.strftime('%d/%m/%Y %H:%M:%S'),
+            'nota_final': nota_final  # Adiciona a nota total calculada
+        })
+
+    lista_livros_visualizados = []
+
+    for livro_visualizado in livros_visualizados:
+        lista_livros_visualizados.append({
+            'livro_titulo': livro_visualizado.livro.titulo,
+        })
+
+    print(funcionario.matricula)
+
+    pastas = Pasta.objects.filter(funcionarios__matricula=matricula)
+
+    print(pastas)
 
     return JsonResponse({
-        'qtd_videos_visualizados': qtd_videos_visualizados,
-        'lista_materiais_visualizados':materiais_visualizados
+        'lista_materiais_visualizados':materiais_visualizados,
+        'lista_provas_realizadas':lista_provas_realizadas,
+        'lista_livros_visualizados':lista_livros_visualizados
     })
 
 def registrar_visualizacao(request):

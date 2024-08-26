@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
             let message = 'Você quer mesmo excluir? Processo irreversível.';
             
             if (deleteLink.classList.contains('delete-link-refazer-prova')) {
-                message = 'Você quer mesmo refazer esta prova?';
+                message = 'Você quer mesmo desfazer esta prova?';
             }
 
             const confirmDelete = confirm(message);
