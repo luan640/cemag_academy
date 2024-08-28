@@ -38,6 +38,9 @@
         border: 3px solid white; /* Adicione uma borda branca para contraste */
         border-radius: 10px; /* Adicione bordas arredondadas */
     }
+    .checked {
+        color: orange;
+    }
 </style>
 
 <div class="row">
@@ -48,6 +51,13 @@
                 <div class="list-group">
                     {% if materiais %}
                     {% for material in materiais %}
+                    <div class="d-flex mb-4 mt-2 justify-content-end">
+                        <span class="fa fa-star" onclick="toggleChecked(this)"></span>
+                        <span class="fa fa-star" onclick="toggleChecked(this)"></span>
+                        <span class="fa fa-star" onclick="toggleChecked(this)"></span>
+                        <span class="fa fa-star" onclick="toggleChecked(this)"></span>
+                        <span class="fa fa-star" onclick="toggleChecked(this)"></span>
+                    </div>
                     <a class="list-group-item list-group-item-action flex-column align-items-start" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modal{{ material.pk }}">
                         <div class="d-flex w-100 justify-content-between">
                             <div class="d-flex align-items-center" style="gap: 20px;">
@@ -221,6 +231,12 @@
 <script src="{% static 'js/visualizador.js' %}"></script>
 
 <script>
+
+    function toggleChecked(element) {
+        // Toggle the 'checked' class on the clicked star
+        element.classList.toggle('checked');
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
     const checkboxes = document.querySelectorAll('.material-visualizado');
     const andamentoVisualizacoes = document.getElementById('andamentoVisualizacoes');

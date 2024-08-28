@@ -57,7 +57,7 @@
 
 <div class="row">
     
-    <div class="col-lg-8 mx-auto mt-4">
+    <div class="col-lg-8 mx-auto mt-4 mb-4">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div>Trilhas</div>
@@ -73,12 +73,11 @@
                     <div class="list-group-item list-group-item-action flex-column align-items-start trilha-item">
                         <div class="w-100">
                             <div>
-                                {% if request.user.type == 'ADM' %}
                                 <div class="d-flex justify-content-between">
                                     <h3><a href="{% url 'detail-pasta' item.pasta.pk %}" class="trilha-nome">{{ item.pasta.nome }}</a></h3>
-                                    <h3><a href="{% url 'frequencia-pasta' item.pasta.pk %}" title="Ficha de frequência">
+                                    <!-- <h3><a href="{% url 'frequencia-pasta' item.pasta.pk %}" title="Ficha de frequência">
                                         <i class="fa-solid fa-list-check"></i>
-                                    </a></h3>
+                                    </a></h3> -->
                                 </div>
                                 <div style="color: #333; font-size: 10pt; margin-bottom: 10px;">
                                     {{ item.criador_nome_completo }}
@@ -86,9 +85,6 @@
                                 <div class="authors" style="font-style: italic;">
                                     {{ item.pasta.descricao }}
                                 </div>
-                                {% else %}
-                                <h3><a href="{% url 'detail-pasta' item.pasta.pk %}" class="trilha-nome">{{ item.pasta.nome }}</a></h3>
-                                {% endif %}
                             </div>
                         </div>
                     </div>

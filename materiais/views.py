@@ -8,7 +8,7 @@ from django.template.loader import get_template
 from django.conf import settings  # Importe o módulo settings
 
 from .models import Pasta,Material,Visualizacao
-from avaliacoes.views import calcular_nota
+from avaliacoes.views import calcular_nota,validacao_certificado
 from .forms import AddPasta,AddMaterial,VisualizacaoForm
 from cadastros.models import Funcionario,Setor
 from biblioteca.models import VisualizacaoLivro
@@ -268,16 +268,25 @@ def jornada_detail_unique(request,matricula):
             'livro_titulo': livro_visualizado.livro.titulo,
         })
 
-    print(funcionario.matricula)
+    setor_do_usuario = funcionario.setor
 
-    pastas = Pasta.objects.filter(funcionarios__matricula=matricula)
+    pastas = Pasta.objects.filter(
+        Q(setores=setor_do_usuario) |
+        Q(funcionarios__matricula=matricula)
+    ).distinct()
 
-    print(pastas)
+    # Corrigindo para usar __in com a lista de pastas
+    provas = Prova.objects.filter(pasta__in=pastas)
+
+    dados_certificado = validacao_certificado(provas,usuario)
+
+    pastas_certificadas = dados_certificado[0]
 
     return JsonResponse({
         'lista_materiais_visualizados':materiais_visualizados,
         'lista_provas_realizadas':lista_provas_realizadas,
-        'lista_livros_visualizados':lista_livros_visualizados
+        'lista_livros_visualizados':lista_livros_visualizados,
+        'pastas_certificadas':pastas_certificadas
     })
 
 def registrar_visualizacao(request):
@@ -412,19 +421,24 @@ def list_participantes(request, pk):
 #     return response
     
 #     # return render(request, "certificados/certificado1.html")
-def gerar_certificado(request, pk, pk_pasta):
+def gerar_certificado(request):
     
-    prova = get_object_or_404(Prova, pk=pk)
-    
-    prova_realizada = get_object_or_404(ProvaRealizada, usuario=request.user, prova=prova)
+    if request.method == 'POST':
+
+        prova_id = request.POST.get('prova_id')
+        pasta_id = request.POST.get('pasta_id')
+        matricula = request.POST.get('matricula')
+
+        prova = get_object_or_404(Prova, pk=prova_id)
         
-    funcionario = get_object_or_404(Funcionario, matricula=request.user.matricula)
-
-    materiais = Material.objects.filter(pasta_id=pk_pasta)
+        # prova_realizada = get_object_or_404(ProvaRealizada, usuario=request.user, prova=prova)
             
-    context = {'funcionario':funcionario,
-               'prova':prova,
-               'dados_prova':prova_realizada,
-               'materiais':materiais}
+        funcionario = get_object_or_404(Funcionario, matricula=matricula)
 
-    return render(request, 'certificados/certificado1.html', context=context)
+        materiais = Material.objects.filter(pasta_id=pasta_id)
+                
+        context = {'funcionario':funcionario,
+                'prova':prova,
+                'materiais':materiais}
+
+        return render(request, 'certificados/certificado1.html', context=context)

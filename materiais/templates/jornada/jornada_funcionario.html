@@ -30,7 +30,7 @@
 {% endif %}
 
 <div class="row justify-content-center" style="margin-bottom: 50px;">
-    <div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 text-center">
+    <div class="col-12 col-sm-12 col-md-6 col-lg-5 col-xl-5 text-center">
         <h1 style="font-weight: 700;"><label for="">Filtrar Funcionário</label></h1>
         <p class="fw-medium" style="color: #6e6e77;">Explore o desempenho e progresso de cada colaborador</p>
         <div class="input-group">
@@ -48,7 +48,7 @@
 </div>
 
 <div class="row justify-content-center g-4 mb-4">
-    <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-3">
+    <div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-3">
       <div class="accordion" id="accordionExample">
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingOne">
@@ -66,15 +66,15 @@
           </div>
         </div>
     </div>
-    <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-3">
+    <div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-3">
       <div class="accordion" id="accordionExampleThree">
           <div class="accordion-item">
             <h2 class="accordion-header" id="headingThree">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                <h5>Certificações globais</h5><span class="badge bg-primary rounded-pill" id="notificationThree" style="margin-left: 10px; margin-bottom: 5px;">0</span>
+              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCertificado" aria-expanded="false" aria-controls="collapseCertificado">
+                <h5>Certificações</h5><span class="badge bg-primary rounded-pill" id="notificationCertificado" style="margin-left: 10px; margin-bottom: 5px;">0</span>
               </button>
             </h2>
-            <div id="collapseThree" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExampleThree">
+            <div id="collapseCertificado" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExampleThree">
               <div class="accordion-body" style="height: 200px; overflow-y: auto;">
                 <ul class="list-group">
 
@@ -87,7 +87,7 @@
 </div>
 
 <div class="row justify-content-center g-4 mb-4">
-  <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-3">
+  <div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-3">
     <div class="accordion" id="accordionExampleFour">
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingFour">
@@ -105,7 +105,7 @@
         </div>
       </div>
   </div>
-  <div class="col-12 col-sm-12 col-md-4 col-lg-4 col-xl-3">
+  <div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-3">
     <div class="accordion" id="accordionExampleFive">
         <div class="accordion-item">
           <h2 class="accordion-header" id="headingFive">
@@ -129,113 +129,7 @@
 
 {% block scripts %}
 
-<script>
-
-  function filtrarOpcoes() {
-    const inputValue = document.getElementById('filterInput').value.toLowerCase();
-    const datalist = document.getElementById('encodings');
-    const options = Array.from(datalist.querySelectorAll('option'));
-
-    // Filtra as opções que começam com o valor digitado e ordena lexicograficamente
-    const opcoesFiltradas = options
-      .filter(option => option.value.toLowerCase().startsWith(inputValue))
-      .sort((a, b) => a.value.localeCompare(b.value))
-      .slice(0, 5); // Pega as 5 primeiras opções filtradas
-
-    // Oculta e desabilita todas as opções inicialmente
-    options.forEach(option => {
-      option.style.display = 'none';
-      option.disabled = true;
-    });
-
-    // Exibe e habilita apenas as opções filtradas
-    opcoesFiltradas.forEach(option => {
-      option.style.display = '';
-      option.disabled = false;
-    });
-  }
-
-  // Adiciona os eventos para filtrar as opções
-  const inputElement = document.getElementById('filterInput');
-  inputElement.addEventListener('input', filtrarOpcoes);
-  inputElement.addEventListener('click', filtrarOpcoes);
-  inputElement.addEventListener('focus', filtrarOpcoes);
-
-  document.getElementById('filtrar_funcionario').addEventListener('click', function() {
-  const inputElement = document.getElementById('filterInput');
-  const funcionarioNome = inputElement.value;
-
-  // Recupera todas as opções do datalist
-  const options = Array.from(document.querySelectorAll('#encodings option'));
-  // Encontra a opção que corresponde ao nome digitado
-  const option = options.find(opt => opt.value === funcionarioNome);
-
-  if (option) {
-    const funcionarioMatricula = option.getAttribute('data-matricula');
-
-    // Envia uma requisição para o backend com o id do funcionário
-    fetch(`/materiais/jornada/detail/${funcionarioMatricula}`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRFToken': '{{ csrf_token }}', // CSRF Token se necessário
-      }
-    })
-    .then(response => response.json())
-    .then(data => {
-      // Atualize a página ou faça algo com os dados retornados
-      const listGroupFive = document.querySelector('#collapseFive .list-group');
-      listGroupFive.innerHTML = ''; // Limpa a lista existente
-      const notificationFive = document.getElementById("notificationFive")
-      notificationFive.textContent = data.lista_materiais_visualizados.length
-
-      if (data.lista_materiais_visualizados.length > 0) {
-        data.lista_materiais_visualizados.forEach(material => {
-          const listItem = document.createElement('li');
-          listItem.className = 'list-group-item';
-          listItem.textContent = material;
-          listGroupFive.appendChild(listItem);
-        });
-      } else {
-        listGroupFive.innerHTML = '<li class="list-group-item">Nenhum material visualizado.</li>';
-      }
-      const listGroupFour = document.querySelector('#collapseFour .list-group');
-      listGroupFour.innerHTML = ''; // Limpa a lista existente
-      const notificationFour = document.getElementById("notificationFour")
-      notificationFour.textContent = data.lista_provas_realizadas.length;
-
-      if (data.lista_provas_realizadas.length > 0) {
-        data.lista_provas_realizadas.forEach(prova => {
-          const listItem = document.createElement('li');
-          listItem.className = 'list-group-item';
-          listItem.innerHTML = `<strong>Prova: </strong>${prova.prova_titulo} <br> <strong>Data: </strong>${prova.data_realizacao} <br> <strong>Nota:</strong> ${prova.nota_final}`;
-          listGroupFour.appendChild(listItem);
-        });
-      } else {
-        listGroupFour.innerHTML = '<li class="list-group-item">Nenhuma prova realizada.</li>';
-      }
-      const listGroupOne = document.querySelector('#collapseOne .list-group');
-      listGroupOne.innerHTML = ''; // Limpa a lista existente
-      const notificationOne = document.getElementById("notificationOne")
-      notificationOne.textContent = data.lista_livros_visualizados.length;
-
-      if (data.lista_livros_visualizados.length > 0) {
-        data.lista_livros_visualizados.forEach(livro => {
-          const listItem = document.createElement('li');
-          listItem.className = 'list-group-item';
-          listItem.innerHTML = livro.livro_titulo;
-          listGroupOne.appendChild(listItem);
-        });
-      } else {
-        listGroupOne.innerHTML = '<li class="list-group-item">Nenhum livro visualizado.</li>';
-      }
-    }).catch(error => console.error('Erro:', error));
-  } else {
-    alert("Funcionário não encontrado.");
-  }
-});
-
-
-</script>
+<script src="/static/js/jornada_funcionario/jornada_funcionario_cards.js"></script>
+<script src="/static/js/jornada_funcionario/opcoes_select.js"></script>
 
 {% endblock %}

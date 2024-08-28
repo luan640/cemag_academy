@@ -5,11 +5,49 @@
 {% block content %}
 
 <div>
-    <h1>Editar Material</h1>
+    <h1 class="mb-4">Editar Material</h1>
     <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">Salvar</button>
+        <div class="card col-12 col-sm-12 col-md-12 col-lg-12 col-xl-7 m-auto mt-4">
+            <div class="card-header fw-bold">Editar Material</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-sm-6 mb-4">
+                        <label for="{{ form.nome.id_for_label }}">Nome do Material</label>
+                        {{ form.nome }}
+                    </div>
+                    <div class="col-sm-6 mb-4">
+                        <label for="{{ form.video.id_for_label }}">Vídeo</label>
+                        {{ form.video }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 mb-4">
+                        <label for="{{ form.descricao.id_for_label }}">Descrição</label>
+                        {{ form.descricao }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 mb-4">
+                        <label for="{{ form.arquivo.id_for_label }}">Arquivo</label>
+                        {{ form.arquivo }}
+                    </div>
+                    <div class="col-sm-6 mb-4">
+                        <label for="{{ form.fotos.id_for_label }}">Fotos</label>
+                        {{ form.fotos }}
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-6 mb-4">
+                        <label for="{{ form.video_youtube.id_for_label }}">Vídeo do Youtube</label>
+                        {{ form.video_youtube }}
+                    </div>
+                </div>
+                <div class="text-end">
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </div>
+        </div>
     </form>
 </div>
 

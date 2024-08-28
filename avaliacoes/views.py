@@ -71,6 +71,40 @@ def calcular_nota(prova,funcionario):
 
     return total_respostas, total_questoes
         
+def validacao_certificado(provas, matricula_funcionario):
+    realizou_provas = {}  
+    acertos_por_prova = {}
+
+    # Dicionário que vai armazenar o status de certificação para cada pasta
+    validacao_por_pasta = {}
+
+    for prova in provas:
+        realizou_prova = ProvaRealizada.objects.filter(usuario=matricula_funcionario, prova=prova).exists()
+        realizou_provas[prova.id] = realizou_prova
+        total_respostas, total_questoes = calcular_nota(prova, matricula_funcionario)
+
+        percentual_acerto = (total_respostas / total_questoes) * 100 if total_questoes > 0 else 0
+        acertos_por_prova[prova.id] = percentual_acerto
+
+        # Usando o nome da pasta como chave
+        pasta_nome = prova.pasta.nome
+
+        # Se o nome da pasta ainda não está no dicionário, inicializa
+        if pasta_nome not in validacao_por_pasta:
+            validacao_por_pasta[pasta_nome] = {
+                'pasta_id': prova.pasta.id,
+                'certificado': True,  # Inicialmente consideramos que a pasta está certificada
+                'provas': []
+            }
+        
+        # Se o percentual de acertos for menor que 70%, a pasta não será certificada
+        if percentual_acerto < 70:
+            validacao_por_pasta[pasta_nome]['certificado'] = False  # Marca a pasta como não certificada
+
+        # Adiciona o ID da prova à lista de provas associadas à pasta
+        validacao_por_pasta[pasta_nome]['provas'].append(prova.id)
+
+    return validacao_por_pasta, acertos_por_prova, realizou_provas
 
 def list_prova(request, pk):
     
@@ -80,36 +114,23 @@ def list_prova(request, pk):
     # Obtém o usuário atual e o funcionário correspondente
     funcionario = CustomUser.objects.get(matricula=request.user.matricula)
 
-    # Dicionário para armazenar se o usuário realizou cada prova
-    realizou_provas = {}  
-
-    # Dicionário para armazenar os acertos por prova
-    acertos_por_prova = {}
-
-    validacao_do_certificado = 0
-    baixar_certificado = False
-
-    for prova in provas:
-        realizou_prova = ProvaRealizada.objects.filter(usuario=request.user, prova=prova).exists()
-        realizou_provas[prova.id] = realizou_prova  # Armazena True/False no dicionário
-        total_respostas, total_questoes = calcular_nota(prova,funcionario)
-
-        # Calcula o percentual de acerto
-        percentual_acerto = (total_respostas/total_questoes) * 100 if total_questoes > 0 else 0
-        acertos_por_prova[prova.id] = percentual_acerto
-        if percentual_acerto >= 70:
-            validacao_do_certificado += 1
+    # Recebe os valores retornados, incluindo o dicionário de validação por pasta
+    validacao_por_pasta, acertos_por_prova, realizou_provas = validacao_certificado(provas, funcionario)
     
-    baixar_certificado = validacao_do_certificado == len(provas)
-    prova_certificado = provas.first() if baixar_certificado and provas.exists() else None
-        
+    # Filtra apenas as pastas que foram certificadas (True no dicionário)
+    pastas_certificadas = [pasta_data for pasta_nome, pasta_data in validacao_por_pasta.items() if pasta_data['certificado']]
+    
+    baixar_certificado = len(pastas_certificadas) > 0
+
+    prova_certificada = provas.first() if baixar_certificado and provas.exists() else None
+    
     return render(request, 'provas/list-prova.html', {
         'pasta': pasta,
         'provas': provas,
-        'acertos_por_prova': acertos_por_prova,  # Passa o dicionário para o template
-        'realizou_provas':realizou_provas,
+        'acertos_por_prova': acertos_por_prova,
+        'realizou_provas': realizou_provas,
         'baixar_certificado': baixar_certificado,
-        'prova_certificado':prova_certificado
+        'prova_certificada': prova_certificada  # Passa a lista de pastas certificadas para o template
     })
 
 def realizar_prova(request, pk):
