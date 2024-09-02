@@ -17,6 +17,39 @@
     .btn-pastel i {
         margin-right: 5px; /* Espaço entre o ícone e o texto */
     }
+
+    .btn-secondary-light {
+        background-color: #bdbdbd;
+        color: white; /* Cor do texto */
+    }
+
+    .btn-secondary-light:hover {
+        background-color: #bdbdbd; /* Cor mais escura no hover */
+        color: white;
+        cursor: default;
+    }
+
+    .btn-secondary-light:active {
+        background-color: #bdbdbd !important;/* Cor mais escura no hover */
+        color: white !important;
+    }
+    .notification-icon {
+        position: relative;
+        display: inline-block;
+    }
+
+    .notification-count {
+        position: absolute;
+        top: -5px;
+        right: -10px;
+        background-color: red;
+        color: white;
+        border-radius: 50%;
+        padding: 3px 7px;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
 </style>
 {% endblock %}
 
@@ -31,6 +64,7 @@
 {% endif %}
 
 <h1>Trilhas de aprendizado</h1>
+
 
 {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
 <div class="row mb-3">
@@ -70,14 +104,21 @@
                 <div class="list-group">
                     {% if pastas_com_criadores %}
                     {% for item in pastas_com_criadores %}
-                    <div class="list-group-item list-group-item-action flex-column align-items-start trilha-item">
+                    <div class="list-group-item flex-column align-items-start trilha-item">
                         <div class="w-100">
                             <div>
                                 <div class="d-flex justify-content-between">
                                     <h3><a href="{% url 'detail-pasta' item.pasta.pk %}" class="trilha-nome">{{ item.pasta.nome }}</a></h3>
-                                    <!-- <h3><a href="{% url 'frequencia-pasta' item.pasta.pk %}" title="Ficha de frequência">
-                                        <i class="fa-solid fa-list-check"></i>
-                                    </a></h3> -->
+                                    {% if request.user.type != 'LEI' %}
+                                    <h3>
+                                        <a class="btn-primary" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#staticBackdrop{{ item.pasta.pk }}">
+                                            <div class="notification-icon" style="position: relative; display: inline-block;">
+                                                <i class="fa-solid fa-bell"></i>
+                                                <span class="notification-count">1</span> <!-- Número de notificações -->
+                                            </div>
+                                        </a>
+                                    </h3>
+                                    {% endif %}
                                 </div>
                                 <div style="color: #333; font-size: 10pt; margin-bottom: 10px;">
                                     {{ item.criador_nome_completo }}
@@ -88,6 +129,7 @@
                             </div>
                         </div>
                     </div>
+                    {% include 'pastas/modal/pasta_list_avaliar_trilha.html' %}
                     {% endfor %}
                     {% else %}
                     <div class="list-group-item list-group-item-action flex-column align-items-start">
@@ -108,30 +150,6 @@
 
 {% block scripts %}
 <script>
-    function submitTrilha(form) {
-        const formData = new FormData(form);
-        fetch(form.action, {
-            method: 'POST',
-            body: formData,
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest'
-            }
-        })
-        .then(response => response.json())
-        .then(data => {
-            // Lidar com a resposta do servidor após o envio do formulário
-            if (data.success) {
-                // Formulário enviado com sucesso
-                // Fechar o offcanvas, atualizar a lista de livros, etc.
-            } else {
-                // Erro no envio do formulário
-                // Exibir mensagem de erro, etc.
-            }
-        })
-        .catch(error => {
-            console.error("Erro ao enviar formulário:", error);
-        });
-    }
 
     document.getElementById('btnSearch').addEventListener('click',function(){
         const inputSearch = document.getElementById('inputSearch').value.toLowerCase();
@@ -146,6 +164,52 @@
             }
         })
     })
+
+    document.querySelector('form').addEventListener('submit', function(event) {
+        const radios = document.querySelectorAll('input[name="valor_trabalho"]');
+        let selected = false;
+        
+        radios.forEach((radio) => {
+            if (radio.checked) {
+                selected = true;
+            }
+        });
+        
+        if (!selected) {
+            alert('Por favor, selecione uma opção.');
+            event.preventDefault();
+        }
+    });
+
+    document.getElementById('filter_collaborator').addEventListener('change', function() {
+        const filter_collaborator = this.value;
+        const resposta_do_colaborador_selecionado = document.getElementById('resposta_do_colaborador_selecionado');
+        const resposta_avaliacao_chefia = document.getElementById('resposta_avaliacao_chefia');
+        const resposta_parecer_rh = document.getElementById('resposta_parecer_rh');
+
+        // Exibe os campos apenas se um colaborador for selecionado
+        if (filter_collaborator) {
+            // Exibe o campo do colaborador selecionado
+            resposta_do_colaborador_selecionado.style.display = 'block';
+
+            // Condicional para exibir o bloco correto dependendo do tipo de usuário
+            if (resposta_avaliacao_chefia) {
+                resposta_avaliacao_chefia.style.display = 'block';
+            }
+            if (resposta_parecer_rh) {
+                resposta_parecer_rh.style.display = 'block';
+            }
+        } else {
+            // Oculta todos os campos se nenhum colaborador for selecionado
+            resposta_do_colaborador_selecionado.style.display = 'none';
+            if (resposta_avaliacao_chefia) {
+                resposta_avaliacao_chefia.style.display = 'none';
+            }
+            if (resposta_parecer_rh) {
+                resposta_parecer_rh.style.display = 'none';
+            }
+        }
+    });
 
 
 </script>

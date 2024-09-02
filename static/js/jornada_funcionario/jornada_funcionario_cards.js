@@ -62,7 +62,7 @@
           listItem.innerHTML = `
             <div class="d-flex w-100 justify-content-between">
               <h5 class="mb-1">${prova.prova_titulo}</h5>
-              <small>${prova.data_realizacao}</small>
+              <small style="font-size: 12px;">${prova.data_realizacao}</small>
             </div>
             <p class="mb-1">Nota: ${notaCircle}</p>
           `;

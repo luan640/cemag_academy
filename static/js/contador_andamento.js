@@ -28,11 +28,10 @@ document.addEventListener('DOMContentLoaded', function () {
         // Remove as classes bg-success, bg-warning, bg-danger
         progressBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
 
-        console.log(percentage)
         // Adiciona a classe correta com base na porcentagem
-        if (percentage >= 80 && percentage <= 100) {
+        if (percentage === 100) {
             progressBar.classList.add('bg-success');
-        } else if (percentage > 25 && percentage < 80) {
+        } else if (percentage > 25 && percentage < 100) {
             progressBar.classList.add('bg-warning');
         } else {
             progressBar.classList.add('bg-danger');

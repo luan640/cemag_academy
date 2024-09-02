@@ -52,3 +52,22 @@ class Visualizacao(models.Model):
 
     def __str__(self):
         return f'{self.funcionario} visualizou {self.material} em {self.visualizado_em}'
+
+class AvaliacaoEficacia(models.Model):
+    pasta = models.ForeignKey(Pasta, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    avaliado_chefia = models.BooleanField(default=False)
+    avaliado_rh = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Avaliação Eficácia {self.id} - {self.usuario.matricula}"
+
+class RespostaAvaliacaoEficacia(models.Model):
+    avaliacao_eficacia = models.ForeignKey(AvaliacaoEficacia, on_delete=models.CASCADE)
+    eficacia_qualificacao = models.BooleanField()
+    justificativa_qualificacao = models.TextField()
+    data_resposta = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Resposta Avaliação {self.id} - {self.avaliacao_eficacia}"

@@ -20,6 +20,8 @@ urlpatterns = [
     path('material/<int:pk_material>/edit/<int:pk_pasta>/', views.material_edit, name='edit-material'),
     path('material/<int:pk_material>/delete/<int:pk_pasta>/', views.material_delete, name='delete-material'),
     path('material/registrar-visualizacao/', views.registrar_visualizacao, name='registrar_visualizacao'),
+    
+    path('avaliacao/colaborador/<int:pk>', views.avaliacao, name='avaliacao'),
 
     path('jornada/detail/', views.jornada_detail, name='jornada_detail'),
     path('jornada/detail/<int:matricula>', views.jornada_detail_unique, name='jornada_detail_unique')

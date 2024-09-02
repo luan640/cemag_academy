@@ -1,0 +1,69 @@
+<div class="modal fade" id="staticBackdrop{{ item.pasta.pk }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdrop{{ item.pasta.pk }}Label" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 60px;">
+      <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="staticBackdrop{{ item.pasta.pk }}Label">Avaliação pela CHEFIA - {{ item.pasta.nome }}</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="" method="POST">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="mb-4">
+                    <label for="">Selecione um colaborador para concluir a avaliação</label>
+                    <select class="form-control" name="filter_collaborator" id="filter_collaborator" required>
+                        <option value="" selected>-------</option>
+                        <option value="Thierry">Thierry</option>
+                    </select>
+                    <code>**Todos os colaboradores dessa lista já realizaram a avaliação da {{ item.pasta.nome }}</code>
+                </div>
+                <div id="resposta_do_colaborador_selecionado" class="mb-4 border p-3" style="display: none; background-color: rgb(241, 241, 241);">
+                    <h5>Resposta - Thierry</h5>
+                    <div class="border p-3">
+                        <p>Você considera que a qualificação agregará valor para o seu trabalho?</p>
+                        <label for="sim">Sim</label>
+                        <input type="radio" name="valor_trabalho" id="sim" disabled>
+                        <label for="nao">Não</label>
+                        <input type="radio" name="valor_trabalho" id="nao" disabled>
+                    </div>
+                    <div class="mt-4">
+                        <label for="">Justifique</label>
+                        <input class="form-control" type="text" name="" id="" disabled>
+                    </div>
+                </div>
+                {% if request.user.type == 'LID' %}
+                <div id="resposta_avaliacao_chefia" style="display: none;">
+                    <div class="border p-3">
+                        <p>Você considera que a qualificação dada ao colaborador atingiu os resultados esperados?</p>
+                        <label for="sim">Sim</label>
+                        <input type="radio" name="valor_trabalho" id="sim">
+                        <label for="nao">Não</label>
+                        <input type="radio" name="valor_trabalho" id="nao">
+                    </div>
+                    <div class="mt-4">
+                        <label for="">Justifique</label>
+                        <input class="form-control" type="text" name="" id="">
+                    </div>
+                </div>
+                {% elif request.user.type == 'ADM' %}
+                <div id="resposta_parecer_rh" style="display: none;">
+                    <div class="border p-3">
+                        <p>Com base nas respostas dadas nas questões anteriores a ação de qualificação foi?</p>
+                        <label for="Eficaz">Eficaz</label>
+                        <input type="radio" name="valor_trabalho" id="Eficaz">
+                        <label for="Não Eficaz">Não Eficaz</label>
+                        <input type="radio" name="valor_trabalho" id="Não Eficaz">
+                    </div>
+                    <div class="mt-4">
+                        <label for="">Justifique</label>
+                        <input class="form-control" type="text" name="" id="">
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            <div class="modal-footer">
+            <button type="submit" class="btn btn-primary">Enviar</button>
+            </div>
+        </form>
+      </div>
+    </div>
+</div>

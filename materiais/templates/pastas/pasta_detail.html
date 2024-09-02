@@ -51,13 +51,6 @@
                 <div class="list-group">
                     {% if materiais %}
                     {% for material in materiais %}
-                    <div class="d-flex mb-4 mt-2 justify-content-end">
-                        <span class="fa fa-star" onclick="toggleChecked(this)"></span>
-                        <span class="fa fa-star" onclick="toggleChecked(this)"></span>
-                        <span class="fa fa-star" onclick="toggleChecked(this)"></span>
-                        <span class="fa fa-star" onclick="toggleChecked(this)"></span>
-                        <span class="fa fa-star" onclick="toggleChecked(this)"></span>
-                    </div>
                     <a class="list-group-item list-group-item-action flex-column align-items-start" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modal{{ material.pk }}">
                         <div class="d-flex w-100 justify-content-between">
                             <div class="d-flex align-items-center" style="gap: 20px;">
@@ -83,87 +76,87 @@
                         </div>
                         <p class="mb-1 mt-4">{{ material.descricao }}</p>
                     </a>
-                <div class="d-flex justify-content-between align-items-center mt-2">
-                    <div>
-                        {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                        <div>
+                            {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
                             <a href="{% url 'delete-material' material.pk pasta.pk %}" class="mb-1 btn btn-dark delete-link" style="width: 100px;">Excluir</a>
                             <a href="{% url 'edit-material' material.pk pasta.pk %}" class="mb-1 btn btn-light" style="width: 100px;">Editar</a>
-                        {% endif %}
-                    </div>
-                    <div class="d-flex justify-content-between mb-2"  style="width: 300px; background-color: #f3f3f3;padding: 10px;border-radius: 10px;font-weight: 600; border: 2px solid rgb(229 229 229);">
-                        Marcar como visualizado<input
-                        style="width: 30px;"
-                        class="material-visualizado ms-2"
-                        type="checkbox"
-                        data-material-id="{{ material.id }}"
-                        data-pasta-id="{{ material.pasta.id }}"
-                        data-url="{% url 'registrar_visualizacao' %}"
-                        {% if material.id in visualizacoes %}checked{% endif %}>
-                    </div>
-                </div>
-
-        <div class="overlay-bg" id="overlayBg">
-            <img src="" alt="Imagem em destaque" id="overlayImg">
-        </div>
-        
-        <div class="modal fade" id="modal{{ material.pk }}" tabindex="-1" aria-labelledby="modalLabel{{ material.pk }}" aria-hidden="true" data-bs-backdrop="static">
-            <div class="modal-dialog" style="margin-top: 60px;">
-                <div class="modal-content">
-                    <div class="modal-body" style="padding: 0;">
-        
-                        {% if material.video_youtube %}
-                        <iframe class="w-100" style="height: 400px; border-radius: 7px;" src="https://www.youtube.com/embed/{{ material.video_youtube }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                        {% endif %}
-                        
-                        <div style="padding: 20px; overflow-y: auto; height: 300px;">
-                            <div class="d-flex justify-content-between">
-                                <h5 class="mb-4">{{ material.nome }}</h5>
-                                <div class="d-flex justify-content-end" style="gap: 20px;">
-                                    {% if material.video %}
-                                    <div class="video-overlay">
-                                        <button class="btn btn-secondary" onclick="openVideoInNewTab('{{ material.video.url }}')">
-                                            <i class="fa-solid fa-circle-play"></i>
-                                        </button>
-                                    </div>
-                                    {% endif %}
-                                    {% if material.fotos %}
-                                    <p>
-                                        <button class="btn btn-secondary img-overlay" data-img-url="{{ material.fotos.url }}">
-                                            <i class="fa-solid fa-image" title="Imagem"></i>
-                                        </button>
-                                    </p>
-                                    {% endif %}
-                
-                                    {% if material.arquivo %}
-                                    <p>
-                                        <button class="btn btn-secondary" data-file-url="{{ material.arquivo.url }}" onclick="window.open(this.getAttribute('data-file-url'), '_blank')">
-                                            <i class="fa-solid fa-file" title="Arquivo"></i>
-                                        </button>
-                                    </p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                            <p>{{ material.descricao }}</p>
+                            {% endif %}
+                        </div>
+                        <div class="d-flex justify-content-between mb-2"  style="width: 300px; background-color: #f3f3f3;padding: 10px;border-radius: 10px;font-weight: 600; border: 2px solid rgb(229 229 229);">
+                            Marcar como visualizado<input
+                            style="width: 30px;"
+                            class="material-visualizado ms-2"
+                            type="checkbox"
+                            data-material-id="{{ material.id }}"
+                            data-pasta-id="{{ material.pasta.id }}"
+                            data-url="{% url 'registrar_visualizacao' %}"
+                            {% if material.id in visualizacoes %}checked{% endif %}>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+
+                    <div class="overlay-bg" id="overlayBg">
+                        <img src="" alt="Imagem em destaque" id="overlayImg">
                     </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
-        {% else %}
-        <a class="list-group-item list-group-item-action flex-column align-items-start" style="cursor: pointer;">
-            <div class="d-flex w-100 justify-content-between">
-                <div class="d-flex align-items-center" style="gap: 20px;">
-                    <i class="fa-regular fa-face-sad-tear" style="color: #000000; width: 50px; height: auto;"></i>
-                    <h5 class="mb-1">Nenhum material disponível</h5>
-                </div>
-            </div>
-            <p class="mb-1 mt-4">Não há materiais para exibir no momento.</p>
-        </a>
-        {% endif %}
+        
+                    <div class="modal fade" id="modal{{ material.pk }}" tabindex="-1" aria-labelledby="modalLabel{{ material.pk }}" aria-hidden="true" data-bs-backdrop="static">
+                        <div class="modal-dialog" style="margin-top: 60px;">
+                            <div class="modal-content">
+                                <div class="modal-body" style="padding: 0;">
+                    
+                                    {% if material.video_youtube %}
+                                    <iframe class="w-100" style="height: 400px; border-radius: 7px;" src="https://www.youtube.com/embed/{{ material.video_youtube }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                                    {% endif %}
+                                    
+                                    <div style="padding: 20px; overflow-y: auto; height: 300px;">
+                                        <div class="d-flex justify-content-between">
+                                            <h5 class="mb-4">{{ material.nome }}</h5>
+                                            <div class="d-flex justify-content-end" style="gap: 20px;">
+                                                {% if material.video %}
+                                                <div class="video-overlay">
+                                                    <button class="btn btn-secondary" onclick="openVideoInNewTab('{{ material.video.url }}')">
+                                                        <i class="fa-solid fa-circle-play"></i>
+                                                    </button>
+                                                </div>
+                                                {% endif %}
+                                                {% if material.fotos %}
+                                                <p>
+                                                    <button class="btn btn-secondary img-overlay" data-img-url="{{ material.fotos.url }}">
+                                                        <i class="fa-solid fa-image" title="Imagem"></i>
+                                                    </button>
+                                                </p>
+                                                {% endif %}
+                            
+                                                {% if material.arquivo %}
+                                                <p>
+                                                    <button class="btn btn-secondary" data-file-url="{{ material.arquivo.url }}" onclick="window.open(this.getAttribute('data-file-url'), '_blank')">
+                                                        <i class="fa-solid fa-file" title="Arquivo"></i>
+                                                    </button>
+                                                </p>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <p>{{ material.descricao }}</p>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+                {% else %}
+                <a class="list-group-item list-group-item-action flex-column align-items-start" style="cursor: pointer;">
+                    <div class="d-flex w-100 justify-content-between">
+                        <div class="d-flex align-items-center" style="gap: 20px;">
+                            <i class="fa-regular fa-face-sad-tear" style="color: #000000; width: 50px; height: auto;"></i>
+                            <h5 class="mb-1">Nenhum material disponível</h5>
+                        </div>
+                    </div>
+                    <p class="mb-1 mt-4">Não há materiais para exibir no momento.</p>
+                </a>
+                {% endif %}
         </div>
         </div>
     </div>
@@ -221,87 +214,59 @@
                 {% endif %}
             </div>
         </div>
+        <div class="flex-column flex-sm-row justify-content-between col-lg-8 mt-4" id="avaliacao_eficacia" style="display: flex;">
+            <div class="d-flex mb-4">
+                <button 
+                    class="btn {% if existe_avaliacao_eficacia %}btn-secondary{% else %}btn-primary{% endif %}" 
+                    style="border-radius: 0.375rem 0px 0px 0.375rem" 
+                    data-bs-toggle="modal" 
+                    data-bs-target="#staticBackdrop"
+                    {% if existe_avaliacao_eficacia %}disabled{% endif %}>
+                    Avaliação de Eficácia da Trilha
+                </button>
+                <span class="btn {% if existe_avaliacao_eficacia %}btn-success{% else %}btn-secondary{% endif %}" style="border-radius: 0px 0.375rem 0.375rem 0px">
+                    {% if existe_avaliacao_eficacia %}Concluída <i class="fa-solid fa-check"></i>{% else %}Pendente <i class="fa-regular fa-clock"></i>{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog" style="margin-top: 60px;">
+      <div class="modal-content">
+        <div class="modal-header">
+            <h1 class="modal-title fs-5" id="staticBackdropLabel">Avaliação pelo Colaborador</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form action="{% url 'avaliacao' pasta.id %}" method="POST">
+            {% csrf_token %}
+            <div class="modal-body">
+                <div class="border p-3">
+                    <p>Você considera que a qualificação agregará valor para o seu trabalho?</p>
+                    <label for="sim_colaborador">Sim</label>
+                    <input type="radio" name="valor_trabalho" id="sim_colaborador" value="true">
+                    <label for="nao_colaborador">Não</label>
+                    <input type="radio" name="valor_trabalho" id="nao_colaborador" value="false">
+                </div>
+                <div class="mt-4">
+                    <label for="justificativa">Justifique</label>
+                    <input class="form-control" type="text" name="justificativa" id="justificativa" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="submit" class="btn btn-primary">Enviar</button>
+            </div>
+        </form>
+      </div>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
-<!-- <script src="{% static 'js/contador_andamento.js' %}"></script> -->
+<script src="{% static 'js/contador_andamento.js' %}"></script>
 <script src="{% static 'js/visualizador.js' %}"></script>
-
-<script>
-
-    function toggleChecked(element) {
-        // Toggle the 'checked' class on the clicked star
-        element.classList.toggle('checked');
-    }
-
-    document.addEventListener('DOMContentLoaded', function () {
-    const checkboxes = document.querySelectorAll('.material-visualizado');
-    const andamentoVisualizacoes = document.getElementById('andamentoVisualizacoes');
-    const botaoProvas = document.getElementById('provaDisponivel'); // Seleciona o botão
-    const progressBar = document.getElementById('progressBar'); // Seleciona a barra de progresso
-    const statusIconCheck = document.getElementById('statusIconCheck'); // Ícone de check
-    const statusIconXmark = document.getElementById('statusIconXmark'); // Ícone de xmark
-
-    function updatePercentage() {
-        const totalCheckboxes = checkboxes.length;
-        let checkboxesMarcados = 0;
-
-        checkboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-                checkboxesMarcados++;
-            }
-        });
-
-        const percentage = totalCheckboxes > 0 ? (checkboxesMarcados / totalCheckboxes) * 100 : 0;
-        andamentoVisualizacoes.textContent = percentage.toFixed(2) + '%';
-
-        // Atualiza o estilo da barra de progresso e o texto dentro dela
-        progressBar.style.width = percentage + '%';
-        botaoProvas.style.textDecoration = 'none'
-        progressBar.textContent = percentage.toFixed(2) + '%';
-        progressBar.setAttribute('aria-valuenow', percentage.toFixed(2));
-
-        // Remove as classes bg-success, bg-warning, bg-danger
-        progressBar.classList.remove('bg-success', 'bg-warning', 'bg-danger');
-
-        // Adiciona a classe correta com base na porcentagem
-        if (percentage === 100) {
-            progressBar.classList.add('bg-success');
-        } else if (percentage > 25 && percentage < 100) {
-            progressBar.classList.add('bg-warning');
-        } else {
-            progressBar.classList.add('bg-danger');
-        }
-
-        // Atualiza os ícones e o estado do botão com base no progresso
-        if (percentage === 100) {
-            statusIconCheck.style.display = 'block';
-            statusIconXmark.style.display = 'none';
-            botaoProvas.removeAttribute('disabled');
-            botaoProvas.textContent = 'Provas disponíveis'
-            botaoProvas.style.color = '#0d6efd';
-            botaoProvas.style.pointerEvents = 'auto'; // Habilita o botão
-        } else {
-            statusIconCheck.style.display = 'none';
-            statusIconXmark.style.display = 'block';
-            botaoProvas.setAttribute('disabled', 'true');
-            botaoProvas.textContent = 'Provas indisponíveis'
-            botaoProvas.style.color = 'gray';
-            botaoProvas.style.pointerEvents = 'none'; // Desabilita o botão
-        }
-    }
-
-    updatePercentage(); // Atualiza ao carregar a página
-
-    checkboxes.forEach(checkbox => {
-        checkbox.addEventListener('change', updatePercentage);
-    });
-});
-
-</script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -329,6 +294,32 @@ function openVideoInNewTab(url) {
         alert('O vídeo não está no formato MP4.');
     }
 }
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Função para verificar se todos os checkboxes estão marcados
+        function checkAllCheckboxes() {
+            const checkboxes = document.querySelectorAll('.material-visualizado');
+            const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
+            const avaliacaoEficaciaDiv = document.getElementById('avaliacao_eficacia');
+
+            // Exibe ou oculta o div baseado no estado dos checkboxes
+            if (allChecked) {
+                avaliacaoEficaciaDiv.style.display = 'flex';
+            } else {
+                avaliacaoEficaciaDiv.style.display = 'none';
+            }
+        }
+
+        // Adiciona event listeners aos checkboxes
+        document.querySelectorAll('.material-visualizado').forEach(checkbox => {
+            checkbox.addEventListener('change', checkAllCheckboxes);
+        });
+
+        // Verifica o estado dos checkboxes na carga inicial
+        checkAllCheckboxes();
+    });
 </script>
 
 {% endblock %}

@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from django.conf import settings  # Importe o módulo settings
 
-from .models import Pasta,Material,Visualizacao
+from .models import Pasta,Material,Visualizacao,AvaliacaoEficacia, RespostaAvaliacaoEficacia
 from avaliacoes.views import calcular_nota,validacao_certificado
 from .forms import AddPasta,AddMaterial,VisualizacaoForm
 from cadastros.models import Funcionario,Setor
@@ -68,8 +68,6 @@ def pastas_list(request):
             Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
         ).distinct()
-
-    print(pastas)
     # Pegar os nomes dos criadores das pastas
     pastas_com_criadores = []
     for pasta in pastas:
@@ -85,6 +83,11 @@ def pastas_list(request):
 @login_required
 def pastas_detail(request, pk):
     pasta = get_object_or_404(Pasta, pk=pk)
+    avaliacao_eficacia = AvaliacaoEficacia.objects.filter(pasta=pasta, usuario=request.user)
+    resposta_avaliacao_eficacia = RespostaAvaliacaoEficacia.objects.filter(avaliacao_eficacia__in=avaliacao_eficacia)
+
+    existe_avaliacao_eficacia = resposta_avaliacao_eficacia.exists()
+    
     materiais = Material.objects.filter(pasta=pasta)
 
     visualizacoes = Visualizacao.objects.filter(
@@ -96,6 +99,7 @@ def pastas_detail(request, pk):
         'pasta': pasta,
         'materiais': materiais,
         'visualizacoes': visualizacoes,
+        'existe_avaliacao_eficacia': existe_avaliacao_eficacia
     })
 
 @login_required
@@ -221,6 +225,45 @@ def material_delete(request, pk_material, pk_pasta):
     messages.success(request, 'Material excluído com sucesso.')
 
     return redirect('detail-pasta', pk=pasta.pk)
+
+@login_required
+def avaliacao(request, pk):
+    if request.method == 'POST':
+        # Capturando os valores do formulário
+        valor_trabalho = request.POST.get('valor_trabalho')
+        justificativa = request.POST.get('justificativa')
+
+        # Convertendo para booleano
+        eficacia_qualificacao = True if valor_trabalho == 'true' else False
+
+        # Obter a instância da pasta correspondente
+        pasta = get_object_or_404(Pasta, id=pk)
+
+        # Verificar se já existe uma avaliação para esse usuário e essa pasta
+        avaliacao_eficacia, created = AvaliacaoEficacia.objects.get_or_create(
+            pasta=pasta,
+            usuario=request.user
+        )
+
+        # Marcar como avaliado pela chefia ou RH, dependendo do tipo de usuário
+        if request.user.type == 'LID':
+            avaliacao_eficacia.avaliado_chefia = True
+        elif request.user.type == 'ADM':
+            avaliacao_eficacia.avaliado_rh = True
+        
+        avaliacao_eficacia.save()
+
+        # Criar a resposta da avaliação
+        RespostaAvaliacaoEficacia.objects.create(
+            avaliacao_eficacia=avaliacao_eficacia,
+            eficacia_qualificacao=eficacia_qualificacao,
+            justificativa_qualificacao=justificativa
+        )
+
+        # Redirecionar após o processamento
+        return redirect('detail-pasta', pk=pk)
+
+    return redirect('detail-pasta', pk=pk)
 
 @login_required
 def jornada_detail(request):
