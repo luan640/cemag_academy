@@ -22,6 +22,7 @@ urlpatterns = [
     path('material/registrar-visualizacao/', views.registrar_visualizacao, name='registrar_visualizacao'),
     
     path('avaliacao/colaborador/<int:pk>', views.avaliacao, name='avaliacao'),
+    path('avaliacao/supervisor/<int:pk>/', views.avaliacao_chefia, name='avaliacao_chefia'),
 
     path('jornada/detail/', views.jornada_detail, name='jornada_detail'),
     path('jornada/detail/<int:matricula>', views.jornada_detail_unique, name='jornada_detail_unique')

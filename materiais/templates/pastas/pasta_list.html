@@ -114,7 +114,9 @@
                                         <a class="btn-primary" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#staticBackdrop{{ item.pasta.pk }}">
                                             <div class="notification-icon" style="position: relative; display: inline-block;">
                                                 <i class="fa-solid fa-bell"></i>
-                                                <span class="notification-count">1</span> <!-- Número de notificações -->
+                                                {% if item.nomes_funcionarios %}
+                                                    <span class="notification-count">{{item.nomes_funcionarios | length}}</span>
+                                                {% endif %}
                                             </div>
                                         </a>
                                     </h3>
@@ -181,35 +183,73 @@
         }
     });
 
-    document.getElementById('filter_collaborator').addEventListener('change', function() {
-        const filter_collaborator = this.value;
-        const resposta_do_colaborador_selecionado = document.getElementById('resposta_do_colaborador_selecionado');
-        const resposta_avaliacao_chefia = document.getElementById('resposta_avaliacao_chefia');
-        const resposta_parecer_rh = document.getElementById('resposta_parecer_rh');
+    document.querySelectorAll('[id^=filter_collaborator]').forEach(function(selectElement) {
+        selectElement.addEventListener('change', function() {
+            const filter_collaborator = this.value;
+            const pastaPk = this.id.replace('filter_collaborator', '');
+            
+            const resposta_do_colaborador_selecionado = document.getElementById('resposta_do_colaborador_selecionado' + pastaPk);
+            const resposta_avaliacao_chefia = document.getElementById('resposta_avaliacao_chefia' + pastaPk);
+            const resposta_parecer_rh = document.getElementById('resposta_parecer_rh' + pastaPk);
 
-        // Exibe os campos apenas se um colaborador for selecionado
-        if (filter_collaborator) {
-            // Exibe o campo do colaborador selecionado
-            resposta_do_colaborador_selecionado.style.display = 'block';
+            // Exibe os campos apenas se um colaborador for selecionado
+            if (filter_collaborator) {
+                resposta_do_colaborador_selecionado.style.display = 'block';
 
-            // Condicional para exibir o bloco correto dependendo do tipo de usuário
-            if (resposta_avaliacao_chefia) {
-                resposta_avaliacao_chefia.style.display = 'block';
+                if (resposta_avaliacao_chefia) {
+                    resposta_avaliacao_chefia.style.display = 'block';
+                }
+                if (resposta_parecer_rh) {
+                    resposta_parecer_rh.style.display = 'block';
+                }
+            } else {
+                resposta_do_colaborador_selecionado.style.display = 'none';
+                if (resposta_avaliacao_chefia) {
+                    resposta_avaliacao_chefia.style.display = 'none';
+                }
+                if (resposta_parecer_rh) {
+                    resposta_parecer_rh.style.display = 'none';
+                }
             }
-            if (resposta_parecer_rh) {
-                resposta_parecer_rh.style.display = 'block';
-            }
-        } else {
-            // Oculta todos os campos se nenhum colaborador for selecionado
-            resposta_do_colaborador_selecionado.style.display = 'none';
-            if (resposta_avaliacao_chefia) {
-                resposta_avaliacao_chefia.style.display = 'none';
-            }
-            if (resposta_parecer_rh) {
-                resposta_parecer_rh.style.display = 'none';
-            }
-        }
+        });
     });
+
+    function fetchCollaboratorData(pastaId) {
+        // Pegue o colaborador selecionado
+        const collaborator = document.getElementById(`filter_collaborator${pastaId}`).value;
+        const textResposta = document.getElementById(`resposta_colaborador_text${pastaId}`);
+        const justificativa = document.getElementById(`justificativa_avaliacao${pastaId}`);
+        const checkboxSim = document.getElementById(`sim${pastaId}`); // Agregou valor
+        const checkboxNao = document.getElementById(`nao${pastaId}`); // Não agregou valor
+
+        // Verifique se um colaborador foi selecionado
+        if (collaborator) {
+            // Crie a URL para o GET request
+            const url = `/materiais/avaliacao/supervisor/${pastaId}/?collaborator=${collaborator}`;
+
+            // Envie o GET request usando fetch API
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    // Atualize a resposta na página com os dados retornados
+                    // Aqui você pode manipular a resposta e exibi-la na página
+                    textResposta.innerHTML = "Resposta - " + collaborator
+                    document.getElementById(`resposta_do_colaborador_selecionado${pastaId}`).style.display = "block";
+                    justificativa.value = data.resposta
+                    if(data.qualificacao){
+                        checkboxSim.checked = true
+                        checkboxNao.checked = false
+                    } else {
+                        checkboxSim.checked = false
+                        checkboxNao.checked = true
+                    }
+                    
+                })
+                .catch(error => {
+                    console.error('Error fetching data:', error);
+                });
+        }
+    }
 
 
 </script>

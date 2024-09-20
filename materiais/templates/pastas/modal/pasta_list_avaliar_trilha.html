@@ -5,57 +5,59 @@
             <h1 class="modal-title fs-5" id="staticBackdrop{{ item.pasta.pk }}Label">Avaliação pela CHEFIA - {{ item.pasta.nome }}</h1>
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <form action="" method="POST">
+        <form action="{% url 'avaliacao_chefia' item.pasta.pk %}" method="POST">
             {% csrf_token %}
             <div class="modal-body">
                 <div class="mb-4">
                     <label for="">Selecione um colaborador para concluir a avaliação</label>
-                    <select class="form-control" name="filter_collaborator" id="filter_collaborator" required>
+                    <select class="form-control" name="filter_collaborator" id="filter_collaborator{{ item.pasta.pk }}" required onchange="fetchCollaboratorData('{{ item.pasta.pk }}')">
                         <option value="" selected>-------</option>
-                        <option value="Thierry">Thierry</option>
+                        {% for nome_funcionario in item.nomes_funcionarios %}
+                        <option value="{{ nome_funcionario }}">{{ nome_funcionario }}</option>
+                        {% endfor %}
                     </select>
                     <code>**Todos os colaboradores dessa lista já realizaram a avaliação da {{ item.pasta.nome }}</code>
                 </div>
-                <div id="resposta_do_colaborador_selecionado" class="mb-4 border p-3" style="display: none; background-color: rgb(241, 241, 241);">
-                    <h5>Resposta - Thierry</h5>
+                <div id="resposta_do_colaborador_selecionado{{ item.pasta.pk }}" class="mb-4 border p-3" style="display: none; background-color: rgb(241, 241, 241);">
+                    <h6 id="resposta_colaborador_text{{ item.pasta.pk }}"></h6>
                     <div class="border p-3">
                         <p>Você considera que a qualificação agregará valor para o seu trabalho?</p>
-                        <label for="sim">Sim</label>
-                        <input type="radio" name="valor_trabalho" id="sim" disabled>
-                        <label for="nao">Não</label>
-                        <input type="radio" name="valor_trabalho" id="nao" disabled>
+                        <label for="sim{{ item.pasta.pk }}">Sim</label>
+                        <input type="radio" name="valor_trabalho" id="sim{{ item.pasta.pk }}" disabled>
+                        <label for="nao{{ item.pasta.pk }}">Não</label>
+                        <input type="radio" name="valor_trabalho" id="nao{{ item.pasta.pk }}" disabled>
                     </div>
                     <div class="mt-4">
-                        <label for="">Justifique</label>
-                        <input class="form-control" type="text" name="" id="" disabled>
+                        <label for="justificativa_avaliacao{{ item.pasta.pk }}">Justifique</label>
+                        <input style="color: gray;" class="form-control" type="text" name="justificativa_avaliacao" id="justificativa_avaliacao{{ item.pasta.pk }}" disabled>
                     </div>
                 </div>
                 {% if request.user.type == 'LID' %}
-                <div id="resposta_avaliacao_chefia" style="display: none;">
+                <div id="resposta_avaliacao_chefia{{ item.pasta.pk }}" style="display: none;">
                     <div class="border p-3">
                         <p>Você considera que a qualificação dada ao colaborador atingiu os resultados esperados?</p>
-                        <label for="sim">Sim</label>
-                        <input type="radio" name="valor_trabalho" id="sim">
-                        <label for="nao">Não</label>
-                        <input type="radio" name="valor_trabalho" id="nao">
+                        <label for="sim_chefia{{ item.pasta.pk }}">Sim</label>
+                        <input type="radio" name="eficacia_qualificacao" id="sim_chefia{{ item.pasta.pk }}" value="on" required>
+                        <label for="nao_chefia{{ item.pasta.pk }}">Não</label>
+                        <input type="radio" name="eficacia_qualificacao" id="nao_chefia{{ item.pasta.pk }}" value="off" required>
                     </div>
                     <div class="mt-4">
-                        <label for="">Justifique</label>
-                        <input class="form-control" type="text" name="" id="">
+                        <label for="justificativa_qualificacao{{ item.pasta.pk }}">Justifique</label>
+                        <input class="form-control" type="text" name="justificativa_qualificacao" id="justificativa_qualificacao{{ item.pasta.pk }}" required>
                     </div>
                 </div>
                 {% elif request.user.type == 'ADM' %}
-                <div id="resposta_parecer_rh" style="display: none;">
+                <div id="resposta_parecer_rh{{ item.pasta.pk }}" style="display: none;">
                     <div class="border p-3">
                         <p>Com base nas respostas dadas nas questões anteriores a ação de qualificação foi?</p>
-                        <label for="Eficaz">Eficaz</label>
-                        <input type="radio" name="valor_trabalho" id="Eficaz">
-                        <label for="Não Eficaz">Não Eficaz</label>
-                        <input type="radio" name="valor_trabalho" id="Não Eficaz">
+                        <label for="sim_chefia{{ item.pasta.pk }}">Eficaz</label>
+                        <input type="radio" name="eficacia_qualificacao" id="sim_chefia{{ item.pasta.pk }}" value="on" required>
+                        <label for="nao_chefia{{ item.pasta.pk }}">Não Eficaz</label>
+                        <input type="radio" name="eficacia_qualificacao" id="nao_chefia{{ item.pasta.pk }}" value="off" required>
                     </div>
                     <div class="mt-4">
-                        <label for="">Justifique</label>
-                        <input class="form-control" type="text" name="" id="">
+                        <label for="justificativa_qualificacao{{ item.pasta.pk }}">Justifique</label>
+                        <input class="form-control" type="text" name="justificativa_qualificacao" id="justificativa_qualificacao{{ item.pasta.pk }}" required>
                     </div>
                 </div>
                 {% endif %}

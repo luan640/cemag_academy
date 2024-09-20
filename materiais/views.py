@@ -34,6 +34,20 @@ def is_id_youtube_valido(url):
     padrao = r'^[A-Za-z0-9_-]{11}$'
     return re.match(padrao, url) is not None
 
+def get_filtered_usernames(logged_in_user):
+    queryset = AvaliacaoEficacia.objects.select_related('usuario')
+
+    if logged_in_user.type == "LID":
+        queryset = queryset.filter(avaliado_chefia=False)
+    elif logged_in_user.type == "ADM":
+        queryset = queryset.filter(avaliado_rh=False)
+    
+    usuario = queryset.values_list("usuario__first_name","usuario__last_name","usuario__matricula")
+
+    nomes_usuarios = [f"{first_name} {last_name} - {matricula}" for first_name,last_name,matricula in usuario]
+
+    return nomes_usuarios
+
 @login_required
 def pastas_add(request):
     if request.method == 'POST':
@@ -51,6 +65,7 @@ def pastas_add(request):
 @login_required
 def pastas_list(request):
     form = AddPasta()
+    # Filtrando as pastas com base no tipo de usuário logado
     if request.user.type == 'ADM':
         pastas = Pasta.objects.all()
     elif request.user.type == 'LID':
@@ -68,17 +83,52 @@ def pastas_list(request):
             Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
         ).distinct()
-    # Pegar os nomes dos criadores das pastas
-    pastas_com_criadores = []
+
+    # Pegar os nomes dos funcionários associados a cada pasta
+    pastas_com_funcionarios = []
     for pasta in pastas:
+        funcionario_associados = pasta.funcionarios.all()
+
+        setores_associados = pasta.setores.all()
+        funcionario_dos_setores = Funcionario.objects.filter(setor__in=setores_associados)
+
+        todos_funcionarios = funcionario_associados | funcionario_dos_setores
+        todos_funcionarios = todos_funcionarios.distinct()
+
+        nomes_funcionarios = []
+
         criador = CustomUser.objects.get(id=pasta.created_by_id)
         criador_nome_completo = f"{criador.first_name} {criador.last_name}"
-        pastas_com_criadores.append({
+        
+        for funcionario in todos_funcionarios:
+            try:
+                usuario = CustomUser.objects.get(matricula=funcionario.matricula)
+                queryset = AvaliacaoEficacia.objects.filter(usuario=usuario)
+                if request.user.type == "LID":
+                    queryset = queryset.filter(avaliado_chefia=False)
+
+                # Caso o tipo de usuário seja 'ADM', pegar avaliações ainda não avaliadas pelo RH (avaliado_rh=False)
+                elif request.user.type == "ADM":
+                    queryset = queryset.filter(avaliado_rh=False)
+
+                # Verificar se há avaliações para esse funcionário que atendam ao critério
+                if queryset.exists():
+                    nome_completo = f"{funcionario.nome}"
+                    nomes_funcionarios.append(nome_completo)
+            except CustomUser.DoesNotExist:
+                pass  # Se o usuário não for encontrado, pode ignorar ou lidar com isso como preferir
+
+        pastas_com_funcionarios.append({
             'pasta': pasta,
-            'criador_nome_completo': criador_nome_completo
+            'criador_nome_completo': criador_nome_completo,
+            'nomes_funcionarios': nomes_funcionarios,
         })
 
-    return render(request, 'pastas/pasta_list.html', {'pastas_com_criadores': pastas_com_criadores, 'form': form})
+
+    return render(request, 'pastas/pasta_list.html', {
+        'pastas_com_criadores': pastas_com_funcionarios,
+        'form': form,
+    })
 
 @login_required
 def pastas_detail(request, pk):
@@ -250,6 +300,7 @@ def avaliacao(request, pk):
             avaliacao_eficacia.avaliado_chefia = True
         elif request.user.type == 'ADM':
             avaliacao_eficacia.avaliado_rh = True
+            avaliacao_eficacia.avaliado_chefia = True
         
         avaliacao_eficacia.save()
 
@@ -264,6 +315,70 @@ def avaliacao(request, pk):
         return redirect('detail-pasta', pk=pk)
 
     return redirect('detail-pasta', pk=pk)
+
+@login_required
+def avaliacao_chefia(request, pk):
+
+    if request.method == 'GET':
+        colaborador = request.GET.get('collaborator')
+        
+        # O 'pk' é o identificador da pasta que você passou na URL
+        pasta = get_object_or_404(Pasta, id=pk)
+
+        # Recupere o funcionário com base no nome
+        funcionario = Funcionario.objects.get(nome=colaborador)
+
+        # Verificar se já existe uma avaliação para esse usuário e essa pasta
+        avaliacao_eficacia = AvaliacaoEficacia.objects.get(
+            pasta=pasta,
+            usuario__matricula=funcionario.matricula
+        )
+
+        resposta_avaliacao = RespostaAvaliacaoEficacia.objects.get(
+            avaliacao_eficacia=avaliacao_eficacia
+        )
+
+        # Retorna os dados via JSON
+        return JsonResponse({
+            'resposta': resposta_avaliacao.justificativa_qualificacao,
+            'qualificacao': resposta_avaliacao.eficacia_qualificacao
+        })
+    
+    elif request.method == 'POST':
+
+        eficacia_qualificacao = request.POST.get('eficacia_qualificacao')
+        justificativa_qualificacao = request.POST.get('justificativa_qualificacao')
+        nome_colaborador = request.POST.get('filter_collaborator')
+
+        eficacia_qualificacao = True if eficacia_qualificacao == "on" else False
+
+        print(f"Eficácia da qualificação: {eficacia_qualificacao}")
+        print(f"Justificativa da qualificação: {justificativa_qualificacao}")
+        print(f"{pk}")
+        print(f"{nome_colaborador}")
+
+        pasta = get_object_or_404(Pasta, id=pk)
+
+        # Recupere o funcionário com base no nome
+        funcionario = Funcionario.objects.get(nome=nome_colaborador)
+
+        avaliacao_eficacia = AvaliacaoEficacia.objects.get(
+            pasta=pasta,
+            usuario__matricula=funcionario.matricula
+        )
+
+        if request.user.type == "ADM":
+            avaliacao_eficacia.avaliado_rh = True
+        else:
+            avaliacao_eficacia.avaliado_chefia = True
+        
+        avaliacao_eficacia.save()
+
+        resposta_avaliacao = RespostaAvaliacaoEficacia.objects.get(
+            avaliacao_eficacia=avaliacao_eficacia
+        )
+
+        return redirect('list-pasta')
 
 @login_required
 def jornada_detail(request):
