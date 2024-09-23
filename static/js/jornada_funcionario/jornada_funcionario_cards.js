@@ -150,6 +150,39 @@
       } else {
         listGroupCertificado.innerHTML = '<li class="list-group-item">Nenhuma pasta certificada.</li>';
       }
+
+      const listGroupSix = document.querySelector('#collapseSix .list-group');
+      listGroupSix.innerHTML = ''; // Limpa a lista existente
+      const notificationSix = document.getElementById("notificationSix");
+      notificationSix.textContent = data.dict_avaliacao_eficacia.trilhas.length;
+
+      if (data.dict_avaliacao_eficacia.trilhas.length > 0) {
+        data.dict_avaliacao_eficacia.trilhas.forEach((trilha, index) => {
+          const listItem = document.createElement('form');
+          listItem.method = 'POST';
+          listItem.action = `/materiais/avaliacao/respostas-avaliacao/${data.dict_avaliacao_eficacia.avaliacoes_id[index]}/`;  // Nova rota sem parâmetros na URL
+
+          // Adiciona o CSRF token ao formulário
+          const csrfTokenInput = document.createElement('input');
+          csrfTokenInput.type = 'hidden';
+          csrfTokenInput.name = 'csrfmiddlewaretoken';
+          csrfTokenInput.value = csrfToken;  // Usa o token obtido da meta tag
+          listItem.appendChild(csrfTokenInput);
+
+          // Adiciona um botão ao formulário que pode ser estilizado como um link ou botão
+          const submitButton = document.createElement('button');
+          submitButton.type = 'submit';
+          submitButton.className = 'list-group-item list-group-item-action btn btn-link';
+          submitButton.innerHTML = `<strong>${trilha}</strong><br>Avaliado pelo Supervisor: ${data.dict_avaliacao_eficacia.avaliacoes_supervisor[index] ? 
+          '<i class="fa-solid fa-circle-check" style="color: #63E6BE;"></i>' : '<i class="fa-solid fa-circle-xmark" style="color: #ff4242;"></i>'}<br>Avaliado pelo RH  : ${data.dict_avaliacao_eficacia.avaliacoes_rh[index] 
+          ? '<i class="fa-solid fa-circle-check" style="color: #63E6BE;"></i>' : '<i class="fa-solid fa-circle-xmark" style="color: #ff4242;"></i>'}`;
+
+          listItem.appendChild(submitButton)
+          listGroupSix.appendChild(listItem);
+        });
+      } else {
+        listGroupSix.innerHTML = '<li class="list-group-item">Nenhuma trilha avaliada.</li>';
+      }
     }).catch(error => console.error('Erro:', error));
   } else {
     alert("Funcionário não encontrado.");

@@ -65,6 +65,7 @@ class AvaliacaoEficacia(models.Model):
 
 class RespostaAvaliacaoEficacia(models.Model):
     avaliacao_eficacia = models.ForeignKey(AvaliacaoEficacia, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE, default=0)
     eficacia_qualificacao = models.BooleanField()
     justificativa_qualificacao = models.TextField()
     data_resposta = models.DateTimeField(auto_now_add=True)

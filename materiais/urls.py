@@ -23,6 +23,7 @@ urlpatterns = [
     
     path('avaliacao/colaborador/<int:pk>', views.avaliacao, name='avaliacao'),
     path('avaliacao/supervisor/<int:pk>/', views.avaliacao_chefia, name='avaliacao_chefia'),
+    path('avaliacao/respostas-avaliacao/<int:pk_avaliacao>/', views.respostas_avaliacao, name='respostas-avaliacao'),
 
     path('jornada/detail/', views.jornada_detail, name='jornada_detail'),
     path('jornada/detail/<int:matricula>', views.jornada_detail_unique, name='jornada_detail_unique')

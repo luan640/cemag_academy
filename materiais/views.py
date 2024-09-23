@@ -308,7 +308,8 @@ def avaliacao(request, pk):
         RespostaAvaliacaoEficacia.objects.create(
             avaliacao_eficacia=avaliacao_eficacia,
             eficacia_qualificacao=eficacia_qualificacao,
-            justificativa_qualificacao=justificativa
+            justificativa_qualificacao=justificativa,
+            usuario=request.user
         )
 
         # Redirecionar após o processamento
@@ -327,6 +328,7 @@ def avaliacao_chefia(request, pk):
 
         # Recupere o funcionário com base no nome
         funcionario = Funcionario.objects.get(nome=colaborador)
+        usuario = CustomUser.objects.get(matricula=funcionario.matricula)
 
         # Verificar se já existe uma avaliação para esse usuário e essa pasta
         avaliacao_eficacia = AvaliacaoEficacia.objects.get(
@@ -335,7 +337,8 @@ def avaliacao_chefia(request, pk):
         )
 
         resposta_avaliacao = RespostaAvaliacaoEficacia.objects.get(
-            avaliacao_eficacia=avaliacao_eficacia
+            avaliacao_eficacia=avaliacao_eficacia,
+            usuario=usuario
         )
 
         # Retorna os dados via JSON
@@ -351,11 +354,6 @@ def avaliacao_chefia(request, pk):
         nome_colaborador = request.POST.get('filter_collaborator')
 
         eficacia_qualificacao = True if eficacia_qualificacao == "on" else False
-
-        print(f"Eficácia da qualificação: {eficacia_qualificacao}")
-        print(f"Justificativa da qualificação: {justificativa_qualificacao}")
-        print(f"{pk}")
-        print(f"{nome_colaborador}")
 
         pasta = get_object_or_404(Pasta, id=pk)
 
@@ -374,8 +372,11 @@ def avaliacao_chefia(request, pk):
         
         avaliacao_eficacia.save()
 
-        resposta_avaliacao = RespostaAvaliacaoEficacia.objects.get(
-            avaliacao_eficacia=avaliacao_eficacia
+        resposta_avaliacao = RespostaAvaliacaoEficacia.objects.create(
+            avaliacao_eficacia=avaliacao_eficacia,
+            eficacia_qualificacao=eficacia_qualificacao,
+            justificativa_qualificacao=justificativa_qualificacao,
+            usuario=request.user
         )
 
         return redirect('list-pasta')
@@ -383,7 +384,7 @@ def avaliacao_chefia(request, pk):
 @login_required
 def jornada_detail(request):
     # Caso não seja uma requisição AJAX, renderiza a página com os funcionários iniciais
-    funcionarios_iniciais = Funcionario.objects.all().order_by('nome')[:5]
+    funcionarios_iniciais = Funcionario.objects.all().order_by('nome')
 
     return render(request, 'jornada/jornada_funcionario.html', {
         'funcionarios_iniciais': funcionarios_iniciais
@@ -440,13 +441,63 @@ def jornada_detail_unique(request,matricula):
 
     pastas_certificadas = dados_certificado[0]
 
+    dict_avaliacao_eficacia = {}
+    lista_id = []
+    lista_trilhas = []
+    lista_avaliacoes_supervisor = []
+    lista_avaliacoes_rh = []
+
+    for pasta in pastas:
+        get_pasta = get_object_or_404(Pasta, id=pasta.id)
+        # Verificar se já existe uma avaliação para esse usuário e essa pasta
+        try:
+            avaliacao_eficacia = AvaliacaoEficacia.objects.get(
+                pasta=get_pasta,
+                usuario__matricula=funcionario.matricula
+            )
+            lista_id.append(avaliacao_eficacia.id)
+            lista_trilhas.append(avaliacao_eficacia.pasta.nome)
+            lista_avaliacoes_supervisor.append(avaliacao_eficacia.avaliado_chefia)
+            lista_avaliacoes_rh.append(avaliacao_eficacia.avaliado_rh)
+        except AvaliacaoEficacia.DoesNotExist:
+            avaliacao_eficacia = None
+        
+    dict_avaliacao_eficacia['avaliacoes_id'] = lista_id
+    dict_avaliacao_eficacia['trilhas'] = lista_trilhas
+    dict_avaliacao_eficacia['avaliacoes_supervisor'] = lista_avaliacoes_supervisor
+    dict_avaliacao_eficacia['avaliacoes_rh'] = lista_avaliacoes_rh
+        
     return JsonResponse({
         'lista_materiais_visualizados':materiais_visualizados,
         'lista_provas_realizadas':lista_provas_realizadas,
         'lista_livros_visualizados':lista_livros_visualizados,
-        'pastas_certificadas':pastas_certificadas
+        'pastas_certificadas':pastas_certificadas,
+        'dict_avaliacao_eficacia':dict_avaliacao_eficacia
     })
 
+@login_required
+def respostas_avaliacao(request, pk_avaliacao):
+
+    # Obter a avaliação específica pelo ID
+    avaliacao_eficacia = AvaliacaoEficacia.objects.get(id=pk_avaliacao)
+
+    # Filtrar as respostas relacionadas a essa avaliação
+    resposta_avaliacao = RespostaAvaliacaoEficacia.objects.filter(avaliacao_eficacia=avaliacao_eficacia)
+    resposta_adm = resposta_avaliacao.filter(usuario__type='ADM').first()
+    
+    if resposta_adm.eficacia_qualificacao:
+        print(resposta_adm.eficacia_qualificacao)
+    else:
+        print(resposta_adm.eficacia_qualificacao)
+
+    # Enviar os dados da avaliação e das respostas para o template
+    return render(request, 'pastas/avaliacao/avaliacao.html', {
+        'avaliacao_eficacia': avaliacao_eficacia,
+        'resposta_avaliacao': resposta_avaliacao,
+        'resposta_adm':resposta_adm
+    })
+
+@login_required
 def registrar_visualizacao(request):
     if request.method == 'POST':
         material_id = request.POST.get('material_id')
@@ -475,6 +526,7 @@ def registrar_visualizacao(request):
             visualizacao.save()
             return JsonResponse({'status': 'marcado'})
 
+@login_required
 def gerar_ficha_frequencia(request, pk):
     pasta = get_object_or_404(Pasta, pk=pk)  # Busca a pasta pelo ID
 
@@ -508,6 +560,7 @@ def gerar_ficha_frequencia(request, pk):
 
     return response
 
+@login_required
 def list_participantes(request, pk):
     
     # Obtém a prova e a pasta relacionada
@@ -579,6 +632,7 @@ def list_participantes(request, pk):
 #     return response
     
 #     # return render(request, "certificados/certificado1.html")
+@login_required
 def gerar_certificado(request):
     
     if request.method == 'POST':

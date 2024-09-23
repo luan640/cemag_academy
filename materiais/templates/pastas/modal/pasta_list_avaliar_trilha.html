@@ -29,7 +29,7 @@
                     </div>
                     <div class="mt-4">
                         <label for="justificativa_avaliacao{{ item.pasta.pk }}">Justifique</label>
-                        <input style="color: gray;" class="form-control" type="text" name="justificativa_avaliacao" id="justificativa_avaliacao{{ item.pasta.pk }}" disabled>
+                        <textarea style="color: gray;" class="form-control" type="text" name="justificativa_avaliacao" id="justificativa_avaliacao{{ item.pasta.pk }}" disabled></textarea>
                     </div>
                 </div>
                 {% if request.user.type == 'LID' %}
