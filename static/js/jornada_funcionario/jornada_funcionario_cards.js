@@ -30,7 +30,14 @@
         data.lista_livros_visualizados.forEach(livro => {
           const listItem = document.createElement('li');
           listItem.className = 'list-group-item';
-          listItem.innerHTML = livro.livro_titulo;
+          listItem.innerHTML =`<div class="row">
+                                  <div class="col-sm-10">
+                                    ${livro.livro_titulo} 
+                                  </div>
+                                  <div class="col-sm-2">
+                                    <strong>${livro.rating}/5</strong>
+                                  </div>
+                                </div>` ;
           listGroupOne.appendChild(listItem);
         });
       } else {
@@ -38,7 +45,7 @@
       }
       const listGroupFour = document.querySelector('#collapseFour .list-group');
       listGroupFour.innerHTML = ''; // Limpa a lista existente
-      const notificationFour = document.getElementById("notificationFour")
+      const notificationFour = document.getElementById("notificationFour");
       notificationFour.textContent = data.lista_provas_realizadas.length;
 
       const getClassForNota = (nota) => {
@@ -49,24 +56,30 @@
 
       if (data.lista_provas_realizadas.length > 0) {
         data.lista_provas_realizadas.forEach(prova => {
-          const listItem = document.createElement('a');
-          listItem.className = 'list-group-item';
-          listItem.style.textDecoration = 'none';
-          listItem.style.color = 'black';
-          listItem.style.cursor = 'default';
-          listItem.href = '#'; // Ou o link apropriado se necessário
+          console.log(prova)
+          const listItem = document.createElement('form');
+          listItem.method = 'POST';
+          listItem.action = `/avaliacao/${prova.id}/visualizar-prova/${funcionarioMatricula}/`;  // Nova rota sem parâmetros na URL
+
+          // Adiciona o CSRF token ao formulário
+          const csrfTokenInput = document.createElement('input');
+          csrfTokenInput.type = 'hidden';
+          csrfTokenInput.name = 'csrfmiddlewaretoken';
+          csrfTokenInput.value = csrfToken;  // Usa o token obtido da meta tag
+          listItem.appendChild(csrfTokenInput);
 
           const notaClass = getClassForNota(prova.nota_final);
-          const notaCircle = `<span class="rounded-circle d-inline-block text-white text-center ${notaClass}" style="width: 30px; height: 30px; line-height: 30px; font-size: 14px; font-weight: bold;">${prova.nota_final}</span>`;
 
-          listItem.innerHTML = `
-            <div class="d-flex w-100 justify-content-between">
-              <h5 class="mb-1">${prova.prova_titulo}</h5>
-              <small style="font-size: 12px;">${prova.data_realizacao}</small>
-            </div>
-            <p class="mb-1">Nota: ${notaCircle}</p>
-          `;
+          // Adiciona um botão ao formulário que pode ser estilizado como um link ou botão
+          const submitButton = document.createElement('button');
+          submitButton.type = 'submit';
+          submitButton.className = 'list-group-item list-group-item-action';
+          submitButton.innerHTML =  `<div class="d-flex justify-content-between align-items-center">
+                                        <h5>${prova.prova_titulo}</h5>
+                                        <span class="rounded-circle d-inline-block text-white text-center ${notaClass}" style="width: 30px; height: 30px; line-height: 30px; font-size: 14px; font-weight: bold;">${prova.nota_final}</span>
+                                    </div>`;
 
+          listItem.appendChild(submitButton)
           listGroupFour.appendChild(listItem);
         });
       } else {
@@ -154,7 +167,14 @@
       const listGroupSix = document.querySelector('#collapseSix .list-group');
       listGroupSix.innerHTML = ''; // Limpa a lista existente
       const notificationSix = document.getElementById("notificationSix");
+      const notification_dot = document.getElementById("notification-dot");
       notificationSix.textContent = data.dict_avaliacao_eficacia.trilhas.length;
+      const hasFalseRH = data.dict_avaliacao_eficacia.avaliacoes_rh.some(avaliacao => avaliacao === false);
+      if (hasFalseRH) {
+          notification_dot.style.display = 'block';
+      } else {
+          notification_dot.style.display = 'none';
+      }
 
       if (data.dict_avaliacao_eficacia.trilhas.length > 0) {
         data.dict_avaliacao_eficacia.trilhas.forEach((trilha, index) => {
@@ -172,7 +192,7 @@
           // Adiciona um botão ao formulário que pode ser estilizado como um link ou botão
           const submitButton = document.createElement('button');
           submitButton.type = 'submit';
-          submitButton.className = 'list-group-item list-group-item-action btn btn-link';
+          submitButton.className = 'list-group-item list-group-item-action';
           submitButton.innerHTML = `<strong>${trilha}</strong><br>Avaliado pelo Supervisor: ${data.dict_avaliacao_eficacia.avaliacoes_supervisor[index] ? 
           '<i class="fa-solid fa-circle-check" style="color: #63E6BE;"></i>' : '<i class="fa-solid fa-circle-xmark" style="color: #ff4242;"></i>'}<br>Avaliado pelo RH  : ${data.dict_avaliacao_eficacia.avaliacoes_rh[index] 
           ? '<i class="fa-solid fa-circle-check" style="color: #63E6BE;"></i>' : '<i class="fa-solid fa-circle-xmark" style="color: #ff4242;"></i>'}`;
@@ -183,7 +203,10 @@
       } else {
         listGroupSix.innerHTML = '<li class="list-group-item">Nenhuma trilha avaliada.</li>';
       }
-    }).catch(error => console.error('Erro:', error));
+    }).catch(error => {
+      console.error('Erro:', error)
+      alert("Usuário não encontrado.");
+    });
   } else {
     alert("Funcionário não encontrado.");
   }

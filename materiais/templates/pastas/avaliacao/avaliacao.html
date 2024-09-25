@@ -4,61 +4,65 @@
 
 {% block content %}
 
-<div>
-    <h2 class="mb-4">Avaliação Eficácia: </h2>
+<div class="row justify-content-center">
+    <div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-7">
+        <h2 class="mb-4">Avaliação Eficácia: {{avaliacao_eficacia.pasta.nome}}</h2>
 
-    {% for resposta in resposta_avaliacao %}
-        {% if resposta.usuario.type == 'LEI' %}
         <div class="mb-4">
             <h5>Avaliação pelo Colaborador</h5>
             <div class="border p-3">
                 <p>Você considera que a qualificação agregará valor para o seu trabalho?</p>
                 <label>Sim</label>
-                <input type="radio" value="true"  {% if resposta.eficacia_qualificacao %}checked{% endif %} disabled>
+                <input type="radio" value="true"  {% if avaliacao_usuario_pesquisado.eficacia_qualificacao %}checked{% endif %} disabled>
                 <label for="nao_colaborador">Não</label>
-                <input type="radio" value="false" {% if not resposta.eficacia_qualificacao %}checked{% endif %} disabled>
+                <input type="radio" value="false" {% if not avaliacao_usuario_pesquisado.eficacia_qualificacao %}checked{% endif %} disabled>
             </div>
             <div class="mt-4">
                 <label for="justificativa">Justifique</label>
-                <input class="form-control" type="text" style="color: gray;" value="{{ resposta.justificativa_qualificacao }}" disabled>
+                <input class="form-control" type="text" style="color: gray;" value="{{ avaliacao_usuario_pesquisado.justificativa_qualificacao }}" disabled>
             </div>
         </div>
-        {% endif %}
 
-        {% if resposta.usuario.type == 'LID' %}
+        {% if resposta_lid and avaliacao_eficacia.usuario.type != 'LID' %}
         <div class="mb-4">
             <h5>Avaliação pela Chefia</h5>
             <div class="border p-3">
                 <p>Você considera que a qualificação dada ao colaborador atingiu os resultados esperados?</p>
                 <label for="sim_chefia">Sim</label>
-                <input type="radio" value="true"  {% if resposta.eficacia_qualificacao %}checked{% endif %} disabled>
+                <input type="radio" value="true"  {% if resposta_lid.eficacia_qualificacao %}checked{% endif %} disabled>
                 <label for="nao_colaborador">Não</label>
-                <input type="radio" value="false" {% if not resposta.eficacia_qualificacao %}checked{% endif %} disabled>
+                <input type="radio" value="false" {% if not resposta_lid.eficacia_qualificacao %}checked{% endif %} disabled>
             </div>
             <div class="mt-4">
                 <label for="justificativa_qualificacao">Justifique</label>
-                <input class="form-control" type="text" style="color: gray;" value="{{ resposta.justificativa_qualificacao }}" disabled>
+                <input class="form-control" type="text" style="color: gray;" value="{{ resposta_lid.justificativa_qualificacao }}" disabled>
             </div>
         </div>
         {% endif %}
-    {% endfor %}
-    
-    {% if avaliacao_eficacia.usuario != request.user %}
-    <div class="mb-4">
-        <h5>Parecer do Recursos Humanos</h5>
-        <div class="border p-3">
-            <p>Com base nas respostas dadas nas questões anteriores, a ação de qualificação foi?</p>
-            <label for="sim_chefia">Eficaz</label>
-            <input type="radio" name="eficacia_qualificacao" required {% if resposta_adm.eficacia_qualificacao %}checked disabled{% else %}disabled{% endif %}>
-            <label for="nao_chefia">Não Eficaz</label>
-            <input type="radio" name="eficacia_qualificacao" required {% if not resposta_adm.eficacia_qualificacao %}checked disabled{% else %}disabled{% endif %}>
-        </div>
-        <div class="mt-4">
-            <label for="justificativa_qualificacao">Justifique</label>
-            <input class="form-control" type="text" style="color: gray;" name="justificativa_qualificacao" id="justificativa_qualificacao" value="{% if resposta_adm %}{{ resposta_adm.justificativa_qualificacao }}{% endif %}"{% if resposta_adm %}disabled{% endif %} required>
-        </div>
-    </div>
-    {% endif %}
-</div>
 
+        {% if avaliacao_eficacia.usuario != request.user %}
+        <form action="{% url 'avaliacao_chefia' avaliacao_eficacia.pasta.pk %}" method="POST">
+            {% csrf_token %}
+            <div class="mb-4">
+                <h5>Parecer do Recursos Humanos</h5>
+                <div class="border p-3">
+                    <input class="d-none" type="text" name="filter_collaborator" value="{{avaliacao_eficacia.usuario.matricula}}">
+                    <p>Com base nas respostas dadas nas questões anteriores, a ação de qualificação foi?</p>
+                    <label for="sim_chefia">Eficaz</label>
+                    <input type="radio" name="eficacia_qualificacao" value="on" required {% if not resposta_adm %}{% elif resposta_adm.eficacia_qualificacao %}checked disabled{% else %}disabled{% endif %}>
+                    <label for="nao_chefia">Não Eficaz</label>
+                    <input type="radio" name="eficacia_qualificacao" value="off" required {% if not resposta_adm %}{% elif not resposta_adm.eficacia_qualificacao %}checked disabled{% else %}disabled{% endif %}>
+                </div>
+                <div class="mt-4">
+                    <label for="justificativa_qualificacao">Justifique</label>
+                    <input class="form-control" type="text" style="color: gray;" name="justificativa_qualificacao" id="justificativa_qualificacao" value="{% if resposta_adm %}{{ resposta_adm.justificativa_qualificacao }}{% endif %}"{% if resposta_adm %}disabled{% endif %} required>
+                </div>
+                {% if not resposta_adm %}
+                <button type="submit" class="btn btn-primary mt-4">Enviar parecer</button>
+                {% endif %}
+            </div>
+        </form>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}

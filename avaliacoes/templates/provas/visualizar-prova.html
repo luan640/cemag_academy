@@ -11,31 +11,42 @@
 
 <form id="visualizar-prova-form" method="post">
     {% csrf_token %}
-        {% for questao in questoes %}
+    {% for questao in questoes %}
         <hr>
-            <div class="questao mb-4">
-                <p><strong class="mb-4">{{ questao.enunciado|linebreaksbr }}</strong></p>
-                {% if questao.tipo == 'objetiva' %}
-                    {% with questao.pk as questao_pk %}
-                        {% for alternativa in alternativas|get_item:questao_pk %}
-                            <div class="alternativa">
-                                <input type="radio" id="alternativa_{{ alternativa.id }}" name="questao_{{ questao.id }}" value="{{ alternativa.id }}" 
-                                {% if alternativa.id == alternativa_selecionada|get_item:questao_pk %}checked {% endif %} disabled>
-                                <label for="alternativa_{{ alternativa.id }}">
-                                    {{ alternativa.texto }}
-                                </label>
-                            </div>
-                        {% endfor %}
-                    {% endwith %}
-                {% elif questao.tipo == 'dissertativa' %}
+        <div class="questao mb-4">
+            <p><strong class="mb-4">{{ questao.enunciado|linebreaksbr }}</strong></p>
+            {% if questao.tipo == 'objetiva' %}
+                {% with questao.pk as questao_pk %}
+                    {% for alternativa in alternativas|get_item:questao_pk %}
+                        <div class="alternativa">
+                            <input type="radio" id="alternativa_{{ alternativa.id }}" name="questao_{{ questao.id }}" value="{{ alternativa.id }}" 
+                            {% if alternativa.id == alternativa_selecionada|get_item:questao_pk %}checked {% endif %} disabled>
+                            <label for="alternativa_{{ alternativa.id }}">
+                                {{ alternativa.texto }}
+                                {% if alternativas_certas %}
+                                    {% if alternativa.id == alternativas_certas|get_item:questao_pk %}
+                                        <strong class="text-success"><i class="fa-solid fa-circle-check"></i></strong>
+                                    {% elif alternativa.id == alternativa_selecionada|get_item:questao_pk %}
+                                        <strong class="text-danger"><i class="fa-solid fa-circle-xmark"></i></strong>
+                                {% endif %}
+                                {% endif %}
+                            </label>
+                        </div>
+                    {% endfor %}
+                {% endwith %}
+            {% elif questao.tipo == 'dissertativa' %}
                 <div style="width: 320px;">
-                    <textarea class="form-control" name="questao_{{ questao.id }}" rows="2" cols="10" disabled >{{ alternativa_selecionada|get_item:questao.pk }}
-                    </textarea>
+                    <textarea class="form-control" name="questao_{{ questao.id }}" rows="2" cols="10" disabled>{{ alternativa_selecionada|get_item:questao.pk }}</textarea>
+                    {% if nota_dissertativa %}
+                    <label class="mt-3">
+                        <strong>Nota : {{ nota_dissertativa|get_item:questao.pk }}</strong>
+                    </label>
+                    {% endif %}
                 </div>
-                {% endif %}
-            </div>
-        {% endfor %}
-        <hr>
+            {% endif %}
+        </div>
+    {% endfor %}
+    <hr>
 </form>
 
 {% endblock %}

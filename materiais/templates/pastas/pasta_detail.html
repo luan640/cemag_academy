@@ -279,10 +279,11 @@ document.addEventListener('DOMContentLoaded', function () {
             window.open(imgUrl, '_blank');
         });
     });
-
-    overlayBg.addEventListener('click', function () {
-        overlayBg.style.display = 'none';
-    });
+    if(overlayBg){
+        overlayBg.addEventListener('click', function () {
+            overlayBg.style.display = 'none';
+        });
+    }
 });
 
 function openVideoInNewTab(url) {
@@ -305,7 +306,7 @@ function openVideoInNewTab(url) {
             const avaliacaoEficaciaDiv = document.getElementById('avaliacao_eficacia');
 
             // Exibe ou oculta o div baseado no estado dos checkboxes
-            if (allChecked) {
+            if (allChecked && checkboxes.length > 0) {
                 avaliacaoEficaciaDiv.style.display = 'flex';
             } else {
                 avaliacaoEficaciaDiv.style.display = 'none';

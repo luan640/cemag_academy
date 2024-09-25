@@ -45,7 +45,7 @@
                                     </div>
                                     {% if realizou_provas|get_item:prova.id %}
                                     <div class="col-md-6 text-center">
-                                        <a href="{% url 'visualizar-prova' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Visualizar prova</button></a>
+                                        <a href="{% url 'visualizar-prova' prova.pk 0 %}"><button class="btn btn-light mb-4" style="width: 160px;">Visualizar prova</button></a>
                                     </div> 
                                     {% else %}
                                     <div class="col-md-6 text-center">
@@ -55,7 +55,7 @@
                                 {% else %}
                                     {% if realizou_provas|get_item:prova.id %}
                                     <div class="col-md-6">
-                                        <a href="{% url 'visualizar-prova' prova.pk %}"><button class="btn btn-primary mb-4" style="width: 160px;">Visualizar prova</button></a>
+                                        <a href="{% url 'visualizar-prova' prova.pk 0 %}"><button class="btn btn-primary mb-4" style="width: 160px;">Visualizar prova</button></a>
                                     </div>
                                     {% else %}
                                     <div class="col-md-6">

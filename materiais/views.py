@@ -11,7 +11,7 @@ from .models import Pasta,Material,Visualizacao,AvaliacaoEficacia, RespostaAvali
 from avaliacoes.views import calcular_nota,validacao_certificado
 from .forms import AddPasta,AddMaterial,VisualizacaoForm
 from cadastros.models import Funcionario,Setor
-from biblioteca.models import VisualizacaoLivro
+from biblioteca.models import VisualizacaoLivro, Rating
 from avaliacoes.models import ProvaRealizada, Prova
 from users.models import CustomUser
 
@@ -103,16 +103,16 @@ def pastas_list(request):
         for funcionario in todos_funcionarios:
             try:
                 usuario = CustomUser.objects.get(matricula=funcionario.matricula)
-                queryset = AvaliacaoEficacia.objects.filter(usuario=usuario)
+                avaliacao = AvaliacaoEficacia.objects.filter(usuario=usuario,pasta=pasta)
                 if request.user.type == "LID":
-                    queryset = queryset.filter(avaliado_chefia=False)
+                    avaliacao = avaliacao.filter(avaliado_chefia=False)
 
                 # Caso o tipo de usuário seja 'ADM', pegar avaliações ainda não avaliadas pelo RH (avaliado_rh=False)
                 elif request.user.type == "ADM":
-                    queryset = queryset.filter(avaliado_rh=False)
+                    avaliacao = avaliacao.filter(avaliado_rh=False)
 
                 # Verificar se há avaliações para esse funcionário que atendam ao critério
-                if queryset.exists():
+                if avaliacao.exists():
                     nome_completo = f"{funcionario.nome}"
                     nomes_funcionarios.append(nome_completo)
             except CustomUser.DoesNotExist:
@@ -351,19 +351,27 @@ def avaliacao_chefia(request, pk):
 
         eficacia_qualificacao = request.POST.get('eficacia_qualificacao')
         justificativa_qualificacao = request.POST.get('justificativa_qualificacao')
-        nome_colaborador = request.POST.get('filter_collaborator')
+        colaborador = request.POST.get('filter_collaborator')
+        filtrar_funcionário = False 
 
         eficacia_qualificacao = True if eficacia_qualificacao == "on" else False
 
         pasta = get_object_or_404(Pasta, id=pk)
 
         # Recupere o funcionário com base no nome
-        funcionario = Funcionario.objects.get(nome=nome_colaborador)
-
-        avaliacao_eficacia = AvaliacaoEficacia.objects.get(
+        try:
+            funcionario = Funcionario.objects.get(nome=colaborador)
+            avaliacao_eficacia = AvaliacaoEficacia.objects.get(
             pasta=pasta,
             usuario__matricula=funcionario.matricula
         )
+        except Funcionario.DoesNotExist:
+            avaliacao_eficacia = AvaliacaoEficacia.objects.get(
+                pasta=pasta,
+                usuario__matricula=colaborador
+            )
+            filtrar_funcionário = True
+
 
         if request.user.type == "ADM":
             avaliacao_eficacia.avaliado_rh = True
@@ -378,17 +386,22 @@ def avaliacao_chefia(request, pk):
             justificativa_qualificacao=justificativa_qualificacao,
             usuario=request.user
         )
-
+        if filtrar_funcionário:
+            return redirect('jornada_detail')
+        
         return redirect('list-pasta')
 
 @login_required
 def jornada_detail(request):
     # Caso não seja uma requisição AJAX, renderiza a página com os funcionários iniciais
-    funcionarios_iniciais = Funcionario.objects.all().order_by('nome')
+    if request.user.type == 'ADM':
+        funcionarios_iniciais = Funcionario.objects.all().order_by('nome')
 
-    return render(request, 'jornada/jornada_funcionario.html', {
-        'funcionarios_iniciais': funcionarios_iniciais
-    })
+        return render(request, 'jornada/jornada_funcionario.html', {
+            'funcionarios_iniciais': funcionarios_iniciais
+        })
+    else:
+        return redirect('home')
 
 @login_required
 def jornada_detail_unique(request,matricula):
@@ -399,6 +412,9 @@ def jornada_detail_unique(request,matricula):
     except Funcionario.DoesNotExist:
         # Se o funcionário não existir, retorne um erro
         return JsonResponse({'error': 'Funcionário não encontrado'}, status=404)
+    except CustomUser.DoesNotExist:
+        # Se o usuário não existir, retorne um erro
+        return JsonResponse({'error': 'Usuário não encontrado'}, status=404)
     
     # Enviando dados dos "Cursos finalizados"
     visualizacoes = Visualizacao.objects.filter(funcionario=funcionario)
@@ -415,6 +431,7 @@ def jornada_detail_unique(request,matricula):
         nota_final = (total_respostas/total_questoes) * 10 if total_questoes > 0 else 0
         nota_final = round(nota_final,2)
         lista_provas_realizadas.append({
+            'id': prova_realizada.prova.id,
             'prova_titulo': prova_realizada.prova.titulo,
             'data_realizacao': prova_realizada.data_realizacao.strftime('%d/%m/%Y %H:%M:%S'),
             'nota_final': nota_final  # Adiciona a nota total calculada
@@ -423,8 +440,10 @@ def jornada_detail_unique(request,matricula):
     lista_livros_visualizados = []
 
     for livro_visualizado in livros_visualizados:
+        rating = Rating.objects.get(user=usuario,livro=livro_visualizado.livro)
         lista_livros_visualizados.append({
             'livro_titulo': livro_visualizado.livro.titulo,
+            'rating':rating.score
         })
 
     setor_do_usuario = funcionario.setor
@@ -483,17 +502,15 @@ def respostas_avaliacao(request, pk_avaliacao):
 
     # Filtrar as respostas relacionadas a essa avaliação
     resposta_avaliacao = RespostaAvaliacaoEficacia.objects.filter(avaliacao_eficacia=avaliacao_eficacia)
+    avaliacao_usuario_pesquisado = resposta_avaliacao.filter(usuario__type=avaliacao_eficacia.usuario.type).first()
+    resposta_lid = resposta_avaliacao.filter(usuario__type='LID').first()
     resposta_adm = resposta_avaliacao.filter(usuario__type='ADM').first()
-    
-    if resposta_adm.eficacia_qualificacao:
-        print(resposta_adm.eficacia_qualificacao)
-    else:
-        print(resposta_adm.eficacia_qualificacao)
 
     # Enviar os dados da avaliação e das respostas para o template
     return render(request, 'pastas/avaliacao/avaliacao.html', {
         'avaliacao_eficacia': avaliacao_eficacia,
-        'resposta_avaliacao': resposta_avaliacao,
+        'avaliacao_usuario_pesquisado':avaliacao_usuario_pesquisado,
+        'resposta_lid':resposta_lid,
         'resposta_adm':resposta_adm
     })
 

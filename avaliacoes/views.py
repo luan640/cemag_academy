@@ -186,12 +186,14 @@ def realizar_prova(request, pk):
         'alternativas': alternativas_dict
     })
 
-def visualizar_prova(request, pk):
+def visualizar_prova(request, pk,pk_matricula=0):
     prova = get_object_or_404(Prova, pk=pk)
     questoes = prova.questao_prova.all()
     
     alternativas_dict = {}
     alternativas_selecionadas = {}  # Dicionário para armazenar IDs das alternativas selecionadas e respostas dissertativas
+    alternativas_certas = {}  # Dicionário para armazenar a alternativa correta
+    nota_dissertativa = {}  
 
     for questao in questoes:
         # Obter alternativas para cada questão
@@ -202,18 +204,34 @@ def visualizar_prova(request, pk):
 
         # Tentar obter a resposta para a questão atual
         resposta = Resposta.objects.get(questao=questao, funcionario=request.user)
-        
+
+        if pk_matricula != 0 and request.user.type == 'ADM':
+            resposta = Resposta.objects.get(questao=questao, funcionario__matricula=pk_matricula)
+            correta = alternativas_questao.filter(correta=True).first()
+            alternativas_certas[questao.pk] = correta.id if correta else None
+            nota_dissertativa[questao.pk] = resposta.nota
+
         if resposta.alternativa_selecionada_id is not None:
             alternativas_selecionadas[questao.pk] = resposta.alternativa_selecionada_id
         else:
             alternativas_selecionadas[questao.pk] = resposta.texto  # Adicionar o texto da resposta dissertativa
 
-    return render(request, 'provas/visualizar-prova.html', {
-        'prova': prova,
-        'questoes': questoes,
-        'alternativas': alternativas_dict,
-        'alternativa_selecionada': alternativas_selecionadas  # Passar o dicionário de respostas selecionadas
-    })
+    if pk_matricula != 0  and request.user.type == 'ADM':
+        return render(request, 'provas/visualizar-prova.html', {
+            'prova': prova,
+            'questoes': questoes,
+            'alternativas': alternativas_dict,
+            'alternativa_selecionada': alternativas_selecionadas,  # Passar o dicionário de respostas selecionadas
+            'alternativas_certas': alternativas_certas,  # Passar o dicionário de alternativas corretas
+            'nota_dissertativa': nota_dissertativa
+        })
+    else:
+        return render(request, 'provas/visualizar-prova.html', {
+            'prova': prova,
+            'questoes': questoes,
+            'alternativas': alternativas_dict,
+            'alternativa_selecionada': alternativas_selecionadas  # Passar o dicionário de respostas selecionadas
+        })
 
 def corrigir_questoes_dissertativas(request, pk_prova, pk_user):
     prova = get_object_or_404(Prova, pk=pk_prova)

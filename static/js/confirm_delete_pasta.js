@@ -1,8 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     const deleteLinks = document.querySelectorAll('.delete-link, .delete-link-refazer-prova');
 
-    console.log(deleteLinks)
-
     deleteLinks.forEach(function(deleteLink) {
         deleteLink.addEventListener('click', function(event) {
             let message = 'Você quer mesmo excluir? Processo irreversível.';

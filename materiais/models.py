@@ -61,7 +61,7 @@ class AvaliacaoEficacia(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Avaliação Eficácia {self.id} - {self.usuario.matricula}"
+        return f"Avaliação Eficácia {self.pasta.nome} - {self.usuario.first_name} {self.usuario.last_name} "
 
 class RespostaAvaliacaoEficacia(models.Model):
     avaliacao_eficacia = models.ForeignKey(AvaliacaoEficacia, on_delete=models.CASCADE)
@@ -71,4 +71,4 @@ class RespostaAvaliacaoEficacia(models.Model):
     data_resposta = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Resposta Avaliação {self.id} - {self.avaliacao_eficacia}"
+        return f"Resposta Avaliação - {self.usuario.first_name} p/ {self.avaliacao_eficacia.usuario.first_name}"

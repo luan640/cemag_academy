@@ -12,22 +12,25 @@ logger = logging.getLogger('cadastros')
 
 @login_required
 def funcionario_cadastro(request):
-    if request.method == 'POST':
-        form = AddFuncionario(request.POST)
-        if form.is_valid():
-            funcionario = form.save(commit=False)
-            funcionario.created_by = request.user
-            funcionario.save()
-            messages.success(request, 'Funcionario adicionado com sucesso.')
-            return redirect('funcionarios')
-    else:
-        form = AddFuncionario()
-        funcionarios = Funcionario.objects.all()
+    if request.user.type == "ADM":
+        if request.method == 'POST':
+            form = AddFuncionario(request.POST)
+            if form.is_valid():
+                funcionario = form.save(commit=False)
+                funcionario.created_by = request.user
+                funcionario.save()
+                messages.success(request, 'Funcionario adicionado com sucesso.')
+                return redirect('funcionarios')
+        else:
+            form = AddFuncionario()
+            funcionarios = Funcionario.objects.all()
 
-    return render(request,
-                'funcionario/funcionarios.html', {
-                'form': form,
-                'funcionarios':funcionarios})
+        return render(request,
+                    'funcionario/funcionarios.html', {
+                    'form': form,
+                    'funcionarios':funcionarios})
+    else:
+        return redirect('home')
 
 @login_required
 def funcionario_edit(request, pk):
@@ -56,20 +59,23 @@ def funcionario_delete(request, pk):
 
 @login_required
 def setor_cadastro(request):
-    setores = Setor.objects.all()  # Consulta fora do bloco if/else
-    if request.method == 'POST':
-        form = AddSetor(request.POST)
-        if form.is_valid():
-            setor = form.save(commit=False)
-            setor.created_by = request.user
-            setor.save()
-            messages.success(request, 'Setor adicionado com sucesso.')
-            return redirect('setores')
+    if request.user.type == "ADM":
+        setores = Setor.objects.all()  # Consulta fora do bloco if/else
+        if request.method == 'POST':
+            form = AddSetor(request.POST)
+            if form.is_valid():
+                setor = form.save(commit=False)
+                setor.created_by = request.user
+                setor.save()
+                messages.success(request, 'Setor adicionado com sucesso.')
+                return redirect('setores')
+        else:
+            form = AddSetor()
+
+        return render(request, 'setor/setores.html', {'form': form, 'setores': setores})
     else:
-        form = AddSetor()
-
-    return render(request, 'setor/setores.html', {'form': form, 'setores': setores})
-
+        return redirect('home')
+    
 @login_required
 def setor_edit(request, pk):
     logger.debug(f"Edit setor: {pk}")
@@ -103,18 +109,21 @@ def setor_delete(request, pk):
 
 @login_required
 def area_cadastro(request):
-    if request.method == 'POST':
-        form = AddArea(request.POST)
-        if form.is_valid():
-            area = form.save(commit=False)
-            area.created_by = request.user
-            area.save()
-            messages.success(request, 'Area adicionada com sucesso.')
-            return redirect('areas')
+    if request.user.type == "ADM":
+        if request.method == 'POST':
+            form = AddArea(request.POST)
+            if form.is_valid():
+                area = form.save(commit=False)
+                area.created_by = request.user
+                area.save()
+                messages.success(request, 'Area adicionada com sucesso.')
+                return redirect('areas')
+        else:
+            form = AddArea()
+            areas=Area.objects.all()
+        return render(request, 'area/areas.html', {'form': form,'areas':areas})
     else:
-        form = AddArea()
-        areas=Area.objects.all()
-    return render(request, 'area/areas.html', {'form': form,'areas':areas})
+        return redirect('home')
 
 @login_required
 def area_edit(request, pk):
