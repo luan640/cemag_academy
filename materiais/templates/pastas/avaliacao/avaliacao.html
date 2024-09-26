@@ -7,10 +7,10 @@
 <div class="row justify-content-center">
     <div class="col-12 col-sm-12 col-md-9 col-lg-9 col-xl-7">
         <h2 class="mb-4">Avaliação Eficácia: {{avaliacao_eficacia.pasta.nome}}</h2>
-
         <div class="mb-4">
             <h5>Avaliação pelo Colaborador</h5>
-            <div class="border p-3">
+            <small>{{avaliacao_eficacia.created_at}}</small>
+            <div class="border p-3 mt-2">
                 <p>Você considera que a qualificação agregará valor para o seu trabalho?</p>
                 <label>Sim</label>
                 <input type="radio" value="true"  {% if avaliacao_usuario_pesquisado.eficacia_qualificacao %}checked{% endif %} disabled>
@@ -23,10 +23,11 @@
             </div>
         </div>
 
-        {% if resposta_lid and avaliacao_eficacia.usuario.type != 'LID' %}
+        {% if resposta_lid %}
         <div class="mb-4">
             <h5>Avaliação pela Chefia</h5>
-            <div class="border p-3">
+            <small>{{resposta_lid.data_resposta}}</small>
+            <div class="border p-3 mt-2">
                 <p>Você considera que a qualificação dada ao colaborador atingiu os resultados esperados?</p>
                 <label for="sim_chefia">Sim</label>
                 <input type="radio" value="true"  {% if resposta_lid.eficacia_qualificacao %}checked{% endif %} disabled>
@@ -44,8 +45,9 @@
         <form action="{% url 'avaliacao_chefia' avaliacao_eficacia.pasta.pk %}" method="POST">
             {% csrf_token %}
             <div class="mb-4">
-                <h5>Parecer do Recursos Humanos</h5>
-                <div class="border p-3">
+                <h5>Parecer do Recursos Humanos </h5>
+                <small>{{resposta_adm.data_resposta}}</small>
+                <div class="border p-3 mt-2">
                     <input class="d-none" type="text" name="filter_collaborator" value="{{avaliacao_eficacia.usuario.matricula}}">
                     <p>Com base nas respostas dadas nas questões anteriores, a ação de qualificação foi?</p>
                     <label for="sim_chefia">Eficaz</label>

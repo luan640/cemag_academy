@@ -12,7 +12,7 @@ import numpy as np
 @login_required
 def painel_home(request):
 
-    if request.user.type == 'ADM' or request.user.type == 'LID':
+    if request.user.type == 'ADM' or request.user.type == 'LID' or request.user.type == 'DIR':
         return redirect('painel_home_superuser')
     else:
         # funcionario = Funcionario.objects.filter(matricula=request.user.matricula)

@@ -28,6 +28,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ("ADM", "Administrador"),
         ("LEI", "Leitor"),
         ("LID", "Lider"),
+        ("DIR","Diretor")
     ]
 
     matricula = models.IntegerField(unique=True)

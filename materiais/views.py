@@ -7,7 +7,7 @@ from django.http import HttpResponse
 from django.template.loader import get_template
 from django.conf import settings  # Importe o módulo settings
 
-from .models import Pasta,Material,Visualizacao,AvaliacaoEficacia, RespostaAvaliacaoEficacia
+from .models import Pasta,Material,Visualizacao,AvaliacaoEficacia, RespostaAvaliacaoEficacia,Certificado
 from avaliacoes.views import calcular_nota,validacao_certificado
 from .forms import AddPasta,AddMaterial,VisualizacaoForm
 from cadastros.models import Funcionario,Setor
@@ -65,20 +65,18 @@ def pastas_add(request):
 @login_required
 def pastas_list(request):
     form = AddPasta()
+    setor_do_usuario_object = Funcionario.objects.get(matricula=request.user.matricula)
+    setor_do_usuario = setor_do_usuario_object.setor
     # Filtrando as pastas com base no tipo de usuário logado
-    if request.user.type == 'ADM':
+    if request.user.type == 'ADM' or request.user.type == 'DIR':
         pastas = Pasta.objects.all()
     elif request.user.type == 'LID':
-        setor_do_usuario_object = Funcionario.objects.get(matricula=request.user.matricula)
-        setor_do_usuario = setor_do_usuario_object.setor
         pastas = Pasta.objects.filter(
             Q(created_by=request.user) |
             Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
         ).distinct()
     else:
-        setor_do_usuario_object = Funcionario.objects.get(matricula=request.user.matricula)
-        setor_do_usuario = setor_do_usuario_object.setor
         pastas = Pasta.objects.filter(
             Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
@@ -104,15 +102,17 @@ def pastas_list(request):
             try:
                 usuario = CustomUser.objects.get(matricula=funcionario.matricula)
                 avaliacao = AvaliacaoEficacia.objects.filter(usuario=usuario,pasta=pasta)
-                if request.user.type == "LID":
-                    avaliacao = avaliacao.filter(avaliado_chefia=False)
-
+                if request.user.type == "LID" and usuario.type == "LEI" and funcionario.setor == setor_do_usuario:
+                    avaliado = avaliacao.filter(avaliado_chefia=False)
+                elif request.user.type == "DIR" and usuario.type == "LID":
+                    avaliado = avaliacao.filter(avaliado_chefia=False)
                 # Caso o tipo de usuário seja 'ADM', pegar avaliações ainda não avaliadas pelo RH (avaliado_rh=False)
                 elif request.user.type == "ADM":
-                    avaliacao = avaliacao.filter(avaliado_rh=False)
-
+                    avaliado = avaliacao.filter(avaliado_rh=False)
+                else:
+                    avaliado = AvaliacaoEficacia.objects.none()
                 # Verificar se há avaliações para esse funcionário que atendam ao critério
-                if avaliacao.exists():
+                if avaliado.exists():
                     nome_completo = f"{funcionario.nome}"
                     nomes_funcionarios.append(nome_completo)
             except CustomUser.DoesNotExist:
@@ -296,9 +296,7 @@ def avaliacao(request, pk):
         )
 
         # Marcar como avaliado pela chefia ou RH, dependendo do tipo de usuário
-        if request.user.type == 'LID':
-            avaliacao_eficacia.avaliado_chefia = True
-        elif request.user.type == 'ADM':
+        if request.user.type == 'ADM':
             avaliacao_eficacia.avaliado_rh = True
             avaliacao_eficacia.avaliado_chefia = True
         
@@ -503,7 +501,8 @@ def respostas_avaliacao(request, pk_avaliacao):
     # Filtrar as respostas relacionadas a essa avaliação
     resposta_avaliacao = RespostaAvaliacaoEficacia.objects.filter(avaliacao_eficacia=avaliacao_eficacia)
     avaliacao_usuario_pesquisado = resposta_avaliacao.filter(usuario__type=avaliacao_eficacia.usuario.type).first()
-    resposta_lid = resposta_avaliacao.filter(usuario__type='LID').first()
+    type_user = 'DIR' if avaliacao_eficacia.usuario.type == 'LID' else 'LID'
+    resposta_lid = resposta_avaliacao.filter(usuario__type=type_user).first()
     resposta_adm = resposta_avaliacao.filter(usuario__type='ADM').first()
 
     # Enviar os dados da avaliação e das respostas para o template
@@ -653,21 +652,27 @@ def list_participantes(request, pk):
 def gerar_certificado(request):
     
     if request.method == 'POST':
-
         prova_id = request.POST.get('prova_id')
         pasta_id = request.POST.get('pasta_id')
         matricula = request.POST.get('matricula')
 
         prova = get_object_or_404(Prova, pk=prova_id)
-        
-        # prova_realizada = get_object_or_404(ProvaRealizada, usuario=request.user, prova=prova)
-            
         funcionario = get_object_or_404(Funcionario, matricula=matricula)
+        usuario = get_object_or_404(CustomUser, matricula=matricula)
 
+        # Verificar se já existe um Certificado para esse usuário e pasta
+        certificado = Certificado.objects.filter(pasta_id=pasta_id, usuario=usuario).first()
+        if not certificado:
+            # Criar um novo certificado
+            pasta = get_object_or_404(Pasta, pk=pasta_id)
+            certificado = Certificado.objects.create(pasta=pasta, usuario=usuario)
+
+        # Obter materiais da pasta
         materiais = Material.objects.filter(pasta_id=pasta_id)
                 
         context = {'funcionario':funcionario,
                 'prova':prova,
-                'materiais':materiais}
+                'materiais':materiais,
+                'certificado':certificado}
 
         return render(request, 'certificados/certificado1.html', context=context)

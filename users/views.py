@@ -22,5 +22,8 @@ def add_user(request):
     else:
         return redirect('home')
 
+def custom_404(request, exception):
+    return render(request, '404.html', status=404)
+
 class CustomLogoutView(auth_views.LogoutView):
     next_page = reverse_lazy('login')  # Define a página de redirecionamento para a página de login

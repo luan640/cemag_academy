@@ -38,7 +38,7 @@
                             <div class="list-group-item">
                                 <p style="font-weight: 600;">{{ prova.titulo }}</p> 
                                 <div class="row">
-                                    {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
+                                    {% if request.user.type == 'ADM' or request.user.type == 'LID' or request.user.type == 'DIR' %}
                                     <div class="col-md-6 text-center">
                                         <a href="{% url 'deletar-prova' prova.pk %}"><button class="btn btn-dark mb-4 delete-link" type="submit" style="width: 160px;">Excluir</button></a>
                                         <a href="{% url 'list-participantes' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Participantes</button></a>
@@ -97,7 +97,7 @@
                             <input type="hidden" name="prova_id" value="{{ prova_certificada.pk }}">
                             <input type="hidden" name="pasta_id" value="{{ pasta.pk }}">
                             <input type="hidden" name="matricula" value="{{ request.user.matricula }}">
-                            <button class="btn btn-success" style="width: 160px;">Baixar certificado</button>
+                            <button class="btn btn-success" style="width: 160px;">Gerar certificado</button>
                         </form>                      
                     </div>
                 </div>    

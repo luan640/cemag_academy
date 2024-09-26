@@ -32,7 +32,7 @@
                         <textarea style="color: gray;" class="form-control" type="text" name="justificativa_avaliacao" id="justificativa_avaliacao{{ item.pasta.pk }}" disabled></textarea>
                     </div>
                 </div>
-                {% if request.user.type == 'LID' %}
+                {% if request.user.type == 'LID' or request.user.type == 'DIR' %}
                 <div id="resposta_avaliacao_chefia{{ item.pasta.pk }}" style="display: none;">
                     <div class="border p-3">
                         <p>Você considera que a qualificação dada ao colaborador atingiu os resultados esperados?</p>

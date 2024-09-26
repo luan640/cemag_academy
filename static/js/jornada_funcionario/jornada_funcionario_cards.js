@@ -154,7 +154,7 @@
           // Adiciona um botão ao formulário que pode ser estilizado como um link ou botão
           const submitButton = document.createElement('button');
           submitButton.type = 'submit';
-          submitButton.className = 'list-group-item list-group-item-action btn btn-link';
+          submitButton.className = 'list-group-item list-group-item-action';
           submitButton.innerHTML = `<strong>Trilha: </strong>${pasta}`;
 
           listItem.appendChild(submitButton);

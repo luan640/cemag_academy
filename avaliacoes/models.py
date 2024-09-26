@@ -4,8 +4,6 @@ from datetime import datetime
 from materiais.models import Pasta
 from users.models import CustomUser
 
-import uuid 
-
 class HistoricoProva(models.Model):
 
     pasta=models.ForeignKey(Pasta, on_delete=models.CASCADE, related_name='pasta_name')
@@ -68,7 +66,7 @@ class ProvaRealizada(models.Model):
     usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     prova = models.ForeignKey(Prova, on_delete=models.CASCADE)
     data_realizacao = models.DateTimeField(auto_now_add=True)
-    identificador_finalizado = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    # identificador_finalizado = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     
     class Meta:
         unique_together = ('usuario', 'prova')

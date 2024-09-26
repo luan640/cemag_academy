@@ -143,6 +143,7 @@ AUTH_PASSWORD_VALIDATORS = [
     # },
 ]
 
+LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = '/home'  # Define a URL de redirecionamento após o login
 
 # Internationalization

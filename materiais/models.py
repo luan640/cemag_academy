@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 import os
-
+import uuid 
 from users.models import CustomUser
 from cadastros.models import Funcionario,Setor,AreaTrilha
 
@@ -72,3 +72,12 @@ class RespostaAvaliacaoEficacia(models.Model):
 
     def __str__(self):
         return f"Resposta Avaliação - {self.usuario.first_name} p/ {self.avaliacao_eficacia.usuario.first_name}"
+    
+class Certificado(models.Model):
+    pasta = models.ForeignKey(Pasta, on_delete=models.CASCADE)
+    usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    identificador_finalizado = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
+    data_emissao_certificado = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Certificado da {self.usuario.first_name} referente a {self.pasta.nome}"

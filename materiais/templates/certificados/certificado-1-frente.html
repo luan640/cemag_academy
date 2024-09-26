@@ -23,9 +23,10 @@
       {{ prova.pasta.nome }} no dia {{dados_prova.data_realizacao}},<br>
       na CEMAG - Ceará Máquinas Agrícolas Ltda.
     </p>
-    <p>Fortaleza, {% now "d/m/Y" %}</p>
+    <p>Fortaleza, {{ certificado.data_emissao_certificado }}</p>
+    <p style="color: gray;">{{ certificado.identificador_finalizado }}</p>
   </div>
-  <div class="assinaturas">
+  <!-- <div class="assinaturas">
     <div class="assinatura">
       <p>_____________________________________</p>
       <p>Responsável Técnico</p>
@@ -35,5 +36,5 @@
       <p>{{funcionario.nome}}</p>
       <p>Funcionário</p>
     </div>
-  </div>
+  </div> -->
 
