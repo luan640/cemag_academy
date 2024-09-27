@@ -6,6 +6,7 @@ from django.db.models import Count, Q
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.conf import settings  # Importe o módulo settings
+from django.core.mail import send_mail,EmailMultiAlternatives
 
 from .models import Pasta,Material,Visualizacao,AvaliacaoEficacia, RespostaAvaliacaoEficacia,Certificado
 from avaliacoes.views import calcular_nota,validacao_certificado
@@ -288,6 +289,54 @@ def avaliacao(request, pk):
 
         # Obter a instância da pasta correspondente
         pasta = get_object_or_404(Pasta, id=pk)
+        user = get_object_or_404(CustomUser, id=request.user.id)
+        funcionario = get_object_or_404(Funcionario, matricula=user.matricula)
+        setor = funcionario.setor
+
+        lid = CustomUser.objects.filter(type='LID', matricula__in=Funcionario.objects.filter(setor=setor).values_list('matricula', flat=True)).first()
+
+        trilha_nome = pasta.nome  # Nome da trilha
+
+        if lid:
+            # Enviar email ao LID informando sobre a trilha
+            subject = f"Trilha {trilha_nome} foi completada"
+            html_content = f"""
+            <html>
+            <body>
+                <p>A trilha <strong>'{trilha_nome}'</strong> foi Avaliada com sucesso pelo {user.first_name}</p>
+            </body>
+            </html>
+            """
+            if lid.email:
+                # Cria um objeto EmailMultiAlternatives para o LID
+                email_lid = EmailMultiAlternatives(
+                    subject,
+                    "Este é um email em texto simples.",
+                    settings.DEFAULT_FROM_EMAIL,
+                    [lid.email],
+                )
+                email_lid.attach_alternative(html_content, "text/html")  # Adiciona o conteúdo HTML
+                email_lid.send(fail_silently=False)
+            else: 
+                print(f"{lid.first_name} não possui email cadastrado")
+
+            # Enviar email para todos os usuários do tipo ADM
+            adm_users = CustomUser.objects.filter(type='ADM')
+            for adm in adm_users:
+                # Cria o email para cada ADM
+                if adm.email:
+                    email_adm = EmailMultiAlternatives(
+                        subject,
+                        "Este é um email em texto simples.",
+                        settings.DEFAULT_FROM_EMAIL,
+                        [adm.email],
+                    )
+                    email_adm.attach_alternative(html_content, "text/html")  # Adiciona o conteúdo HTML
+                    email_adm.send(fail_silently=False)
+                else:
+                    print(f"{adm.first_name} não possui um email cadastrado")
+        else:
+            print("Este setor não possui um LID.")
 
         # Verificar se já existe uma avaliação para esse usuário e essa pasta
         avaliacao_eficacia, created = AvaliacaoEficacia.objects.get_or_create(
@@ -652,11 +701,9 @@ def list_participantes(request, pk):
 def gerar_certificado(request):
     
     if request.method == 'POST':
-        prova_id = request.POST.get('prova_id')
         pasta_id = request.POST.get('pasta_id')
         matricula = request.POST.get('matricula')
 
-        prova = get_object_or_404(Prova, pk=prova_id)
         funcionario = get_object_or_404(Funcionario, matricula=matricula)
         usuario = get_object_or_404(CustomUser, matricula=matricula)
 
@@ -671,8 +718,32 @@ def gerar_certificado(request):
         materiais = Material.objects.filter(pasta_id=pasta_id)
                 
         context = {'funcionario':funcionario,
-                'prova':prova,
                 'materiais':materiais,
                 'certificado':certificado}
 
         return render(request, 'certificados/certificado1.html', context=context)
+
+@login_required
+def consultar_certificado(request, uuid):
+    if uuid:
+        try:
+            # Consulta o certificado e os dados relacionados
+            certificado = Certificado.objects.filter(identificador_finalizado=uuid).first()
+            if not certificado:
+                return HttpResponse('Certificado não encontrado. Verifique o código inserido e tente novamente')
+
+            funcionario = get_object_or_404(Funcionario, matricula=certificado.usuario.matricula)
+            materiais = Material.objects.filter(pasta_id=certificado.pasta)
+
+            # Contexto a ser passado para o template
+            context = {'funcionario': funcionario, 'materiais': materiais, 'certificado': certificado}
+
+            # Renderiza a página `certificado1.html` com o contexto
+            return render(request, 'certificados/certificado1.html', context=context)
+        except Exception as e:
+            print(e)
+            # Retorna um JsonResponse com a mensagem de erro em caso de exceção
+            return JsonResponse({'error': 'Certificado não encontrado. Verifique o código inserido e tente novamente'}, status=404)
+    else:
+        # Retorna um JsonResponse com mensagem de erro para UUID inválido
+        return JsonResponse({'error': 'Por favor, forneça um UUID válido.'}, status=400)

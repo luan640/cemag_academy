@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+
+{% block title %}Certificacao trilhas{% endblock %}
+
+{% block content %}
+
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-success" role="alert">
+        {{ message }}
+    </div>
+    {% endfor %}
+{% endif %}
+<div id="resultado" class="container mt-4">
+    <!-- Aqui será inserido o resultado do certificado -->
+</div>
+
+<div class="row justify-content-center" style="margin-top: 110px;">
+    <div class="col-12 col-sm-12 col-md-6 col-lg-6 col-xl-6 text-center">
+        <h1 style="font-weight: 700;"><label for="">Consultar Certificado</label></h1>
+        <p class="fw-medium" style="color: #6e6e77;">Consulte um certificado emitido pela Cemag Academy</p>
+        <div class="input-group">
+            <input class="form-control custom-select custom-select-sm fw-semibold" list="encodings" id="consulta" type="text" placeholder="Exemplo: b00c3690-1fc1-4174-830f-2c096be78cd8" aria-label="Ex.: b00c3690-1fc1-4174-830f-2c096be78cd8" aria-describedby="search-icon">
+            <button id="consultar_certificado" class="input-group-text btn btn-light border" id="search-icon">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+        </div>
+        <!-- Imagem com borda e escurecimento -->
+        <div style="position: relative; display: inline-block;" class="mt-4">
+            <p class="fw-medium" style="color: #6e6e77;">Modelo do certificado:</p>
+            <img src="/media/fotos/certificado_exibicao.png" alt="Descrição da imagem" class="img-fluid mb-4" style="filter: brightness(90%);">
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('consultar_certificado').addEventListener('click', function () {
+    const uuid = document.getElementById('consulta').value;
+
+    if (uuid) {
+        // Fazer a requisição GET com `fetch` para buscar o certificado
+        fetch(`/materiais/consultar/certificado/${uuid}/`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                // Se a resposta não for `ok`, retorna o JSON com o erro
+                return response.json().then(errorData => {
+                    throw new Error(errorData.error || 'Erro desconhecido.');
+                });
+            } else {
+                // Se a resposta for `ok`, redireciona para a URL do certificado
+                window.location.href = `/materiais/consultar/certificado/${uuid}/`;
+            }
+        })
+        .catch(error => {
+            // Exibe o erro na página usando `innerHTML` com um alert de bootstrap
+            document.getElementById('resultado').innerHTML = 
+                `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    ${error.message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>`;
+            console.error(error);
+        });
+    } else {
+        // Exibe alerta para o UUID inválido
+        document.getElementById('resultado').innerHTML = 
+            `<div class="alert alert-danger alert-dismissible fade show" role="alert">
+                Por favor, digite um UUID válido.
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>`;
+        console.error("UUID inválido");
+    }
+});
+
+</script>
+{% endblock %}

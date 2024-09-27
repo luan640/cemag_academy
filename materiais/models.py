@@ -80,4 +80,4 @@ class Certificado(models.Model):
     data_emissao_certificado = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Certificado da {self.usuario.first_name} referente a {self.pasta.nome}"
+        return f"Certificado da {self.usuario.first_name} referente a {self.pasta.nome} - {self.identificador_finalizado}"

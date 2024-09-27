@@ -1,7 +1,9 @@
+from django.http.response import HttpResponse as HttpResponse
 from django.shortcuts import render,redirect
 from .forms import CustomUserCreationForm
 from django.urls import reverse_lazy
-from django.contrib.auth import views as auth_views
+from django.contrib.auth import logout,views as auth_views
+from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
 
 @login_required
@@ -24,6 +26,12 @@ def add_user(request):
 
 def custom_404(request, exception):
     return render(request, '404.html', status=404)
-
+    
 class CustomLogoutView(auth_views.LogoutView):
     next_page = reverse_lazy('login')  # Define a página de redirecionamento para a página de login
+
+class CustomLoginView(LoginView):
+    def dispatch(self, request, *args, **kwargs) -> HttpResponse:
+        if request.user.is_authenticated:
+            logout(request)
+        return super().dispatch(request, *args, **kwargs)

@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.urls import path
+from django.views.generic import TemplateView
+from django.contrib.auth.decorators import login_required
 
 from . import views
 
@@ -12,7 +14,10 @@ urlpatterns = [
     path('pasta/<int:pk>/delete/', views.pasta_delete, name='delete-pasta'),
     path('pasta/<int:pk>/frequencia/', views.gerar_ficha_frequencia, name='frequencia-pasta'),
     path('pasta/<int:pk>/participantes/', views.list_participantes, name='list-participantes'),
+    
     path('pasta/certificado/', views.gerar_certificado, name='gerar-certificado'),
+    path('consultar/certificado/<str:uuid>/', views.consultar_certificado, name='consultar_certificado'),
+    path('consultar/certificado/',login_required(TemplateView.as_view(template_name='certificados/consultar_certificados.html')),name='consultar_certificados'),
     
     path('material/', views.material_list, name='list-material'),
     path('material/<int:pk>/detail', views.material_detail, name='detail-material'),

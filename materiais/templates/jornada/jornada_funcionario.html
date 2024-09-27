@@ -7,18 +7,6 @@
 {% block content %}
 
 <style>
-  #filtrar_funcionario {
-    background-color: white;
-    color: black;
-    border: 1px solid #ccc;
-    transition: background-color 0.3s ease, color 0.3s ease;
-  }
-
-  #filtrar_funcionario:hover {
-    background-color: #0d6efd;
-    color: white;
-    border-color: #0d6efd;
-  }
   .accordion {
     position: relative; /* Necessário para que o ponto seja posicionado em relação ao contêiner */
 }
@@ -53,7 +41,7 @@
               <option value="{{ funcionario.nome }}" data-matricula="{{ funcionario.matricula }}">{{ funcionario.nome }}</option>
             {% endfor %}
           </datalist>
-          <button id="filtrar_funcionario" class="input-group-text" id="search-icon">
+          <button id="filtrar_funcionario" class="input-group-text btn btn-light border" id="search-icon">
             <i class="fa-solid fa-magnifying-glass"></i>
           </button>
         </div>

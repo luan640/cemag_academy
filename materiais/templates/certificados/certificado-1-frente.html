@@ -20,11 +20,10 @@
   <div style="text-align: center; margin-top: 30px;">
     <p>
       Concluiu o treinamento em<br>
-      {{ prova.pasta.nome }} no dia {{dados_prova.data_realizacao}},<br>
+      {{ prova.pasta.nome }} no dia {{ certificado.data_emissao_certificado.day }}/{{ certificado.data_emissao_certificado.month }}/{{ certificado.data_emissao_certificado.year }},<br>
       na CEMAG - Ceará Máquinas Agrícolas Ltda.
     </p>
     <p>Fortaleza, {{ certificado.data_emissao_certificado }}</p>
-    <p style="color: gray;">{{ certificado.identificador_finalizado }}</p>
   </div>
   <!-- <div class="assinaturas">
     <div class="assinatura">
