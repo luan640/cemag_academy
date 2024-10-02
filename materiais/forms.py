@@ -1,6 +1,7 @@
 from django import forms
 from .models import Pasta,Material,Visualizacao
 from cadastros.models import Setor,Funcionario
+from django.forms.widgets import CheckboxSelectMultiple
 
 import uuid
 import os
@@ -10,24 +11,27 @@ class FuncionarioMatriculaChoiceField(forms.ModelMultipleChoiceField):
         return f"{obj.matricula} - {obj.nome}"
 
 class AddPasta(forms.ModelForm):
-    funcionarios = FuncionarioMatriculaChoiceField(
+    funcionarios = forms.ModelMultipleChoiceField(
         queryset=Funcionario.objects.all(),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(attrs={'class': 'funcionario-checkbox'}),
         required=False  # Torna o campo não obrigatório
-
     )
     class Meta:
         model = Pasta
         fields = ('nome', 'descricao', 'area_trilha', 'setores', 'funcionarios')
         widgets = {
-            'setores': forms.CheckboxSelectMultiple,
-            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'cols': 40})
+            'setores': forms.CheckboxSelectMultiple(attrs={'class': 'setor-checkbox'}),
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 1, 'cols': 40})
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['setores'].queryset = Setor.objects.all()
         self.fields['setores'].required = False  # Torna o campo não obrigatório
+
+        # Atualiza as opções de funcionários para exibir o nome do setor
+        self.fields['funcionarios'].queryset = Funcionario.objects.all()
+        self.fields['funcionarios'].label_from_instance = lambda obj: f"{obj.display_name()} {'(LÍD)' if obj.is_leader() else ''}"
 
         for field_name, field in self.fields.items():
             if not isinstance(field.widget, forms.HiddenInput) and not isinstance(field.widget, forms.CheckboxSelectMultiple):

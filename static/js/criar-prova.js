@@ -14,6 +14,7 @@ function adicionarQuestao() {
     questaoDiv.className = 'questao';
     questaoDiv.innerHTML = `
         <div class="row">
+            <h5>Questão</h5>
             <div class="col-sm-6 mb-4">
                 <label for="questao-${questaoIndex}-enunciado">Enunciado da Questão:</label>
                 <textarea class="form-control" id="questao-${questaoIndex}-enunciado" name="questoes[${questaoIndex}][enunciado]" required></textarea>
@@ -33,7 +34,7 @@ function adicionarQuestao() {
         </div>
 
         <div id="alternativas-container-${questaoIndex}" style="display: none;">
-            <h4>Alternativas</h4>
+            <h5>Alternativas</h5>
             <button class="btn btn-primary" type="button" onclick="adicionarAlternativa(${questaoIndex})">Adicionar Alternativa</button>
             <div class="alternativas"></div>
         </div>

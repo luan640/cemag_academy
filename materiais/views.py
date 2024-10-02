@@ -74,12 +74,10 @@ def pastas_list(request):
     elif request.user.type == 'LID':
         pastas = Pasta.objects.filter(
             Q(created_by=request.user) |
-            Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
         ).distinct()
     else:
         pastas = Pasta.objects.filter(
-            Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
         ).distinct()
 
@@ -287,6 +285,8 @@ def avaliacao(request, pk):
         # Convertendo para booleano
         eficacia_qualificacao = True if valor_trabalho == 'true' else False
 
+        print(eficacia_qualificacao)
+
         # Obter a instância da pasta correspondente
         pasta = get_object_or_404(Pasta, id=pk)
         user = get_object_or_404(CustomUser, id=request.user.id)
@@ -297,13 +297,46 @@ def avaliacao(request, pk):
 
         trilha_nome = pasta.nome  # Nome da trilha
 
-        if lid:
+        if lid and user.type != 'LID':
+            
             # Enviar email ao LID informando sobre a trilha
-            subject = f"Trilha {trilha_nome} foi completada"
+            subject = f"Cemag Academy - Trilha {trilha_nome} foi finalizada e avaliada pelo {user.first_name} {user.last_name}"
             html_content = f"""
             <html>
-            <body>
-                <p>A trilha <strong>'{trilha_nome}'</strong> foi Avaliada com sucesso pelo {user.first_name}</p>
+            <body style="font-family: Arial, sans-serif; line-height: 1.6;">
+                <div style="max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                    <div style="background-color: #ff7f27; padding: 20px; text-align: center; color: white;">
+                        <h1>Trilha Avaliada!</h1>
+                    </div>
+                    <div style="padding: 20px;">
+                        <p style="font-size: 16px;">Olá, <strong>{lid.first_name}</strong>,</p>
+                        <p style="font-size: 16px;">A trilha <strong>'{trilha_nome}'</strong> foi avaliada com sucesso pelo colaborador <strong>{user.first_name} {user.last_name}</strong>.</p>
+                        
+                        <table style="width: 100%; margin-top: 20px; border-collapse: collapse;">
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9; font-weight: bold;">A qualificação agregará valor para o seu trabalho:</td>
+                                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9; color: {'green' if eficacia_qualificacao else 'red'};">
+                                    {'Sim' if eficacia_qualificacao else 'Não'}
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9; font-weight: bold;">Justificativa:</td>
+                                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9;">{justificativa}</td>
+                            </tr>
+                        </table>
+                        
+                        <p style="font-size: 16px; margin-top: 20px;">Agora você poderá avaliar o colaborador na aba de Trilhas.</p>
+                        <p style="font-size: 16px; margin-top: 20px;">Se precisar de mais informações, não hesite em entrar em contato.</p>
+                        <p style="font-size: 16px;">Atenciosamente,<br>Equipe de Treinamento</p>
+                        
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="http://127.0.0.1:8000/materiais/pasta/" style="padding: 10px 20px; background-color: #ff7f27; color: white; text-decoration: none; border-radius: 5px;">Acesse nosso site para avaliar o colaborador</a>
+                        </div>
+                    </div>
+                    <div style="background-color: #f1f1f1; padding: 10px; text-align: center; color: #555;">
+                        <p>Este é um e-mail automático. Por favor, não responda.</p>
+                    </div>
+                </div>
             </body>
             </html>
             """
@@ -319,24 +352,24 @@ def avaliacao(request, pk):
                 email_lid.send(fail_silently=False)
             else: 
                 print(f"{lid.first_name} não possui email cadastrado")
-
-            # Enviar email para todos os usuários do tipo ADM
-            adm_users = CustomUser.objects.filter(type='ADM')
-            for adm in adm_users:
-                # Cria o email para cada ADM
-                if adm.email:
-                    email_adm = EmailMultiAlternatives(
-                        subject,
-                        "Este é um email em texto simples.",
-                        settings.DEFAULT_FROM_EMAIL,
-                        [adm.email],
-                    )
-                    email_adm.attach_alternative(html_content, "text/html")  # Adiciona o conteúdo HTML
-                    email_adm.send(fail_silently=False)
-                else:
-                    print(f"{adm.first_name} não possui um email cadastrado")
         else:
-            print("Este setor não possui um LID.")
+            print("O LÍDER fez a avaliação ou esse setor não possui LÍDER cadastrado")
+        
+        # Enviar email para todos os usuários do tipo ADM
+        adm_users = CustomUser.objects.filter(type='ADM')
+        for adm in adm_users:
+            # Cria o email para cada ADM
+            if adm.email:
+                email_adm = EmailMultiAlternatives(
+                    subject,
+                    "Este é um email em texto simples.",
+                    settings.DEFAULT_FROM_EMAIL,
+                    [adm.email],
+                )
+                email_adm.attach_alternative(html_content, "text/html")  # Adiciona o conteúdo HTML
+                email_adm.send(fail_silently=False)
+            else:
+                print(f"{adm.first_name} não possui um email cadastrado")
 
         # Verificar se já existe uma avaliação para esse usuário e essa pasta
         avaliacao_eficacia, created = AvaliacaoEficacia.objects.get_or_create(

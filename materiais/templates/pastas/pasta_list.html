@@ -55,16 +55,7 @@
 
 {% block content %}
 
-{% if messages %}
-        {% for message in messages %}
-        <div class="alert alert-success" role="alert">
-            {{ message }}
-        </div>
-        {% endfor %}
-{% endif %}
-
 <h1>Trilhas de aprendizado</h1>
-
 
 {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
 <div class="row mb-3">

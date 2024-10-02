@@ -7,13 +7,6 @@
 
 {% block content %}
 
-{% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-success" role="alert">
-        {{ message }}
-    </div>
-    {% endfor %}
-{% endif %}
 <div id="resultado" class="container mt-4">
     <!-- Aqui será inserido o resultado do certificado -->
 </div>
@@ -31,7 +24,7 @@
         <!-- Imagem com borda e escurecimento -->
         <div style="position: relative; display: inline-block;" class="mt-4">
             <p class="fw-medium" style="color: #6e6e77;">Modelo do certificado:</p>
-            <img src="/media/fotos/certificado_exibicao.png" alt="Descrição da imagem" class="img-fluid mb-4" style="filter: brightness(90%);">
+            <img src="/media/fotos/certificado_exibicao.png" alt="Modelo do certificado" class="img-fluid mb-4" style="filter: brightness(70%); opacity: 0.5;">
         </div>
     </div>
 </div>
