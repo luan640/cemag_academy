@@ -27,6 +27,7 @@ document.getElementById('filtrar_setor').addEventListener('input', function() {
 document.getElementById('filtrar_funcionarios').addEventListener('input', function() {
     let filtro = this.value.toLowerCase();
     let funcionarios = document.querySelectorAll('#id_funcionarios div');
+    document.getElementById('toggle-show-selected').checked = false;
 
     funcionarios.forEach(function(funcionario) {
         let texto = funcionario.textContent.toLowerCase();
@@ -36,20 +37,4 @@ document.getElementById('filtrar_funcionarios').addEventListener('input', functi
             funcionario.style.display = "none";
         }
     });
-});
-
-let toggleSwitch = document.getElementById('toggle-select-all-switch');
-
-toggleSwitch.addEventListener('change', function() {
-    let isChecked = toggleSwitch.checked;
-
-    // Selecionar/desmarcar todos os checkboxes dos setores e grupos
-    let checkboxes = document.querySelectorAll('.setor-checkbox input, .lider-checkbox');
-    checkboxes.forEach(function(checkbox) {
-        checkbox.checked = isChecked;
-    });
-
-    // Atualizar o texto do switch
-    let label = document.querySelector('label[for="toggle-select-all-switch"]');
-    label.textContent = isChecked ? 'Desmarcar Todos' : 'Selecionar Todos';
 });
