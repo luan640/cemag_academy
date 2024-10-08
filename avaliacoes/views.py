@@ -45,15 +45,13 @@ def salvar_prova(request, pk):
 
 def delete_prova(request, pk):
 
-    if request.method == 'POST':
+    prova = get_object_or_404(Prova, pk=pk)
 
-        prova = get_object_or_404(Prova, pk=pk)
+    prova.delete()
 
-        prova.delete()
+    messages.success(request, 'Prova excluído com sucesso.')
 
-        messages.success(request, 'Prova excluído com sucesso.')
-
-        return redirect('list-prova',pk=prova.pasta_id)
+    return redirect('list-prova',pk=prova.pasta_id)
 
 def calcular_nota(prova,funcionario):
     questoes = Questao.objects.filter(prova=prova)
@@ -203,13 +201,14 @@ def visualizar_prova(request, pk,pk_matricula=0):
         alternativas_dict[questao.pk] = alternativas_questao
 
         # Tentar obter a resposta para a questão atual
-        resposta = Resposta.objects.get(questao=questao, funcionario=request.user)
-
+        
         if pk_matricula != 0 and request.user.type == 'ADM':
             resposta = Resposta.objects.get(questao=questao, funcionario__matricula=pk_matricula)
             correta = alternativas_questao.filter(correta=True).first()
             alternativas_certas[questao.pk] = correta.id if correta else None
             nota_dissertativa[questao.pk] = resposta.nota
+        else:
+            resposta = Resposta.objects.get(questao=questao, funcionario=request.user)
 
         if resposta.alternativa_selecionada_id is not None:
             alternativas_selecionadas[questao.pk] = resposta.alternativa_selecionada_id

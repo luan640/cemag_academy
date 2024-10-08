@@ -1,6 +1,17 @@
 document.getElementById('prova-form').addEventListener('submit', function(event) {
     event.preventDefault();
-    salvarProva();
+
+    // Desabilita o botão de envio para evitar cliques múltiplos
+    const submitButton = document.querySelector('button[type="submit"]');
+    submitButton.disabled = true;
+
+    salvarProva().then(() => {
+        // Reativa o botão de envio após concluir o processamento
+        submitButton.disabled = false;
+    }).catch(() => {
+        // Reativa o botão de envio em caso de erro
+        submitButton.disabled = false;
+    });
 });
 
 let questaoCounter = 0;
@@ -142,7 +153,8 @@ function salvarProva() {
     xhr.onreadystatechange = function() {
         if (xhr.readyState === XMLHttpRequest.DONE) {
             if (xhr.status === 200) {
-                alert('Prova salva com sucesso!');
+                alert('Prova salva com sucesso');
+                window.location.href = `/avaliacao/${pastaId}/list-provas/`;
             } else {
                 alert('Erro ao salvar a prova.');
             }

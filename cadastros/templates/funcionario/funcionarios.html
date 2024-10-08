@@ -39,13 +39,16 @@
 
 
 <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
-    <div class="card">
-        <div class="card-header fw-bold">Lista de Funcionários</div>
-        <div class="card-body">
-            <ul class="list-group">
+    <div class="card" style="height: 500px;">
+        <div class="card-header fw-bold d-flex justify-content-between align-items-center">
+            <label>Lista de Funcionários</label>
+            <input type="text" id="filtrar_funcionario" class="form-control" style="width: 150px; font-size: 14px;" placeholder="Filtrar Funcionário...">
+        </div>
+        <div class="card-body" style="overflow-y: auto;">
+            <ul class="list-group" id="lista_funcionarios">
                 {% for funcionario in funcionarios %}
-                <li class="list-group-item d-flex justify-content-between align-items-center">
-                    <a href="{% url 'edit-funcionario' funcionario.pk %}" class="flex-grow-1" style="width: 80%;">{{ funcionario.matricula }} - {{ funcionario.nome }}</a> 
+                <li class="funcionarios_cadastrados list-group-item d-flex justify-content-between align-items-center">
+                    <a href="{% url 'edit-funcionario' funcionario.pk %}" class="flex-grow-1 matricula_nome" style="width: 80%;">{{ funcionario.matricula }} - {{ funcionario.nome }}</a> 
                     <a href="{% url 'delete-funcionario' funcionario.pk %}" class="btn btn-link p-0 delete-link"><i class="fa-solid fa-trash" style="color: red;"></i></a>
                 </li>                  
                 {% endfor %}
@@ -57,5 +60,8 @@
 {% endblock %}
 
 {% block scripts %}
+
 <script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
+<script src="{% static 'js/filtro_cadasto/cadastrar_funcionario.js' %}"></script>
+
 {% endblock %}

@@ -19,19 +19,26 @@
                     {% with questao.pk as questao_pk %}
                         {% for alternativa in alternativas|get_item:questao_pk %}
                             <div class="alternativa">
-                                <input type="radio" id="alternativa_{{ alternativa.id }}" name="questao_{{ questao.id }}" value="{{ alternativa.id }}" {% if forloop.first %}required{% endif %}>
+                                <input type="radio" id="alternativa_{{ alternativa.id }}" name="questao_{{ questao.id }}" value="{{ alternativa.id }}" 
+                                        {% if forloop.first %}required{% endif %}
+                                        {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}disabled{% endif %}>
                                 <label for="alternativa_{{ alternativa.id }}">{{ alternativa.texto }}</label>
                             </div>
                         {% endfor %}
                     {% endwith %}
                 {% elif questao.tipo == 'dissertativa' %}
                 <div style="width: 320px;">
-                    <textarea class="form-control" name="questao_{{ questao.id }}" rows="2" cols="10" required></textarea>
+                    <textarea class="form-control" name="questao_{{ questao.id }}" rows="2" cols="10" 
+                                {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}disabled{% endif %} 
+                                required></textarea>
                 </div>
                 {% endif %}
-            </div>
+            </div>        
         {% endfor %}
+    {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
+    {% else %}
     <button class="btn btn-success" type="submit">Enviar Prova</button>
+    {% endif %}
 </form>
 
 {% endblock %}

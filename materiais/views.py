@@ -207,11 +207,13 @@ def material_add_in_pasta(request, pk):
 
             video_youtube_url = form.cleaned_data['video_youtube']
             print(video_youtube_url)
-            if video_youtube_url:
+            if video_youtube_url and not is_id_youtube_valido(video_youtube_url):
                 material.video_youtube = extrair_id_youtube(video_youtube_url)  # Chama a função
 
             material.save()
+            form.save_m2m()
             return redirect('detail-pasta', pk=pasta.pk)
+        
     else:
         form = AddMaterial()
 
@@ -520,10 +522,13 @@ def jornada_detail_unique(request,matricula):
     lista_livros_visualizados = []
 
     for livro_visualizado in livros_visualizados:
-        rating = Rating.objects.get(user=usuario,livro=livro_visualizado.livro)
+        try:
+            rating = Rating.objects.get(user=usuario,livro=livro_visualizado.livro)
+        except Rating.DoesNotExist:
+            rating = None
         lista_livros_visualizados.append({
             'livro_titulo': livro_visualizado.livro.titulo,
-            'rating':rating.score
+            'rating':rating.score if rating else 0
         })
 
     setor_do_usuario = funcionario.setor
@@ -763,7 +768,7 @@ def consultar_certificado(request, uuid):
             # Consulta o certificado e os dados relacionados
             certificado = Certificado.objects.filter(identificador_finalizado=uuid).first()
             if not certificado:
-                return HttpResponse('Certificado não encontrado. Verifique o código inserido e tente novamente')
+                return JsonResponse({'error': 'Certificado não encontrado. Verifique o código inserido e tente novamente'}, status=404)
 
             funcionario = get_object_or_404(Funcionario, matricula=certificado.usuario.matricula)
             materiais = Material.objects.filter(pasta_id=certificado.pasta)

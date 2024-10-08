@@ -59,7 +59,7 @@ class Resposta(models.Model):
     comentario = models.TextField(null=True, blank=True)  # Para feedback nas respostas dissertativas
 
     def __str__(self) -> str:
-        return f"Resposta do {self.funcionario.first_name} {self.questao}"
+        return f"{self.id} Resposta do {self.funcionario.first_name} {self.questao}"
 
 class ProvaRealizada(models.Model):
     

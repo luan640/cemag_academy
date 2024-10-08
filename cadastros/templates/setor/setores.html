@@ -7,12 +7,12 @@
 {% block content %}
 
 <div>
-  <h1>Adicionar Novo Funcionário</h1>
+  <h1>Adicionar Novo Setor</h1>
   <form method="post">
       {% csrf_token %}
       <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
           <div class="card">
-              <div class="card-header fw-bold">Adicionar Funcionário</div>
+              <div class="card-header fw-bold">Adicionar Setor</div>
               <div class="card-body">
                   <div class="row justify-content-center align-items-end">
                       <div class="col-sm-4 mt-4">
@@ -34,12 +34,12 @@
 </div>
 
 <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
-  <div class="card">
-      <div class="card-header fw-bold">Lista de Setores</div>
-      <div class="card-body">
+  <div class="card" style="height: 500px;">
+    <div class="card-header fw-bold d-flex justify-content-between align-items-center"><label>Lista de Setores</label><input type="text" class="form-control" style="width: 150px; font-size: 14px;" placeholder="Filtrar Setor..."></div>
+      <div class="card-body" style="overflow-y: auto;">
           <ul class="list-group">
               {% for setor in setores %}
-              <li class="list-group-item d-flex justify-content-between align-items-center">
+              <li class="setores_cadastradas list-group-item d-flex justify-content-between align-items-center">
                   <a href="{% url 'edit-setor' setor.pk %}" class="flex-grow-1">{{ setor.nome }} - {{ setor.area }}</a>
                   <a href="{% url 'delete-setor' setor.pk %}" class="btn btn-link p-0 delete-link"><i class="fa-solid fa-trash text-danger"></i></a>
               </li>
