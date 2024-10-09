@@ -32,14 +32,12 @@ def list_livro(request):
     visualizacao_ids = set(visualizacoes)  # Converter para conjunto para eficiência
     
     for livro in livros:
-        ratings = livro.ratings.all()
+        user_rating = livro.ratings.filter(user=request.user).first()
 
-        if ratings:
-            media_ratings = sum(r.score for r in ratings) / len(ratings)
+        if user_rating:
+            livro.user_rating = user_rating.score  # Score unitário do usuário
         else:
-            media_ratings = 0 
-        
-        livro.media_ratings = media_ratings
+            livro.user_rating = None  # Nenhum score encontrado para este livro e usuário
     
     return render(request, 'livro_list.html', {
         'livros': livros,
@@ -108,8 +106,6 @@ def add_rating(request):
         livro_id = request.POST.get('livro_id')
         score = request.POST.get('rating')
         
-        print(score)
-        
         if not livro_id or not score:
             return JsonResponse({'success': False, 'message': 'Missing parameters'}, status=400)
         
@@ -120,8 +116,8 @@ def add_rating(request):
             rating.score = score
             rating.save()
         
-        rating = calculate_media_rating_livro(livro_id)
+        # rating = calculate_media_rating_livro(livro_id)
         
-        return JsonResponse({'success': True,'rating': rating})
+        return JsonResponse({'success': True,'rating': rating.score})
 
     return JsonResponse({'success': False, 'message': 'Invalid request method'}, status=400)

@@ -28,6 +28,11 @@
                     {% endif %}
                     <div class="list-group">
                         <div class="list-group-item">
+                            {% if prova.possui_dissertativas and not provas_corrigidas|get_item:prova.id and realizou_provas|get_item:prova.id %}
+                                {% if request.user.type != 'ADM' and request.user.id != pasta.created_by.id %}
+                                    <code style="font-weight: 600;">Aguardando correção</code> 
+                                {% endif %}
+                            {% endif %}
                             <p style="font-weight: 600;">{{ prova.titulo }}</p> 
                             <div class="row">
                             {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}

@@ -11,6 +11,8 @@ class CorrigirRespostaDissertativaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['nota'].required = True
+        self.fields['nota'].widget.attrs.update({"class": "form-control","step":"0.1","min":"0","max":"1"})
+        self.fields['comentario'].widget.attrs.update({"class": "form-control","rows":"2","cols":"10"})
         self.fields['corrigida'].initial = True
 
     def save(self, commit=True):

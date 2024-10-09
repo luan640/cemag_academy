@@ -2,27 +2,51 @@
 
 {% load static %}
 
-{% block title %}Lista trilhas{% endblock %}
+{% block title %}Lista de Participantes{% endblock %}
 
 {% block content %}
 
 <div class="col-md-9">
-    <h1>Participantes</h1>
+    <h1>Participantes da Prova</h1>
     <div class="card">    
         <div class="card-body" style="height: 100%;">                     
             <div class="list-group">
                 {% for participante in lista_participantes %}
                     <div class="list-group-item flex-column align-items-start" style="gap: 15px;">
-                        <p>{{participante.matricula}} - {{participante.nome}}</p>
+                        <p>
+                            <strong>Matrícula:</strong> {{ participante.matricula }} 
+                            <strong>Nome:</strong> {{ participante.nome }}
+                        </p>
+                        <p>
+                            <strong>Status:</strong> 
+                            {% if participante.realizou_prova %}
+                                <span class="text-success">Prova realizada</span>
+                            {% else %}
+                                <span class="text-danger">Ainda não realizou a prova</span>
+                            {% endif %}
+                        </p>
                         {% if participante.realizou_prova %}
+                            <p>
+                                <strong>Nota:</strong> 
+                                <span>
+                                    {{ participante.nota }} / {{ participante.total_questoes }}
+                                </span><br>
+                                
+                                <strong>Porcentagem de Acertos:</strong> 
+                                <span>
+                                    {{ participante.porcentagem_acertos }}
+                                </span>
+                            </p>
                             {% if participante.matricula == request.user.matricula %}
                                 <strong>Não poderá acessar seus próprios dados</strong>
-                                {% else %}
-                                <a href="{% url 'refazer-prova' pk_prova=prova.pk pk_user=participante.matricula %}" class="delete-link-refazer-prova"><button class="btn btn-primary mb-2">Refazer prova</button></a> <!-- Descartar prova anterior -->
-                                <a href="{% url 'corrigir-prova' pk_prova=prova.pk pk_user=participante.matricula %}"><button class="btn btn-primary mb-2">Corrigir prova</button></a>
+                            {% else %}
+                                <a href="{% url 'refazer-prova' pk_prova=prova.pk pk_user=participante.matricula %}" class="delete-link-refazer-prova">
+                                    <button class="btn btn-primary mb-2">Refazer prova</button>
+                                </a> <!-- Descartar prova anterior -->
+                                <a href="{% url 'corrigir-prova' pk_prova=prova.pk pk_user=participante.matricula %}">
+                                    <button class="btn btn-primary mb-2">Corrigir questões dissertativas</button>
+                                </a>
                             {% endif %}
-                        {% else %}
-                        <strong>Participante ainda não realizou a prova</strong>
                         {% endif %}
                     </div> 
                 {% endfor %}

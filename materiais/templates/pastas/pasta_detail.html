@@ -244,31 +244,31 @@
 
 <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
     <div class="modal-dialog" style="margin-top: 60px;">
-      <div class="modal-content">
-        <div class="modal-header">
-            <h1 class="modal-title fs-5" id="staticBackdropLabel">Avaliação pelo Colaborador</h1>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="staticBackdropLabel">Avaliação pelo Colaborador</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="{% url 'avaliacao' pasta.id %}" method="POST" id="avaliacao-form">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="border p-3">
+                        <p>Você considera que a qualificação agregará valor para o seu trabalho?</p>
+                        <label for="sim_colaborador">Sim</label>
+                        <input type="radio" name="valor_trabalho" id="sim_colaborador" value="true">
+                        <label for="nao_colaborador">Não</label>
+                        <input type="radio" name="valor_trabalho" id="nao_colaborador" value="false">
+                    </div>
+                    <div class="mt-4">
+                        <label for="justificativa">Justifique</label>
+                        <input class="form-control" type="text" name="justificativa" id="justificativa" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" id="submit-button" class="btn btn-primary">Enviar</button>
+                </div>
+            </form>
         </div>
-        <form action="{% url 'avaliacao' pasta.id %}" method="POST">
-            {% csrf_token %}
-            <div class="modal-body">
-                <div class="border p-3">
-                    <p>Você considera que a qualificação agregará valor para o seu trabalho?</p>
-                    <label for="sim_colaborador">Sim</label>
-                    <input type="radio" name="valor_trabalho" id="sim_colaborador" value="true">
-                    <label for="nao_colaborador">Não</label>
-                    <input type="radio" name="valor_trabalho" id="nao_colaborador" value="false">
-                </div>
-                <div class="mt-4">
-                    <label for="justificativa">Justifique</label>
-                    <input class="form-control" type="text" name="justificativa" id="justificativa" required>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-primary">Enviar</button>
-            </div>
-        </form>
-      </div>
     </div>
 </div>
 {% endblock %}
@@ -333,6 +333,21 @@ function openVideoInNewTab(url) {
         // Verifica o estado dos checkboxes na carga inicial
         checkAllCheckboxes();
     });
+
+    document.getElementById('avaliacao-form').addEventListener('submit', function(event) {
+        // Obtém o botão de envio
+        const submitButton = document.getElementById('submit-button');
+
+        // Substitui o conteúdo do botão pelo spinner de carregamento
+        submitButton.innerHTML = `
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Carregando...
+        `;
+        
+        // Desativa o botão para evitar múltiplos cliques
+        submitButton.disabled = true;
+    });
+
 </script>
 
 {% endblock %}

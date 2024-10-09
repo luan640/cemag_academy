@@ -121,6 +121,8 @@ def list_prova(request, pk):
     baixar_certificado = len(pastas_certificadas) > 0
 
     prova_certificada = provas.first() if baixar_certificado and provas.exists() else None
+
+    provas_corrigidas = {prova.id: prova.respostas_corrigidas(funcionario) for prova in provas}
     
     return render(request, 'provas/list-prova.html', {
         'pasta': pasta,
@@ -128,7 +130,8 @@ def list_prova(request, pk):
         'acertos_por_prova': acertos_por_prova,
         'realizou_provas': realizou_provas,
         'baixar_certificado': baixar_certificado,
-        'prova_certificada': prova_certificada  # Passa a lista de pastas certificadas para o template
+        'prova_certificada': prova_certificada,  # Passa a lista de pastas certificadas para o template
+        'provas_corrigidas':provas_corrigidas
     })
 
 def realizar_prova(request, pk):
@@ -179,6 +182,7 @@ def realizar_prova(request, pk):
         return redirect('list-prova', pk=prova.pasta_id)
 
     return render(request, 'provas/realizar-prova.html', {
+        'pasta':prova.pasta,
         'prova': prova,
         'questoes': questoes,
         'alternativas': alternativas_dict

@@ -1,14 +1,25 @@
 from django.shortcuts import render,get_object_or_404,redirect
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.db.models import Q
+from django.http import JsonResponse
 
 from cadastros.models import Funcionario
-from materiais.models import Pasta,Material,Visualizacao
+from materiais.models import Pasta,Material,Visualizacao,Setor
 from users.models import CustomUser
 from materiais.utils import ProgressoTrilha
 
 import numpy as np
-    
+
+def trilhas_por_setor_api(request):
+    setores = Setor.objects.all()
+    trilhas_por_setor = {}
+
+    for setor in setores:
+        pastas_setor = Pasta.objects.filter(setores=setor)
+        trilhas_por_setor[setor.nome] = pastas_setor.count()
+
+    return JsonResponse(trilhas_por_setor)
+
 @login_required
 def painel_home(request):
 

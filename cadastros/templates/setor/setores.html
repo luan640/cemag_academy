@@ -34,13 +34,13 @@
 </div>
 
 <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
-  <div class="card" style="height: 500px;">
-    <div class="card-header fw-bold d-flex justify-content-between align-items-center"><label>Lista de Setores</label><input type="text" class="form-control" style="width: 150px; font-size: 14px;" placeholder="Filtrar Setor..."></div>
+  <div class="card" style="max-height: 500px;">
+    <div class="card-header fw-bold d-flex justify-content-between align-items-center"><label>Lista de Setores</label><input type="text" class="form-control" id="filtro_cadastrar_setor" style="width: 150px; font-size: 14px;" placeholder="Filtrar Setor..."></div>
       <div class="card-body" style="overflow-y: auto;">
           <ul class="list-group">
               {% for setor in setores %}
-              <li class="setores_cadastradas list-group-item d-flex justify-content-between align-items-center">
-                  <a href="{% url 'edit-setor' setor.pk %}" class="flex-grow-1">{{ setor.nome }} - {{ setor.area }}</a>
+              <li class="setores_cadastradas list-group-item justify-content-between align-items-center" style="display: flex;">
+                  <a href="{% url 'edit-setor' setor.pk %}" class="setor_area flex-grow-1">{{ setor.nome }} - {{ setor.area }}</a>
                   <a href="{% url 'delete-setor' setor.pk %}" class="btn btn-link p-0 delete-link"><i class="fa-solid fa-trash text-danger"></i></a>
               </li>
               {% endfor %}
@@ -72,4 +72,6 @@
 
 {% block scripts %}
 <script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
+<script src="{% static 'js/filtro_cadasto/cadastrar_setor.js' %}"></script>
+
 {% endblock %}

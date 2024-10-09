@@ -128,8 +128,6 @@
     }
 
     .star-rating input { 
-        -moz-appearance: none;
-        -webkit-appearance: none;
         opacity: 0;
         display: inline-block;
         width: 20%;
@@ -257,11 +255,11 @@
                                 </div>
                                 <div class="bookProperty property_rating">
                                     <div class="book-rating" title="Avaliação">
-                                        <span id="rating-{{ livro.pk }}" class="book-rating-interest-score">{{ livro.media_ratings|floatformat:1 }}</span> /
+                                        <span id="rating-{{ livro.pk }}" class="book-rating-interest-score">{{ livro.user_rating|floatformat:1 }}</span> /
                                         <span class="book-rating-quality-score">5,0</span>
                                         <div class="star-rating" data-livro-id="{{ livro.pk }}">
                                             {% for i in 5|range_custom %}
-                                                <input type="radio" name="rating-{{ livro.pk }}" id="rating-{{ livro.pk }}-{{ i }}" value="{{ i }}" {% if i <= livro.media_ratings %}checked{% endif %}><i>&#9733;</i>
+                                                <input type="radio" name="rating-{{ livro.pk }}" id="rating-{{ livro.pk }}-{{ i }}" value="{{ i }}" {% if i <= livro.user_rating %}checked{% endif %}><i>&#9733;</i>
                                             {% endfor %}
                                         </div>
                                     </div>

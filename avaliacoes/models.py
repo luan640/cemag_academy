@@ -25,6 +25,14 @@ class Prova(models.Model):
     def __str__(self) -> str:
         return f"Prova {self.titulo} - {self.id}"
     
+    def possui_dissertativas(self):
+        return self.questao_prova.filter(tipo="dissertativa").exists()
+
+    def respostas_corrigidas(self,funcionario):
+        respostas = Resposta.objects.filter(questao__prova=self, funcionario=funcionario)
+        # Retorna True se todas as respostas tiverem `corrigida=True`
+        return respostas.exists() and all(resposta.corrigida for resposta in respostas)
+    
 class Questao(models.Model):
     
     TIPOS = (

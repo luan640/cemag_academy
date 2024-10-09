@@ -694,6 +694,9 @@ def list_participantes(request, pk):
     
     # Obter os usuários correspondentes no CustomUser
     usuarios = CustomUser.objects.filter(matricula__in=matriculas)
+
+    # Criar um dicionário para mapear funcionários a usuários
+    funcionarios_para_usuarios = {user.matricula: user for user in usuarios}
     
     # Filtrar ProvaRealizada usando os usuários e a prova
     prova_realizada = ProvaRealizada.objects.filter(usuario__in=usuarios, prova=prova)
@@ -705,17 +708,34 @@ def list_participantes(request, pk):
     for realizacao in prova_realizada:
         participantes_status[realizacao.usuario.matricula] = True
     
-    # Criar uma lista final com os dados dos participantes e o status da prova
+    # Criar uma lista final com os dados dos participantes, o status da prova e a nota
     lista_final_participantes = []
     for participante in list_participantes:
+        usuario = funcionarios_para_usuarios.get(participante.matricula)
+        
+        # Calcular a nota e o número total de questões para o participante usando o usuário correspondente
+        if usuario:
+            total_respostas, total_questoes = calcular_nota(prova, usuario)
+        else:
+            total_respostas, total_questoes = 0, 0
+
+        # Calcular a porcentagem de acertos (se não houver questões, definir como 0%)
+        porcentagem_acertos = (total_respostas / total_questoes * 100) if total_questoes > 0 else 0
+
+        # Adicionar o participante e os detalhes à lista final
         lista_final_participantes.append({
             'matricula': participante.matricula,
             'nome': participante.nome,
-            'realizou_prova': participantes_status[participante.matricula]
+            'realizou_prova': participantes_status[participante.matricula],
+            'nota': total_respostas,  # Nota total obtida pelo participante
+            'total_questoes': total_questoes,  # Total de questões na prova
+            'porcentagem_acertos': f'{porcentagem_acertos:.2f}%'  # Porcentagem de acertos formatada
         })
     
-
-    return render(request, 'pastas/participantes_list.html', {'lista_participantes':lista_final_participantes, 'prova':prova})
+    return render(request, 'pastas/participantes_list.html', {
+        'lista_participantes': lista_final_participantes,
+        'prova': prova
+    })
 
 # def gerar_certificado(request, pk):
     
