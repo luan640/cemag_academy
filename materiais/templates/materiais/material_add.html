@@ -6,7 +6,7 @@
 
 <div>
     <h1>Adicionar Novo Material</h1>
-    <form method="post" enctype="multipart/form-data">
+    <form method="post" enctype="multipart/form-data" id="editar-material">
         {% csrf_token %}
         <div class="col-lg-8 mx-auto mb-4" style="margin-top: 50px;">
             <div class="card">
@@ -43,12 +43,24 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-end">
-                        <button class="btn btn-primary mt-4" type="submit">Salvar</button>
+                        <button id="submit-edit" class="btn btn-primary mt-4" type="submit">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            <span id="button-text">Salvar</span>
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </form>
 </div>
+
+<script>
+    document.getElementById('editar-material').addEventListener('submit', function() {
+        var submitButton = document.getElementById('submit-edit');
+        submitButton.disabled = true; // Desabilita o botão
+        submitButton.querySelector('.spinner-border').classList.remove('d-none'); // Exibe o spinner
+        document.getElementById('button-text').textContent = 'Salvando...'; // Altera o texto
+    });
+</script>
 
 {% endblock %}

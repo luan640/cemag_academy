@@ -33,17 +33,17 @@
 
 <h1 class="mt-4">Dashboard</h1>
 
-<div class="chart-container">
-    <!-- Gráfico 1 -->
+<!-- <div class="chart-container">
+
     <div class="chart-wrapper">
         <canvas id="myChart1"></canvas>
     </div>
-    <!-- Gráfico 2 -->
+
     <div class="chart-wrapper">
         <canvas id="myChart2"></canvas>
     </div>
 
-</div>
+</div> -->
 
 
 <div class="card mb-3">
@@ -185,26 +185,6 @@
                 </div>
             </div>
 
-            <div class="col-sm-6 mb-3">
-                <div class="card">
-                    <div class="card-header">Últimos livros criados:</div>
-                    <div class="card-body" style="max-height: 300px; overflow-y: auto;">
-                        <div class="list-group">
-                            {% for trilhas in ultimas_trilhas %}
-                            <a
-                                class="list-group-item list-group-item-action flex-column align-items-start">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1">{{ trilhas.nome }}</h5>
-                                    <small>{{ trilhas.created_at }}</small>
-                                </div>
-                                <p class="mb-1">{{ trilhas.area_trilha }}</p>
-                                <small>{{ trilhas.created_by.first_name }}</small>
-                            </a>
-                            {% endfor %}
-                        </div>
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 </div>
@@ -214,88 +194,7 @@
 {% block scripts %}
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-
-<script>
-    fetch('api/trilhas_por_setor')
-        .then(response => response.json())
-        .then(data => {
-            const setores_nomes = Object.keys(data);
-            const trilhas_quantidade = Object.values(data);
-
-            // Array de cores para cada barra
-            const colors = [
-                'rgba(255, 99, 132, 0.2)', // Red
-                'rgba(54, 162, 235, 0.2)', // Blue
-                'rgba(255, 206, 86, 0.2)', // Yellow
-                'rgba(75, 192, 192, 0.2)', // Teal
-                'rgba(153, 102, 255, 0.2)', // Purple
-                'rgba(255, 159, 64, 0.2)'  // Orange
-            ];
-
-            // Cria um array de cores correspondente à quantidade de trilhas
-            const backgroundColors = trilhas_quantidade.map((_, index) => colors[index % colors.length]);
-            const borderColors = trilhas_quantidade.map((_, index) => colors[index % colors.length].replace('0.2', '1')); // Cores mais escuras para bordas
-
-            const ctx1 = document.getElementById('myChart1');
-            new Chart(ctx1, {
-                type: 'bar',
-                data: {
-                    labels: setores_nomes,
-                    datasets: [{
-                        label: 'Quantidade de Trilhas Visualizadas',
-                        data: trilhas_quantidade,
-                        backgroundColor: backgroundColors,
-                        borderColor: borderColors,
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                stepSize: 1 // Exibe apenas números inteiros
-                            }
-                        },
-                        x: {
-                            ticks: {
-                                font: {
-                                    size: 7, // Diminui o tamanho da fonte dos rótulos do eixo X
-                                    weight: 'bold' // Deixa a fonte em negrito
-                                }
-                            }
-                        }
-                    }
-                }
-            });
-        })
-        .catch(error => console.error('Error fetching data:', error));
-
-    // Configuração para o segundo gráfico
-    const ctx2 = document.getElementById('myChart2');
-    new Chart(ctx2, {
-        type: 'line',
-        data: {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-            datasets: [{
-                label: '# of Sales - Chart 2',
-                data: [30, 50, 20, 40, 60, 80],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
-            }
-        }
-    });
-</script>
+<!-- <script src="{% static 'js/graficos/graficos_adm.js' %}"></script>
+<script src="{% static 'js/graficos/graficos_lid.js' %}"></script> -->
 
 {% endblock %}

@@ -49,8 +49,6 @@ def delete_prova(request, pk):
 
     prova.delete()
 
-    messages.success(request, 'Prova excluído com sucesso.')
-
     return redirect('list-prova',pk=prova.pasta_id)
 
 def calcular_nota(prova,funcionario):

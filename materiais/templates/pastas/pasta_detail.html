@@ -83,7 +83,7 @@
                             <a href="{% url 'edit-material' material.pk pasta.pk %}" class="mb-3 btn btn-light" style="width: 100px;">Editar</a>
                             {% endif %}
                         </div>
-                        {% if request.user.type != 'ADM' or request.user.id == pasta.created_by.id %}
+                        {% if request.user.type != 'ADM' or request.user.id != pasta.created_by.id %}
                         <div class="d-flex justify-content-between mb-2"  style="width: 300px; background-color: #f3f3f3;padding: 10px;border-radius: 10px;font-weight: 600; border: 2px solid rgb(229 229 229);">
                             Marcar como visualizado<input
                             style="width: 30px;"

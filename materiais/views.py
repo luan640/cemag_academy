@@ -161,7 +161,7 @@ def pasta_edit(request, pk):
             pasta.save()
             form.save_m2m()  # Salva os campos ManyToMany após salvar o objeto principal
             messages.success(request, 'Pasta editada com sucesso.')
-            return redirect('list-pasta')
+            return redirect('detail-pasta',pk=pk)
     else:
         form = AddPasta(instance=pasta)
     return render(request, 'pastas/pasta_edit.html', {'form': form})
@@ -311,7 +311,7 @@ def avaliacao(request, pk):
                         <h1>Trilha Avaliada!</h1>
                     </div>
                     <div style="padding: 20px;">
-                        <p style="font-size: 16px;">Olá, <strong>{lid.first_name}</strong>,</p>
+                        <p style="font-size: 16px;">Olá</p>
                         <p style="font-size: 16px;">A trilha <strong>'{trilha_nome}'</strong> foi avaliada com sucesso pelo colaborador <strong>{user.first_name} {user.last_name}</strong>.</p>
                         
                         <table style="width: 100%; margin-top: 20px; border-collapse: collapse;">

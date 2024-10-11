@@ -51,7 +51,10 @@ class AddMaterial(forms.ModelForm):
         fields = ('nome', 'descricao', 'pasta', 'video', 'arquivo', 'fotos', 'video_youtube')
         widgets = {
             'pasta': forms.HiddenInput(),  # Esconda o campo 'pasta'
-            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 6, 'cols': 50})
+            'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 6, 'cols': 50}),
+            'fotos': forms.FileInput(attrs={'class': 'form-control', 'type': 'file', 'accept': 'image/png, image/gif, image/jpeg'}),
+            'video': forms.FileInput(attrs={'class': 'form-control', 'type': 'file', 'accept': 'video/mp4'}),
+            'arquivo': forms.FileInput(attrs={'class': 'form-control', 'type': 'file', 'accept': '.pdf,.doc,.docx,.txt'})  # Exemplo para arquivos
         }
 
     def __init__(self, *args, **kwargs):

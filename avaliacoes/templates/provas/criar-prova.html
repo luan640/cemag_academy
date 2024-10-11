@@ -13,7 +13,7 @@
     <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
         <div class="card">
             <div class="card-header fw-bold"><h4 class="m-2">{{ pasta.nome }}</h4></div>
-            <div class="card-body">
+            <div class="card-body" style="height: 48vh; overflow-y: auto;">
                 <div class="row">
                     <div class="col-sm-6 mb-4">
                         <label for="titulo">Título da Prova:</label>
@@ -24,12 +24,42 @@
                         <textarea class="form-control" id="descricao" name="descricao" required></textarea>
                     </div>
                 
-                    <div id="questoes-container"></div>
+                    <div id="questoes-container">
+                        <div class="questao">
+                            <div class="row">
+                                <h5>Questão</h5>
+                                <div class="col-sm-6 mb-4">
+                                    <label for="questao-0-enunciado">Enunciado da Questão:</label>
+                                    <textarea class="form-control" id="questao-0-enunciado" name="questoes[0][enunciado]" required></textarea>
+                                </div>
+                                <div class="col-sm-5 mb-4">
+                                    <label for="questao-0-tipo">Tipo:</label>
+                                    <select class="form-control" id="questao-0-tipo" name="questoes[0][tipo]" onchange="selecionarTipoQuestao(this, 0)" required>
+                                        <option value="dissertativa">Dissertativa</option>
+                                        <option value="objetiva">Objetiva</option>
+                                    </select>
+                                </div>
+                            </div>
+                    
+                            <div id="alternativas-container-0" style="display: none;">
+                                <h5>Alternativas</h5>
+                                <button class="btn btn-primary" type="button" onclick="adicionarAlternativa(0)">Adicionar Alternativa</button>
+                                <button class="btn btn-danger" type="button" onclick="excluirUltimaAlternativa(0)">Excluir Última Alternativa</button>
+                                <div class="alternativas"></div>
+                            </div>
+                            <hr>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="card-footer d-flex justify-content-between">
-                <button class="btn btn-primary" type="button" onclick="adicionarQuestao()">Adicionar Questão</button>
-                <button class="btn btn-success" type="submit">Salvar Prova</button>
+            <div class="card-footer d-flex justify-content-between align-items-center" style="height: 65px;">
+                <div class="d-flex" style="gap: 30px;">
+                    <button class="btn btn-primary" style="font-size: 13px;" type="button" onclick="adicionarQuestao()" title="Adicionar Questão"><i class="fa-solid fa-plus"></i></button>
+                    <button class="btn btn-danger" style="font-size: 13px;" type="button" onclick="excluirUltimaQuestao()" title="Excluir Questão"><i class="fa-solid fa-trash"></i></button>
+                </div>
+                <div>
+                    <button class="btn btn-success" style="font-size: 13px;" type="submit" title="Salvar Prova"><i class="fa-solid fa-check"></i></button>
+                </div>
             </div>
         </div>
     </div>
@@ -41,5 +71,24 @@
 
 <script src="{% static 'js/criar-prova.js' %}"></script>
 
+<script>
+    document.getElementById('prova-form').addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Desabilita o botão de envio para evitar cliques múltiplos
+        const submitButton = document.querySelector('button[type="submit"]');
+        submitButton.disabled = true;
+
+        salvarProva().then(() => {
+            // Reativa o botão de envio após concluir o processamento
+            submitButton.disabled = false;
+            alert('Prova salva com sucesso');
+        }).catch(() => {
+            // Reativa o botão de envio em caso de erro
+            submitButton.disabled = false;
+            alert('Prova não foi salva, verifique todos os campos e tente novamente');
+        });
+    });
+</script>
 
 {% endblock %}

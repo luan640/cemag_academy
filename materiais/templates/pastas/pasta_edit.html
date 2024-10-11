@@ -6,7 +6,7 @@
 
 <div>
     <h1>Editar Trilha</h1>
-    <form method="post">
+    <form id="editar-trilha" method="post">
         {% csrf_token %}
         <div class="col-lg-8 mx-auto mb-4" style="margin-top: 50px;">
             <div class="card">
@@ -33,7 +33,7 @@
                                     <input class="form-check-input" type="checkbox" id="toggle-select-all-switch">
                                     <label class="form-check-label" style="font-size: 14px;" for="toggle-select-all-switch">Selecionar Todos</label>
                                 </div>
-                                <input id="filtrar_setor" class="form-control form-control-sm w-50" type="text" placeholder="Filtrar setores...">
+                                <input id="filtrar_setor_editar_trilha" class="form-control form-control-sm w-50" type="text" placeholder="Filtrar setores...">
                             </div>
                             {{ form.setores.label_tag }}
                             <div style="overflow-y: scroll; height: 190px;">
@@ -46,7 +46,7 @@
                                     <input class="form-check-input" type="checkbox" id="toggle-show-selected" checked>
                                     <label class="form-check-label" style="font-size: 14px;" for="toggle-show-selected">Mostrar Selecionados</label>
                                 </div>
-                                <input id="filtrar_funcionarios" class="form-control form-control-sm w-50" type="text" placeholder="Filtrar funcionários...">
+                                <input id="filtrar_funcionarios_editar_trilha" class="form-control form-control-sm w-50" type="text" placeholder="Filtrar funcionários...">
                             </div>
                             {{ form.funcionarios.label_tag }}
                             <div style="overflow-y: scroll; height: 190px;">
@@ -55,7 +55,12 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-end">
-                        <button class="btn btn-primary mt-4" type="submit">Salvar</button>
+                        <div class="d-flex justify-content-end">
+                            <button id="submit-edit" class="btn btn-primary mt-4" type="submit">
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                <span id="button-text">Salvar</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -69,5 +74,14 @@
 
 <script src="/static/js/adicionar_trilha/checkbox/toggle.js"></script>
 <script src="/static/js/editar_trilha/filtro.js"></script>
+
+<script>
+    document.getElementById('editar-trilha').addEventListener('submit', function() {
+        var submitButton = document.getElementById('submit-edit');
+        submitButton.disabled = true; // Desabilita o botão
+        submitButton.querySelector('.spinner-border').classList.remove('d-none'); // Exibe o spinner
+        document.getElementById('button-text').textContent = 'Salvando...'; // Altera o texto
+    });
+</script>
 
 {% endblock %}

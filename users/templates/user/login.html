@@ -45,6 +45,21 @@
                         <div>
                             <h2 class="fw-bold mb-4">Login</h2>
                         </div>
+
+                        <!-- Exibir mensagens de erro -->
+                        {% if messages %}
+                            <ul class="messages">
+                                {% for message in messages %}
+                                    {% if 'login' in message.tags %}
+                                        <li class="login-message">{{ message }}</li>
+                                    {% else %}
+                                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                                    {% endif %}
+                                {% endfor %}
+                            </ul>
+                        {% endif %}
+
+
                         <!-- Form -->
                         <form method="post">
                             {% csrf_token %}

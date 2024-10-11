@@ -26,9 +26,8 @@ class ProgressoTrilha:
         return progresso
 
     def calcular_progresso_trilhas(self):
-        progresso_pasta = {}
-        for pasta in self.pastas:
-            progresso_pasta[pasta.nome] = self.calcular_progresso_pasta(pasta)
+    # Otimizar utilizando agregações e cálculos no banco de dados, se possível
+        progresso_pasta = {pasta.nome: self.calcular_progresso_pasta(pasta) for pasta in self.pastas}
         return progresso_pasta
 
     def calcular_media_progresso_area_trilha(self, progresso_pasta, pastas):

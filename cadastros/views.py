@@ -19,16 +19,19 @@ def funcionario_cadastro(request):
                 funcionario = form.save(commit=False)
                 funcionario.created_by = request.user
                 funcionario.save()
-                messages.success(request, 'Funcionario adicionado com sucesso.')
+                messages.success(request, 'Funcionário adicionado com sucesso.')
+                # Redireciona após o POST bem-sucedido
                 return redirect('funcionarios')
-        else:
-            form = AddFuncionario()
-            funcionarios = Funcionario.objects.all()
-
-        return render(request,
-                    'funcionario/funcionarios.html', {
-                    'form': form,
-                    'funcionarios':funcionarios})
+            else:
+                messages.error(request, 'Erro ao adicionar o funcionário. Verifique os dados e tente novamente.')
+        
+        # Se não for um POST ou o formulário não for válido, exibe o formulário
+        form = AddFuncionario()
+        funcionarios = Funcionario.objects.all()
+        return render(request, 'funcionario/funcionarios.html', {
+            'form': form,
+            'funcionarios': funcionarios
+        })
     else:
         return redirect('home')
 
@@ -118,9 +121,10 @@ def area_cadastro(request):
                 area.save()
                 messages.success(request, 'Area adicionada com sucesso.')
                 return redirect('areas')
-        else:
-            form = AddArea()
-            areas=Area.objects.all()
+            else:
+                messages.error(request, "Essa área já existe", extra_tags='area')
+        form = AddArea()
+        areas=Area.objects.all()
         return render(request, 'area/areas.html', {'form': form,'areas':areas})
     else:
         return redirect('home')

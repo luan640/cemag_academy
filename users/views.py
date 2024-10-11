@@ -1,8 +1,10 @@
 from django.http.response import HttpResponse as HttpResponse
 from django.shortcuts import render,redirect
 from .forms import CustomUserCreationForm
+from .models import CustomUser
 from django.urls import reverse_lazy
 from django.contrib.auth import logout,views as auth_views
+from django.contrib import messages
 from django.contrib.auth.views import LoginView
 from django.contrib.auth.decorators import login_required
 
@@ -17,10 +19,12 @@ def add_user(request):
                 user.save()
                 # Se o formulário for válido e o usuário for adicionado com sucesso, você pode redirecionar para a mesma página ou atualizar a página atual
                 return render(request, 'user/create_user.html', {'form': CustomUserCreationForm(), 'success_message': 'User added successfully.'})
-        else:
-            form = CustomUserCreationForm()
+            else:
+                messages.error(request,"Usuário com essa matrícula já existe", extra_tags="matricula")
+        form = CustomUserCreationForm()
+        users = CustomUser.objects.all()
         
-        return render(request, 'user/create_user.html', {'form': form})
+        return render(request, 'user/create_user.html', {'form': form,'users':users})
     else:
         return redirect('home')
 
