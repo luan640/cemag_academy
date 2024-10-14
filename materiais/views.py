@@ -15,9 +15,11 @@ from cadastros.models import Funcionario,Setor
 from biblioteca.models import VisualizacaoLivro, Rating
 from avaliacoes.models import ProvaRealizada, Prova
 from users.models import CustomUser
+from cemag_academy.settings.base import *
 
 from reportlab.pdfgen import canvas
 import re
+import environ
 from io import BytesIO
 from xhtml2pdf import pisa  # Importa o conversor de HTML para PDF
 from reportlab.lib.pagesizes import A4
@@ -346,7 +348,7 @@ def avaliacao(request, pk):
                 email_lid = EmailMultiAlternatives(
                     subject,
                     "Este é um email em texto simples.",
-                    settings.DEFAULT_FROM_EMAIL,
+                    env('EMAIL_HOST'),
                     [lid.email],
                 )
                 email_lid.attach_alternative(html_content, "text/html")  # Adiciona o conteúdo HTML
@@ -364,7 +366,7 @@ def avaliacao(request, pk):
                 email_adm = EmailMultiAlternatives(
                     subject,
                     "Este é um email em texto simples.",
-                    settings.DEFAULT_FROM_EMAIL,
+                    env('EMAIL_HOST'),
                     [adm.email],
                 )
                 email_adm.attach_alternative(html_content, "text/html")  # Adiciona o conteúdo HTML
