@@ -4,7 +4,7 @@ import os
 
 # Configurações específicas de produção
 DEBUG = False
-ALLOWED_HOSTS = ['apontamentousinagem.onrender.com']
+ALLOWED_HOSTS = ['cemag-academy.onrender.com']
 
 # Banco de dados para produção
 DATABASES = {
