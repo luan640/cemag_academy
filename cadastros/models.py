@@ -37,6 +37,14 @@ class Funcionario(models.Model):
             return user.type == "LID"
         except CustomUser.DoesNotExist:
             return False  # Se não existir, retorna False
+    
+    def is_adm(self):
+        try:
+            user = CustomUser.objects.get(matricula=self.matricula)
+            return user.type == "ADM"
+        except CustomUser.DoesNotExist:
+            return False  # Se não existir, retorna False
+
 
 class AreaTrilha(models.Model):
 

@@ -3,7 +3,7 @@ from django.core.management.base import BaseCommand
 from cadastros.models import CustomUser  # Importe o CustomUser do seu projeto
 
 class Command(BaseCommand):
-    help = 'Importa usuários a partir de um arquivo CSV para o banco de dados, verificando matrículas duplicadas'
+    help = 'Importa usuários a partir de um arquivo CSV para o banco de dados, verificando matrículas duplicadas e atualizando a senha com a matrícula'
 
     def handle(self, *args, **kwargs):
         # Carrega o arquivo CSV
@@ -22,21 +22,27 @@ class Command(BaseCommand):
                     first_name = nome_partes[0]  # Primeiro nome
                     last_name = ' '.join(nome_partes[1:])  # Restante do nome
 
-                    # Verifica se a matrícula já existe no banco de dados
-                    if CustomUser.objects.filter(matricula=int(matricula)).exists():
-                        print(f"Usuário com matrícula {matricula} já existe. Pulando inserção.")
+                    # Tenta buscar o usuário pela matrícula
+                    user, created = CustomUser.objects.get_or_create(
+                        matricula=int(matricula),
+                        defaults={
+                            'first_name': first_name,
+                            'last_name': last_name,
+                            'email': '',  # Deixe o email em branco
+                            'type': 'LEI',
+                            'is_active': True
+                        }
+                    )
+
+                    # Atualiza a senha com a matrícula
+                    user.set_password(str(matricula))
+                    user.save()
+
+                    if created:
+                        print(f"Usuário {first_name} {last_name} inserido e senha configurada com sucesso.")
                     else:
-                        # Cria o usuário com o `type` como "LEI" e `is_active` como True
-                        CustomUser.objects.create(
-                            matricula=int(matricula),
-                            first_name=first_name,
-                            last_name=last_name,
-                            email='',  # Deixe o email em branco
-                            type='LEI',
-                            is_active=True
-                        )
-                        print(f"Usuário {first_name} {last_name} inserido com sucesso.")
+                        print(f"Usuário {first_name} {last_name} já existia, senha atualizada para a matrícula.")
                 else:
                     print(f"Dados insuficientes para criar usuário: {row}")
             except Exception as e:
-                print(f"Erro ao inserir {nome_completo}: {e}")
+                print(f"Erro ao processar usuário com matrícula {matricula}: {e}")

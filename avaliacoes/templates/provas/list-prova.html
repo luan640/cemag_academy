@@ -61,7 +61,15 @@
                 </div> 
                 
                 {% empty %}
-                <p>Não há provas disponíveis para esta trilha.</p>
+                <a class="list-group-item list-group-item-action flex-column align-items-start" style="cursor: pointer;">
+                    <div class="d-flex w-100 justify-content-between">
+                        <div class="d-flex align-items-center" style="gap: 20px;">
+                            <i class="fa-regular fa-face-sad-cry"  style="color: #000000; width: 50px; height: auto;"></i>
+                            <h5 class="mb-1">Nenhuma prova disponível</h5>
+                        </div>
+                    </div>
+                    <p class="mb-1 mt-4">Não há provas para exibir no momento.</p>
+                </a>
                 {% endfor %}
             </div>
         </div>
@@ -95,7 +103,7 @@
             {% elif request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
             <h5>Campo que os colaboradores vão gerar o certificado</h5>
             {% else %}
-            <h5>Você ainda não completou todas as provas ou não atingiu o resultado esperado para baixar o certificado.</h5>
+            <h5>Você ainda não completou todas as provas ou não atingiu o resultado esperado para gerar o certificado.</h5>
             {% endif %}                        
             </div>
         </div>

@@ -232,6 +232,7 @@
                                 <div class="authors" style="font-style: italic;">
                                     {{ livro.autor }}
                                 </div>
+                                {% if request.user.type != 'ADM' %}
                                 <div class="d-flex justify-content-between mt-4 responsive-div" style="font-size: 12px;">
                                     Marcar como visualizado<input
                                     style="width: 30px;"
@@ -241,6 +242,7 @@
                                     data-url="{% url 'registrar_visualizacao_livro' %}"
                                     {% if livro.id in visualizacoes %}checked{% endif %}>
                                 </div>
+                                {% endif %}
                             </div>
                         </div>
                         <div class="details">
@@ -255,11 +257,22 @@
                                 </div>
                                 <div class="bookProperty property_rating">
                                     <div class="book-rating" title="Avaliação">
-                                        <span id="rating-{{ livro.pk }}" class="book-rating-interest-score">{{ livro.user_rating|floatformat:1 }}</span> /
+                                        <span id="rating-{{ livro.pk }}" class="book-rating-interest-score">
+                                            {% if request.user.type == 'ADM' %}
+                                                {{ livro.media_ratings|floatformat:1 }}
+                                            {% else %}
+                                                {{ livro.user_rating|floatformat:1 }}
+                                            {% endif %}
+                                        </span> /
                                         <span class="book-rating-quality-score">5,0</span>
                                         <div class="star-rating" data-livro-id="{{ livro.pk }}">
+                                            
                                             {% for i in 5|range_custom %}
-                                                <input type="radio" name="rating-{{ livro.pk }}" id="rating-{{ livro.pk }}-{{ i }}" value="{{ i }}" {% if i <= livro.user_rating %}checked{% endif %}><i>&#9733;</i>
+                                                {% if request.user.type == 'ADM' %}
+                                                    <input type="radio" value="{{ i }}" {% if i <= livro.media_ratings %}checked{% endif %} disabled><i>&#9733;</i>
+                                                {% else %}
+                                                    <input type="radio"  name="rating-{{ livro.pk }}" id="rating-{{ livro.pk }}-{{ i }}" value="{{ i }}" {% if i <= livro.user_rating %}checked{% endif %}><i>&#9733;</i>
+                                                {% endif %}
                                             {% endfor %}
                                         </div>
                                     </div>

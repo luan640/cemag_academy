@@ -299,49 +299,48 @@ def avaliacao(request, pk):
 
         trilha_nome = pasta.nome  # Nome da trilha
 
-        if lid and user.type != 'LID':
-            
-            # Enviar email ao LID informando sobre a trilha
-            subject = f"Cemag Academy - Trilha {trilha_nome} foi finalizada e avaliada pelo {user.first_name} {user.last_name}"
-            html_content = f"""
-            <html>
-            <body style="font-family: Arial, sans-serif; line-height: 1.6;">
-                <div style="max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
-                    <div style="background-color: #ff7f27; padding: 20px; text-align: center; color: white;">
-                        <h1>Trilha Avaliada!</h1>
-                    </div>
-                    <div style="padding: 20px;">
-                        <p style="font-size: 16px;">Olá</p>
-                        <p style="font-size: 16px;">A trilha <strong>'{trilha_nome}'</strong> foi avaliada com sucesso pelo colaborador <strong>{user.first_name} {user.last_name}</strong>.</p>
-                        
-                        <table style="width: 100%; margin-top: 20px; border-collapse: collapse;">
-                            <tr>
-                                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9; font-weight: bold;">A qualificação agregará valor para o seu trabalho:</td>
-                                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9; color: {'green' if eficacia_qualificacao else 'red'};">
-                                    {'Sim' if eficacia_qualificacao else 'Não'}
-                                </td>
-                            </tr>
-                            <tr>
-                                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9; font-weight: bold;">Justificativa:</td>
-                                <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9;">{justificativa}</td>
-                            </tr>
-                        </table>
-                        
-                        <p style="font-size: 16px; margin-top: 20px;">Agora você poderá avaliar o colaborador na aba de Trilhas.</p>
-                        <p style="font-size: 16px; margin-top: 20px;">Se precisar de mais informações, não hesite em entrar em contato.</p>
-                        <p style="font-size: 16px;">Atenciosamente,<br>Equipe de Treinamento</p>
-                        
-                        <div style="text-align: center; margin-top: 30px;">
-                            <a href="http://127.0.0.1:8000/materiais/pasta/" style="padding: 10px 20px; background-color: #ff7f27; color: white; text-decoration: none; border-radius: 5px;">Acesse nosso site para avaliar o colaborador</a>
-                        </div>
-                    </div>
-                    <div style="background-color: #f1f1f1; padding: 10px; text-align: center; color: #555;">
-                        <p>Este é um e-mail automático. Por favor, não responda.</p>
+        # Enviar email ao LID informando sobre a trilha
+        subject = f"Cemag Academy - Trilha {trilha_nome} foi finalizada e avaliada pelo {user.first_name} {user.last_name}"
+        html_content = f"""
+        <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6;">
+            <div style="max-width: 600px; margin: auto; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+                <div style="background-color: #ff7f27; padding: 20px; text-align: center; color: white;">
+                    <h1>Trilha Avaliada!</h1>
+                </div>
+                <div style="padding: 20px;">
+                    <p style="font-size: 16px;">Olá,</p>
+                    <p style="font-size: 16px;">A trilha <strong>'{trilha_nome}'</strong> foi avaliada com sucesso pelo colaborador <strong>{user.first_name} {user.last_name}</strong>.</p>
+                    
+                    <table style="width: 100%; margin-top: 20px; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9; font-weight: bold;">A qualificação agregará valor para o seu trabalho:</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9; color: {'green' if eficacia_qualificacao else 'red'};">
+                                {'Sim' if eficacia_qualificacao else 'Não'}
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9; font-weight: bold;">Justificativa:</td>
+                            <td style="padding: 10px; border: 1px solid #ddd; background-color: #f9f9f9;">{justificativa}</td>
+                        </tr>
+                    </table>
+                    
+                    <p style="font-size: 16px; margin-top: 20px;">Agora você poderá avaliar o colaborador na aba de Trilhas.</p>
+                    <p style="font-size: 16px; margin-top: 20px;">Se precisar de mais informações, não hesite em entrar em contato.</p>
+                    <p style="font-size: 16px;">Atenciosamente,<br>Equipe de Treinamento</p>
+                    
+                    <div style="text-align: center; margin-top: 30px;">
+                        <a href="http://127.0.0.1:8000/materiais/pasta/" style="padding: 10px 20px; background-color: #ff7f27; color: white; text-decoration: none; border-radius: 5px;">Acesse nosso site para avaliar o colaborador</a>
                     </div>
                 </div>
-            </body>
-            </html>
-            """
+                <div style="background-color: #f1f1f1; padding: 10px; text-align: center; color: #555;">
+                    <p>Este é um e-mail automático. Por favor, não responda.</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+        if lid and user.type != 'LID':
             if lid.email:
                 # Cria um objeto EmailMultiAlternatives para o LID
                 email_lid = EmailMultiAlternatives(
@@ -675,13 +674,10 @@ def list_participantes(request, pk):
     funcionarios = pasta.funcionarios.all()
     
     # Listar participantes usando o setor
-    setor_participantes = Funcionario.objects.filter(setor__in=setores)
+    # participantes_setor = Funcionario.objects.filter(setor__in=setores)
 
     # Combinar os participantes e remover duplicados
     list_participantes = set()
-    
-    for participante in setor_participantes:
-        list_participantes.add(participante)
     
     for participante in funcionarios:
         list_participantes.add(participante)

@@ -33,6 +33,14 @@ def list_livro(request):
     
     for livro in livros:
         user_rating = livro.ratings.filter(user=request.user).first()
+        ratings = livro.ratings.all()
+
+        if ratings:
+            media_ratings = sum(r.score for r in ratings) / len(ratings)
+        else:
+            media_ratings = 0 
+
+        livro.media_ratings = media_ratings
 
         if user_rating:
             livro.user_rating = user_rating.score  # Score unitário do usuário
@@ -116,7 +124,7 @@ def add_rating(request):
             rating.score = score
             rating.save()
         
-        # rating = calculate_media_rating_livro(livro_id)
+        # media = calculate_media_rating_livro(livro_id)
         
         return JsonResponse({'success': True,'rating': rating.score})
 

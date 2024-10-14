@@ -12,6 +12,7 @@
         <div class="card-body" style="height: 100%;">                     
             <div class="list-group">
                 {% for participante in lista_participantes %}
+                    {% if prova.pasta.created_by.matricula != participante.matricula %}
                     <div class="list-group-item flex-column align-items-start" style="gap: 15px;">
                         <p>
                             <strong>Matrícula:</strong> {{ participante.matricula }} 
@@ -49,6 +50,7 @@
                             {% endif %}
                         {% endif %}
                     </div> 
+                    {% endif %}
                 {% endfor %}
             </div>
         </div>

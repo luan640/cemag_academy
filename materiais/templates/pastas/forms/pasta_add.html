@@ -1,4 +1,4 @@
-<form method="post" action="{% url 'add-pasta' %}">
+<form id="add-trilha" method="post" action="{% url 'add-pasta' %}">
     {% csrf_token %}
 
     <!-- Campo 'nome' -->
@@ -49,7 +49,14 @@
     </div>
 
     <!-- Botão de envio -->
-    <button type="submit" class="btn btn-primary">Salvar</button>
+    <div class="d-flex justify-content-start">
+        <div class="d-flex justify-content-end">
+            <button id="submit-edit" class="btn btn-primary mt-4" type="submit">
+                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                <span id="button-text">Salvar</span>
+            </button>
+        </div>
+    </div>
 </form>
 
 {% block scripts %}
@@ -57,5 +64,14 @@
 <script src="/static/js/adicionar_trilha/filtrar_setor_funcionario.js"></script>
 <script src="/static/js/adicionar_trilha/checkbox/setores.js"></script>
 <script src="/static/js/adicionar_trilha/checkbox/toggle.js"></script>
+
+<script>
+    document.getElementById('add-trilha').addEventListener('submit', function() {
+        var submitButton = document.getElementById('submit-edit');
+        submitButton.disabled = true; // Desabilita o botão
+        submitButton.querySelector('.spinner-border').classList.remove('d-none'); // Exibe o spinner
+        document.getElementById('button-text').textContent = 'Salvando...'; // Altera o texto
+    });
+</script>
 
 {% endblock %}

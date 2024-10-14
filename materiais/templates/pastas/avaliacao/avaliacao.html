@@ -42,7 +42,7 @@
         {% endif %}
 
         {% if avaliacao_eficacia.usuario != request.user %}
-        <form action="{% url 'avaliacao_chefia' avaliacao_eficacia.pasta.pk %}" method="POST">
+        <form id="avaliacao_eficacia" action="{% url 'avaliacao_chefia' avaliacao_eficacia.pasta.pk %}" method="POST">
             {% csrf_token %}
             <div class="mb-4">
                 <h5>Parecer do Recursos Humanos </h5>
@@ -60,11 +60,29 @@
                     <input class="form-control" type="text" style="color: gray;" name="justificativa_qualificacao" id="justificativa_qualificacao" value="{% if resposta_adm %}{{ resposta_adm.justificativa_qualificacao }}{% endif %}"{% if resposta_adm %}disabled{% endif %} required>
                 </div>
                 {% if not resposta_adm %}
-                <button type="submit" class="btn btn-primary mt-4">Enviar parecer</button>
+                <div class="d-flex justify-content-start">
+                    <div class="d-flex justify-content-end">
+                        <button id="submit-avaliacao-eficacia" class="btn btn-primary mt-4" type="submit">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            <span id="button-text">Enviar parecer</span>
+                        </button>
+                    </div>
+                </div>
                 {% endif %}
             </div>
         </form>
         {% endif %}
     </div>
 </div>
+{% endblock %}
+
+{% block script %}
+<script>
+    document.getElementById('avaliacao_eficacia').addEventListener('submit', function() {
+        var submitButton = document.getElementById('submit-avaliacao-eficacia');
+        submitButton.disabled = true; // Desabilita o botão
+        submitButton.querySelector('.spinner-border').classList.remove('d-none'); // Exibe o spinner
+        document.getElementById('button-text').textContent = 'Salvando...'; // Altera o texto
+    });
+</script>
 {% endblock %}

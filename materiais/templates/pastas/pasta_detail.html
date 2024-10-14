@@ -83,7 +83,8 @@
                             <a href="{% url 'edit-material' material.pk pasta.pk %}" class="mb-3 btn btn-light" style="width: 100px;">Editar</a>
                             {% endif %}
                         </div>
-                        {% if request.user.type != 'ADM' or request.user.id != pasta.created_by.id %}
+                        {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
+                        {% else %}
                         <div class="d-flex justify-content-between mb-2"  style="width: 300px; background-color: #f3f3f3;padding: 10px;border-radius: 10px;font-weight: 600; border: 2px solid rgb(229 229 229);">
                             Marcar como visualizado<input
                             style="width: 30px;"
@@ -168,7 +169,8 @@
         <div class="card">
             <div class="card-body" style="height: 100%;">
                 <p class="d-none" id="andamentoVisualizacoes"></p>
-                {% if request.user.type != "ADM" or request.user.id == pasta.created_by.id %}
+                {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
+                {% else %}
                 <div class="d-flex align-items-baseline" style="gap: 15px;">
                     <p>Progresso: </p>
                     <div class="progress w-100" style="height: 2rem;font-size: 17px;font-weight: 700;">
@@ -222,7 +224,8 @@
                 {% endif %}
             </div>
         </div>
-        {% if request.user.type != "ADM" or request.user.id == pasta.created_by.id %}
+        {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
+        {% else %}
         <div class="flex-column flex-sm-row justify-content-between col-lg-8 mt-4" id="avaliacao_eficacia" style="display: flex;">
             <div class="d-flex mb-4">
                 <button 
@@ -255,9 +258,9 @@
                     <div class="border p-3">
                         <p>Você considera que a qualificação agregará valor para o seu trabalho?</p>
                         <label for="sim_colaborador">Sim</label>
-                        <input type="radio" name="valor_trabalho" id="sim_colaborador" value="true">
+                        <input type="radio" name="valor_trabalho" id="sim_colaborador" value="true" required>
                         <label for="nao_colaborador">Não</label>
-                        <input type="radio" name="valor_trabalho" id="nao_colaborador" value="false">
+                        <input type="radio" name="valor_trabalho" id="nao_colaborador" value="false" required>
                     </div>
                     <div class="mt-4">
                         <label for="justificativa">Justifique</label>
@@ -275,7 +278,8 @@
 
 {% block scripts %}
 <script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
-{% if request.user.type != "ADM" or request.user.id == pasta.created_by.id %}
+{% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
+{% else %}
 <script src="{% static 'js/contador_andamento.js' %}"></script>
 {% endif %}
 <script src="{% static 'js/visualizador.js' %}"></script>
@@ -310,6 +314,25 @@ function openVideoInNewTab(url) {
 </script>
 
 <script>
+    document.getElementById('avaliacao-form').addEventListener('submit', function(event) {
+        // Obtém o botão de envio
+        const submitButton = document.getElementById('submit-button');
+
+        // Substitui o conteúdo do botão pelo spinner de carregamento
+        submitButton.innerHTML = `
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            Carregando...
+        `;
+        
+        // Desativa o botão para evitar múltiplos cliques
+        submitButton.disabled = true;
+    });
+
+</script>
+
+{% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
+{% else %}
+<script>
     document.addEventListener('DOMContentLoaded', function() {
         // Função para verificar se todos os checkboxes estão marcados
         function checkAllCheckboxes() {
@@ -333,21 +356,7 @@ function openVideoInNewTab(url) {
         // Verifica o estado dos checkboxes na carga inicial
         checkAllCheckboxes();
     });
-
-    document.getElementById('avaliacao-form').addEventListener('submit', function(event) {
-        // Obtém o botão de envio
-        const submitButton = document.getElementById('submit-button');
-
-        // Substitui o conteúdo do botão pelo spinner de carregamento
-        submitButton.innerHTML = `
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            Carregando...
-        `;
-        
-        // Desativa o botão para evitar múltiplos cliques
-        submitButton.disabled = true;
-    });
-
 </script>
+{% endif %}
 
 {% endblock %}

@@ -19,6 +19,7 @@
                     <div class="col-sm-6 mb-4">
                         <label for="{{ form.video.id_for_label }}">Vídeo</label>
                         {{ form.video }}
+                        <small>Extensões permitidas: <code>mp4</code></small>
                     </div>
                 </div>
                 <div class="row">
@@ -31,10 +32,12 @@
                     <div class="col-sm-6 mb-4">
                         <label for="{{ form.arquivo.id_for_label }}">Arquivo</label>
                         {{ form.arquivo }}
+                        <small>Extensões permitidas: <code>pdf, doc, docx, txt</code></small>
                     </div>
                     <div class="col-sm-6 mb-4">
                         <label for="{{ form.fotos.id_for_label }}">Fotos</label>
                         {{ form.fotos }}
+                        <small>Extensões permitidas: <code>png, jpeg, jpg</code></small>
                     </div>
                 </div>
                 <div class="row">
