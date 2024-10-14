@@ -332,7 +332,7 @@ def avaliacao(request, pk):
                     <p style="font-size: 16px;">Atenciosamente,<br>Equipe de Treinamento</p>
                     
                     <div style="text-align: center; margin-top: 30px;">
-                        <a href="http://127.0.0.1:8000/materiais/pasta/" style="padding: 10px 20px; background-color: #ff7f27; color: white; text-decoration: none; border-radius: 5px;">Acesse nosso site para avaliar o colaborador</a>
+                        <a href="https://cemag-academy.onrender.com/materiais/pasta/" style="padding: 10px 20px; background-color: #ff7f27; color: white; text-decoration: none; border-radius: 5px;">Acesse nosso site para avaliar o colaborador</a>
                     </div>
                 </div>
                 <div style="background-color: #f1f1f1; padding: 10px; text-align: center; color: #555;">
