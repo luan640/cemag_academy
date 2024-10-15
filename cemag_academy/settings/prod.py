@@ -3,7 +3,7 @@ from .base import *
 import os
 
 # Configurações específicas de produção
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = ['cemag-academy.onrender.com']
 CSRF_TRUSTED_ORIGINS = ['https://cemag-academy.onrender.com']
 
