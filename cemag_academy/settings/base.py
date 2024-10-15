@@ -74,6 +74,10 @@ AUTH_PASSWORD_VALIDATORS = [
     # },
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    'https://b7e0-177-19-132-134.ngrok-free.app',
+    '127.0.0.1', 
+]
 LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 USE_I18N = True
