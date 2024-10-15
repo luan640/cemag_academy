@@ -1,0 +1,6 @@
+static_publish:
+  - path: /static  # Caminho dos arquivos estáticos
+    source: staticfiles
+
+  - path: /media  # Caminho dos arquivos de mídia
+    source: media
