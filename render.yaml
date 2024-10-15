@@ -1,6 +1,6 @@
 static_publish:
   - path: /static  # Caminho dos arquivos estáticos
-    source: staticfiles
+    source: /opt/render/project/src/staticfiles
 
   - path: /media  # Caminho dos arquivos de mídia
-    source: media
+    source: /opt/render/project/src/media

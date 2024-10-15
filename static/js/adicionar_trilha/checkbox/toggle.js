@@ -32,12 +32,12 @@ document.querySelectorAll('.setor-checkbox').forEach(function(setorCheckbox) {
     setorCheckbox.addEventListener('change', function() {
         // Extrai o nome do setor que está dentro do label do checkbox
         const setorNome = this.parentElement.textContent.trim();
-
         // Seleciona ou desmarca todos os funcionários que possuem o setor associado
         document.querySelectorAll('.funcionario-checkbox').forEach(function(funcionarioCheckbox) {
             // Verifica se o funcionário pertence ao setor marcado
             const funcionarioSetor = funcionarioCheckbox.parentElement.textContent.trim();
-
+            console.log(funcionarioSetor)
+            console.log(funcionarioSetor.includes(`(${setorNome})`))
             // Se o nome do setor estiver no texto do funcionário, marca/desmarca o checkbox
             if (funcionarioSetor.includes(`(${setorNome})`)) {
                 funcionarioCheckbox.checked = setorCheckbox.checked;
