@@ -348,7 +348,7 @@ def avaliacao(request, pk):
                 email_lid = EmailMultiAlternatives(
                     subject,
                     "Este é um email em texto simples.",
-                    env('EMAIL_HOST'),
+                    env('DEFAULT_FROM_EMAIL'),
                     [lid.email],
                 )
                 email_lid.attach_alternative(html_content, "text/html")  # Adiciona o conteúdo HTML
@@ -366,7 +366,7 @@ def avaliacao(request, pk):
                 email_adm = EmailMultiAlternatives(
                     subject,
                     "Este é um email em texto simples.",
-                    env('EMAIL_HOST'),
+                    env('DEFAULT_FROM_EMAIL'),
                     [adm.email],
                 )
                 email_adm.attach_alternative(html_content, "text/html")  # Adiciona o conteúdo HTML
