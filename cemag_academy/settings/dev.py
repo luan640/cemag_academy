@@ -30,5 +30,6 @@ DATABASES = {
     }
 }
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Configurações adicionais para desenvolvimento (opcional)
 STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
