@@ -24,7 +24,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-ipvu9zm)b!zsyn^4_^bdas8s02davc2g#ys+_tl*+c0%j74jv('
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG = True
 
 # LOGGING = {
 #     'version': 1,
@@ -56,8 +56,6 @@ CSRF_COOKIE_SAMESITE = 'Lax'  # Pode ser 'Strict', 'Lax' ou 'None'
 CSRF_TRUSTED_ORIGINS = [
     'https://ef85-177-19-132-134.ngrok-free.app'
 ]
-
-ALLOWED_HOSTS = ['ef85-177-19-132-134.ngrok-free.app','127.0.0.1']
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
