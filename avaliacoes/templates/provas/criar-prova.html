@@ -81,7 +81,6 @@
 
         salvarProva().then(() => {
             // Reativa o botão de envio após concluir o processamento
-            submitButton.disabled = false;
             alert('Prova salva com sucesso');
         }).catch(() => {
             // Reativa o botão de envio em caso de erro

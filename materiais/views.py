@@ -3,10 +3,13 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Count, Q
+from django.db import connection
 from django.http import HttpResponse
 from django.template.loader import get_template
 from django.conf import settings  # Importe o módulo settings
 from django.core.mail import send_mail,EmailMultiAlternatives
+from django.core import serializers
+import json
 
 from .models import Pasta,Material,Visualizacao,AvaliacaoEficacia, RespostaAvaliacaoEficacia,Certificado
 from avaliacoes.views import calcular_nota,validacao_certificado
@@ -52,6 +55,13 @@ def get_filtered_usernames(logged_in_user):
     return nomes_usuarios
 
 @login_required
+def funcionarios_list(request):
+    # Usar select_related para evitar consultas adicionais ao acessar setor
+    funcionarios = Funcionario.objects.select_related('setor').all()
+    
+    return render(request, 'pastas/funcionario_list.html', {'funcionarios': funcionarios})
+
+@login_required
 def pastas_add(request):
     if request.method == 'POST':
         form = AddPasta(request.POST)
@@ -76,10 +86,12 @@ def pastas_list(request):
     elif request.user.type == 'LID':
         pastas = Pasta.objects.filter(
             Q(created_by=request.user) |
+            Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
         ).distinct()
     else:
         pastas = Pasta.objects.filter(
+            Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
         ).distinct()
 

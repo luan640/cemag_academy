@@ -19,14 +19,14 @@
     {% endif %}
     
     <h1>Adicionar Novo Funcionário</h1>
-    <form method="post">
+    <form id="form-funcionario" method="post">
         {% csrf_token %}
         <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
             <div class="card">
                 <div class="card-header fw-bold">Adicionar Funcionário</div>
                 <div class="card-body">
                     <div class="row justify-content-center align-items-end">
-                        <div class="col-sm-3 mt-4">
+                        <div class="col-sm-2 mt-4">
                             {{ form.matricula.label_tag }}
                             {{ form.matricula }}
                         </div>
@@ -38,8 +38,11 @@
                             {{ form.setor.label_tag }}
                             {{ form.setor }}
                         </div>
-                        <div class="col-sm-2 mt-4">
-                            <button class="btn btn-primary" type="submit">Salvar</button>
+                        <div class="col-sm-3 mt-4">
+                            <button id="submit-edit" class="btn btn-primary mt-4" type="submit">
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                <span id="button-text">Salvar</span>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -74,5 +77,6 @@
 
 <script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
 <script src="{% static 'js/filtro_cadasto/cadastrar_funcionario.js' %}"></script>
+<script src="{% static 'js/form-loading/form-loading.js' %}"></script>
 
 {% endblock %}

@@ -18,21 +18,22 @@
         {% endfor %}
     {% endif %}
 
-    <h1>Adicionar Novo Funcionário</h1>
-    <form method="post">
+    <h1>Adicionar Nova Área</h1>
+    <form id="form-area" method="post">
         {% csrf_token %}
         <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
             <div class="card">
-                <div class="card-header fw-bold">Adicionar Funcionário</div>
+                <div class="card-header fw-bold">Adicionar Área</div>
                 <div class="card-body">
-                    <div class="row justify-content-center align-items-end">
+                    <div class="d-flex justify-content-evenly align-items-end">
                         <div class="col-sm-6 mt-4">
                             {{ form.nome.label_tag }}
                             {{ form.nome }}
                         </div>
-                        <div class="col-sm-2 mt-4">
-                            <button class="btn btn-primary" type="submit">Salvar</button>
-                        </div>
+                        <button id="submit-edit" class="btn btn-primary mt-4" type="submit">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            <span id="button-text">Salvar</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -42,7 +43,7 @@
 
 <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
     <div class="card">
-        <div class="card-header fw-bold">Lista de Setores</div>
+        <div class="card-header fw-bold">Lista de Áreas</div>
         <div class="card-body">
             <ul class="list-group">
                 {% for area in areas %}
@@ -60,4 +61,6 @@
 
 {% block scripts %}
 <script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
+<script src="{% static 'js/form-loading/form-loading.js' %}"></script>
+
 {% endblock %}

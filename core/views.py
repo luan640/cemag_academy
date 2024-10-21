@@ -2,6 +2,7 @@ from django.shortcuts import render,get_object_or_404,redirect
 from django.contrib.auth.decorators import login_required,user_passes_test
 from django.db.models import Q
 from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 from cadastros.models import Funcionario
 from materiais.models import Pasta,Material,Visualizacao,Setor
@@ -120,119 +121,117 @@ def painel_home(request):
                 })
 
 def painel_home_superuser(request):
+    return render(request, 'home-superuser.html')
 
-    try:
-        funcionario = Funcionario.objects.get(matricula=request.user.matricula)
-    except Funcionario.DoesNotExist as e:
-        print('Usuário será adicionado como Funcionário')
-        setor_funcionario = Setor.objects.get(nome="GESTAO DE PESSOAS")
+def ultimas_trilhas(request):
+    ultimas_trilhas = Pasta.objects.all().order_by('-created_at')[:5]
+    html_content = render_to_string('partials/card_ultimas_trilhas.html', {
+        'ultimas_trilhas': ultimas_trilhas,
+    })
 
-        funcionario, created = Funcionario.objects.get_or_create(
-            matricula=request.user.matricula,
-            nome="ADM",
-            setor=setor_funcionario
-        )  
+    return JsonResponse({'html': html_content})
 
-        if created:
-            print(f"Funcionário de matricula {request.user.matricula} foi adicionado com sucesso")
+def ultimos_acessos(request):
 
-    # Andamento de trilhas
-    setor_do_usuario_object = Funcionario.objects.get(matricula=request.user.matricula)
-    setor_do_usuario = setor_do_usuario_object.setor
-    pastas = Pasta.objects.filter(Q(setores=setor_do_usuario) | Q(funcionarios__matricula=request.user.matricula)).distinct()
+    if request.user.type == 'ADM':
+        ultimos_acessos = CustomUser.objects.filter(last_login__isnull=False).order_by('-last_login')
+    else:
+        setor_funcionario = Funcionario.objects.get(matricula=request.user.matricula).setor
+        funcionarios = Funcionario.objects.filter(setor=setor_funcionario)
+        funcionarios_ids = [funcionario.matricula for funcionario in funcionarios]
+        
+        ultimos_acessos = CustomUser.objects.filter(
+            matricula__in=funcionarios_ids,
+            last_login__isnull=False
+        ).values('matricula', 'first_name', 'last_login').order_by('-last_login')[:5]
+    
+    html_content = render_to_string('partials/card_ultimos_acessos.html', {
+        'ultimos_acessos': ultimos_acessos,
+    })
+    return JsonResponse({'html': html_content})
+    
+def loading_painel(request):
+    setor_do_usuario = get_setor_do_usuario(request.user)
+    pastas = get_pastas(setor_do_usuario, request.user.matricula)
 
-    progresso_trilha_individual_func = ProgressoTrilha(funcionario, pastas)
-    progresso_pasta = progresso_trilha_individual_func.calcular_progresso_trilhas()
+    progresso_trilha_individual = calcular_progresso_trilha_individual(request.user, pastas)
+    trilhas_finalizadas = calcular_trilhas_finalizadas(pastas, progresso_trilha_individual['progresso_pasta'])
 
-    progresso_trilha_individual_var = {
+    if request.user.type == 'ADM':
+        progresso_funcionarios = get_adm_data()        
+    else:
+        progresso_funcionarios = get_leader_data(request.user)
+
+    # Renderiza o conteúdo dinâmico como uma string HTML
+    html_content = render_to_string('partials/dynamic_content.html', {
+        'progresso_funcionarios': progresso_funcionarios,
+        'trilhas_finalizadas': trilhas_finalizadas,
+        'progresso_geral_individual': progresso_trilha_individual['progresso_geral_individual'],
+    })
+
+    return JsonResponse({'html': html_content})
+
+def get_setor_do_usuario(user):
+    funcionario = Funcionario.objects.get(matricula=user.matricula)
+    return funcionario.setor
+
+def get_pastas(setor_do_usuario, matricula):
+    return Pasta.objects.filter(Q(setores=setor_do_usuario) | Q(funcionarios__matricula=matricula)).distinct()
+
+def calcular_progresso_trilha_individual(user, pastas):
+    progresso_trilha = ProgressoTrilha(Funcionario.objects.get(matricula=user.matricula), pastas)
+    progresso_pasta = progresso_trilha.calcular_progresso_trilhas()
+
+    progresso_valores = list(progresso_pasta.values())
+    progresso_geral_individual = np.mean(progresso_valores) if progresso_valores else 0
+
+    return {
         'pastas': pastas,
         'progresso_pasta': progresso_pasta,
+        'progresso_geral_individual': progresso_geral_individual,
     }
 
-    # Progresso geral individual
-    progresso_valores = list(progresso_pasta.values())
-    progresso_geral_individual = np.mean(progresso_valores) if progresso_valores else 0  # Evita média de lista vazia
+def calcular_trilhas_finalizadas(pastas, progresso_pasta):
+    trilhas_finalizadas = [pasta.nome for pasta in pastas if progresso_pasta.get(pasta.nome) == 100]
+    return f"{len(trilhas_finalizadas)}/{len(pastas)}"
 
-    # Trilhas finalizadas
-    trilhas_finalizadas = []
-    for pasta in pastas:
-        if progresso_pasta.get(pasta.nome) == 100:
-            trilhas_finalizadas.append(pasta.nome)
+def calcular_media_progresso_area_trilha(user, pastas, progresso_pasta):
+    progresso_trilha_individual_func = ProgressoTrilha(Funcionario.objects.get(matricula=user.matricula), pastas)
+    return progresso_trilha_individual_func.calcular_media_progresso_area_trilha(progresso_pasta, pastas)
 
-    trilhas_finalizadas = str(len(trilhas_finalizadas)) + "/" + str(len(pastas))
+def get_adm_data():
+    funcionarios = Funcionario.objects.all().order_by('nome')[:10]
+    progresso_funcionarios = {}
+    
+    for funcionario in funcionarios:
+        pastas = get_pastas(funcionario.setor, funcionario.matricula)
+        progresso_trilha = ProgressoTrilha(funcionario, pastas)
+        progresso_pasta = progresso_trilha.calcular_progresso_trilhas()
+        progresso_valores = list(progresso_pasta.values())
+        progresso_geral = np.mean(progresso_valores) if progresso_valores else 0
 
-    # Andamento por área
-    media_progresso_area_trilha_individual = progresso_trilha_individual_func.calcular_media_progresso_area_trilha(progresso_pasta, pastas)
-    if request.user.type == 'ADM':
-        # Usuário é um administrador
-        funcionario_logado = Funcionario.objects.filter(matricula=request.user.matricula)
+        progresso_funcionarios[funcionario] = {
+            'progresso': progresso_geral,
+            'matricula': funcionario.matricula
+        }
 
-        # Engajamento por funcionário
-        funcionarios = Funcionario.objects.all()
-        progresso_funcionarios = {}
+    return progresso_funcionarios
 
-        for funcionario in funcionarios:
-            pastas = Pasta.objects.filter(Q(setores=funcionario.setor) | Q(funcionarios__matricula=funcionario.matricula))
-            progresso_trilha = ProgressoTrilha(funcionario, pastas)
-            progresso_pasta = progresso_trilha.calcular_progresso_trilhas()
+def get_leader_data(user):
+    setor_funcionario = Funcionario.objects.get(matricula=user.matricula).setor
+    funcionarios = Funcionario.objects.filter(setor=setor_funcionario)[:10]
+    progresso_funcionarios = {}
 
-            progresso_valores = list(progresso_pasta.values())
-            progresso_geral = np.mean(progresso_valores) if progresso_valores else 0  # Evita média de lista vazia
+    for funcionario in funcionarios:
+        pastas = get_pastas(setor_funcionario, funcionario.matricula)
+        progresso_trilha = ProgressoTrilha(funcionario, pastas)
+        progresso_pasta = progresso_trilha.calcular_progresso_trilhas()
+        progresso_valores = list(progresso_pasta.values())
+        progresso_geral = np.mean(progresso_valores) if progresso_valores else 0
 
-            progresso_funcionarios[funcionario] = {
-                'progresso': progresso_geral,
-                'matricula': funcionario.matricula
-            }
+        progresso_funcionarios[funcionario] = {
+            'progresso': progresso_geral,
+            'matricula': funcionario.matricula
+        }
 
-
-        # Último acesso por funcionário
-        ultimos_acessos = CustomUser.objects.all().order_by('-last_login')
-
-        # Últimas trilhas criadas
-        ultimas_trilhas = Pasta.objects.all().order_by('-created_at')
-
-    else:
-        # Usuário é um líder
-        funcionario_logado = Funcionario.objects.get(matricula=request.user.matricula)
-        setor_funcionario_object = Funcionario.objects.get(matricula=request.user.matricula)
-        setor_funcionario = setor_funcionario_object.setor
-
-        # Engajamento por funcionário dentro do setor
-        funcionarios = Funcionario.objects.filter(setor=setor_funcionario)
-        progresso_funcionarios = {}
-
-        # Processo apenas do setor do líder
-        funcionarios_ids = [funcionario.matricula for funcionario in funcionarios]
-        ultimos_acessos = CustomUser.objects.filter(matricula__in=funcionarios_ids).values('matricula', 'first_name', 'last_login').order_by('-last_login')
-
-        for funcionario in funcionarios:
-            pastas = Pasta.objects.filter(Q(setores=setor_funcionario) | Q(funcionarios__matricula=funcionario.matricula))
-            progresso_trilha = ProgressoTrilha(funcionario, pastas)
-            progresso_pasta = progresso_trilha.calcular_progresso_trilhas()
-
-            progresso_valores = list(progresso_pasta.values())
-            progresso_geral = np.mean(progresso_valores) if progresso_valores else 0  # Evita média de lista vazia
-
-            progresso_funcionarios[funcionario] = {
-                'progresso': progresso_geral,
-                'matricula': funcionario.matricula
-            }
-
-        # Últimas trilhas criadas
-        ultimas_trilhas = Pasta.objects.all().order_by('-created_at')
-
-    # Definição do tipo de usuário
-    user_type = 'Administrador' if request.user.type == 'ADM' else 'Líder'
-
-    return render(request, 'home-superuser.html', {
-        'user_type': user_type,
-        'funcionario': funcionario_logado,
-        'progresso_funcionarios': progresso_funcionarios,
-        'ultimos_acessos': ultimos_acessos,
-        'ultimas_trilhas': ultimas_trilhas,
-        'media_progresso_area_trilha_individual': media_progresso_area_trilha_individual,
-        'progresso_trilha': progresso_trilha,
-        'progresso_geral_individual': progresso_geral_individual,
-        'trilhas_finalizadas': trilhas_finalizadas,
-        'progresso_trilha_individual': progresso_trilha_individual_var,
-    })
+    return progresso_funcionarios

@@ -16,7 +16,7 @@
     {% endif %}
 
     <h1>Adicionar Novo Usuario</h1>
-    <form method="post">
+    <form id="form-create" method="post">
         {% csrf_token %}
         <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
             <div class="card">
@@ -57,11 +57,29 @@
                         </div>
                     </div>
                     <div class="d-flex justify-content-end">
-                        <button class="btn btn-primary mt-4" type="submit">Salvar</button>
+                        <div class="d-flex justify-content-end">
+                            <button id="submit-edit" class="btn btn-primary mt-4" type="submit">
+                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                <span id="button-text">Cadastrar</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
     </form>
 </div>
+{% endblock %}
+
+{% block scripts %}
+
+<script>
+    document.getElementById('form-create').addEventListener('submit', function() {
+        var submitButton = document.getElementById('submit-edit');
+        submitButton.disabled = true; // Desabilita o botão
+        submitButton.querySelector('.spinner-border').classList.remove('d-none'); // Exibe o spinner
+        document.getElementById('button-text').textContent = 'Cadastrando...'; // Altera o texto
+    });
+</script>
+
 {% endblock %}

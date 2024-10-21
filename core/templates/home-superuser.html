@@ -1,200 +1,177 @@
 {% extends 'base.html' %}
 
 {% load custom_filters %}
-
 {% load static %}
 
 {% block title %}Home{% endblock %}
 
 {% block content %}
-
 <style>
-    /* Container que define a disposição dos gráficos */
-    .chart-container {
-        display: flex; /* Alinha lado a lado */
-        flex-wrap: wrap; /* Permite que os gráficos se ajustem para baixo em telas menores */
-        justify-content: center; /* Centraliza os gráficos */
-        gap: 20px; /* Espaço entre os gráficos */
-        padding: 20px;
+    /* Estilos para o loader */
+    .spinner {
+        width: 1.5rem;
+        height: 1.5rem;
+        border: 4px solid rgba(0, 0, 0, 0.1);
+        border-top-color: #007bff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
     }
 
-    /* Responsividade individual dos gráficos */
-    .chart-wrapper {
-        flex: 1 1 45%; /* Os gráficos ocupam 45% do container */
-        max-width: 1000px; /* Define um limite de largura */
-        min-width: 300px; /* Define um limite mínimo de largura */
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
     }
 
-    canvas {
-        width: 100%; /* Largura total do container */
-        height: auto; /* Altura ajustada automaticamente */
+    /* Oculta o conteúdo dos spinners inicialmente até o carregamento do conteúdo dinâmico */
+    .loading-spinner {
+        display: block;
     }
 </style>
 
-<h1 class="mt-4">Dashboard</h1>
+    <h1 class="mt-4">Dashboard</h1>
 
-<!-- <div class="chart-container">
-
-    <div class="chart-wrapper">
-        <canvas id="myChart1"></canvas>
-    </div>
-
-    <div class="chart-wrapper">
-        <canvas id="myChart2"></canvas>
-    </div>
-
-</div> -->
-
-
-<div class="card mb-3">
-    <div class="card-header">Andamento individual</div>
-    <div class="card-body">
-        <div class="row mb-3">
-            <div class="col-lg-4 col-md-12 mb-3">
-                <div class="card bg-light text-black mb-4">
-                    <div class="card-body">Progresso geral de trilhas</div>
-                    <div
-                        class="card-footer d-flex align-items-center justify-content-between">
-                        <a class="small text-black stretched-link"></a>
-                        <div class="small text-black">{{ progresso_geral_individual|floatformat:2 }}%</div>
+    <div class="card mb-3" id="dynamic-content">
+        <div class="card-header">Andamento Individual</div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-lg-4 col-md-12 mb-3">
+                    <div class="card bg-light text-black mb-4">
+                        <div class="card-body">Progresso Geral de Trilhas</div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <a class="small text-black stretched-link"></a>
+                            <div class="small text-black">
+                                <div class="spinner loading-spinner"></div> <!-- AQUI -->
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card bg-light text-black mb-4">
+                        <div class="card-body">Trilhas Finalizadas</div>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <a class="small text-black stretched-link"></a>
+                            <div class="small text-black">
+                                <div class="spinner loading-spinner"></div> <!-- AQUI -->
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <div class="card bg-light text-black mb-4">
-                    <div class="card-body">Trilhas finalizadas</div>
-                    <div
-                        class="card-footer d-flex align-items-center justify-content-between">
-                        <a class="small text-black stretched-link"></a>
-                        <div class="small text-black">{{ trilhas_finalizadas }}</div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-12">
-                <div class="card mb-4">
-                    <div class="card-header">Andamento por área de
-                        aprendizado:</div>
-                    <div class="card-body"
-                        style="height: 173px; max-height: 173px; overflow-y: auto;">
-                        <ul class="list-group">
-                            {% for area_trilha_nome, media_progresso in media_progresso_area_trilha_individual.items %}
-                            <li
-                                class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ area_trilha_nome }}
-                                <span class="badge badge-primary badge-pill"
-                                    style="color: black;">{{ media_progresso|floatformat:0 }}%</span>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-4 col-md-12">
-                <div class="card mb-4">
-                    <div class="card-header">Andamento por trilhas:</div>
-                    <div class="card-body"
-                        style="height: 173px; max-height: 173px; overflow-y: auto;">
-                        <ul class="list-group">
-                            {% for pasta in progresso_trilha_individual.pastas %}
-                            <li
-                                class="list-group-item d-flex justify-content-between align-items-center">
-                                <a href="{% url 'detail-pasta' pasta.pk %}">{{ pasta.nome }}</a>
-                                {% if progresso_trilha_individual.progresso_pasta %}
-                                <span class="badge badge-primary badge-pill"
-                                    style="color: black;">{{progresso_trilha_individual.progresso_pasta|get_item:pasta.nome}}%</span>
-                                {% endif %}
-                            </li>
-                            {% empty %}
-                            <li
-                                class="list-group-item d-flex justify-content-between align-items-center">Você
-                                não tem acesso a nenhuma trilha.</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<div class="card">
-    {% if request.user.type == 'ADM' %}
-    <div class="card-header">Andamento da empresa</div>
-    {% else %}
-    <div class="card-header">Andamento da empresa</div>
-    {% endif %}
-    <div class="card-body">
-        <div class="row mb-3">
-            <div class="col-sm-6 mb-3">
-                <div class="card">
-                    <div class="card-header">Progresso por funcionario (por
-                        trilha):</div>
-                    <div class="card-body" style="max-height: 300px; overflow-y: auto;">
-                        <ul class="list-group">
-                            {% for funcionario, progresso in progresso_funcionarios.items %}
-                            <li
-                                class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ progresso.matricula }} - {{ funcionario }}
-                                <span class="badge badge-primary badge-pill"
-                                    style="color: black;">{{ progresso.progresso|floatformat:0 }}%</span>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-sm-6 mb-3">
-                <div class="card">
-                    {% if request.user.type == 'ADM' %}
-                    <div class="card-header">Acesso por funcionário:</div>
-                    {% else %}
-                    <div class="card-header">Acesso por funcionário (do time):</div>
-                    {% endif %}
-                    <div class="card-body" style="max-height: 300px; overflow-y: auto;">
-                        <ul class="list-group">
-                            {% for acesso in ultimos_acessos %}
-                            <li
-                                class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ acesso.matricula }} - {{ acesso.first_name }} {{acesso.last_name }}
-                                <span class="badge badge-primary badge-pill"
-                                    style="color: black;">{{ acesso.last_login }}</span>
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-sm-6 mb-3">
-                <div class="card">
-                    <div class="card-header">Últimas trilhas criadas:</div>
-                    <div class="card-body" style="max-height: 300px; overflow-y: auto;">
-                        <div class="list-group">
-                            {% for trilhas in ultimas_trilhas %}
-                            <a
-                                class="list-group-item list-group-item-action flex-column align-items-start">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h5 class="mb-1">{{ trilhas.nome }}</h5>
-                                    <small>{{ trilhas.created_at }}</small>
-                                </div>
-                                <p class="mb-1">{{ trilhas.area_trilha }}</p>
-                                <small>{{ trilhas.created_by.first_name }}</small>
-                            </a>
-                            {% endfor %}
+                <div class="col-lg-8 col-md-12">
+                    <div class="card mb-4">
+                        <div class="card-header">Progresso dos Funcionários:</div>
+                        <div class="card-body" style="height: 173px; max-height: 173px; overflow-y: auto;">
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="spinner loading-spinner"></div> <!-- AQUI -->
+                                    <span class="badge badge-primary badge-pill" style="color: black;"></span>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
-</div>
 
+    <div class="card">
+        <div class="card-header">Andamento da Empresa</div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-sm-6 mb-3" id="ultimos-acessos">
+                    <div class="card">
+                        <div class="card-header">Acesso por Funcionário:</div>
+                        <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <div class="spinner loading-spinner"></div> <!-- AQUI -->
+                                    <span class="badge badge-primary badge-pill" style="color: black;"></span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-sm-6 mb-3" id="ultimas-trilhas">
+                    <div class="card">
+                        <div class="card-header">Últimas Trilhas Criadas:</div>
+                        <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                            <div class="list-group">
+                                <a class="list-group-item list-group-item-action flex-column align-items-start">
+                                    <div class="d-flex w-100 justify-content-between">
+                                        <h5 class="mb-1"></h5>
+                                        <small>
+                                            <div class="spinner loading-spinner"></div> <!-- AQUI -->
+                                        </small>
+                                    </div>
+                                    <p class="mb-1"></p>
+                                    <small></small>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function() {
+        loadDynamicContent();
+        loadUltimasTrilhas();
+        loadUltimosAcessos();
+    });
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<!-- <script src="{% static 'js/graficos/graficos_adm.js' %}"></script>
-<script src="{% static 'js/graficos/graficos_lid.js' %}"></script> -->
+    function loadDynamicContent() {
+        $.ajax({
+            url: "{% url 'loading_painel' %}",
+            method: "GET",
+            success: function(data) {
+                // Substitui o conteúdo do #dynamic-content com os dados recebidos
+                $('#dynamic-content').html(data.html);
+                
+                // Oculta todos os spinners de carregamento
+                $('.loading-spinner').hide();
+            },
+            error: function(xhr, status, error) {
+                console.error("Erro ao carregar dados: ", error);
+                $('.loading-spinner').replaceWith('<p>Erro ao carregar dados. Tente novamente mais tarde.</p>');
+            }
+        });
+    }
 
+    function loadUltimasTrilhas() {
+        $.ajax({
+            url: "{% url 'ultimas_trilhas' %}",
+            method: "GET",
+            success: function(data) {
+                // Substitui o conteúdo do #ultimas-trilhas com os dados recebidos
+                $('#ultimas-trilhas').html(data.html);
+            },
+            error: function(xhr, status, error) {
+                console.error("Erro ao carregar últimas trilhas: ", error);
+                $('#ultimas-trilhas').html('<p>Erro ao carregar últimas trilhas. Tente novamente mais tarde.</p>');
+            }
+        });
+    }
+
+    function loadUltimosAcessos() {
+        $.ajax({
+            url: "{% url 'ultimos_acessos' %}",
+            method: "GET",
+            success: function(data) {
+                // Substitui o conteúdo do #ultimos-acessos com os dados recebidos
+                $('#ultimos-acessos').html(data.html);
+            },
+            error: function(xhr, status, error) {
+                console.error("Erro ao carregar últimos acessos: ", error);
+                $('#ultimos-acessos').html('<p>Erro ao carregar últimos acessos. Tente novamente mais tarde.</p>');
+            }
+        });
+    }
+</script>
 {% endblock %}

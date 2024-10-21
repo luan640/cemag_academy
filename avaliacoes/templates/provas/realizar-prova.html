@@ -9,7 +9,7 @@
 <h1>{{ prova.titulo }}</h1>
 <p>{{ prova.descricao }}</p>
 
-<form id="realizar-prova-form" method="post">
+<form id="form-realizar-prova" method="post">
     {% csrf_token %}
         {% for questao in questoes %}
         <hr>
@@ -37,12 +37,21 @@
         {% endfor %}
         {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
         {% else %}
-            <button class="btn btn-success" type="submit">Enviar Prova</button>
+            <div class="d-flex justify-content-start">
+                <div class="d-flex justify-content-end">
+                    <button id="submit-edit" class="btn btn-success mt-4" type="submit">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        <span id="button-text">Enviar Prova</span>
+                    </button>
+                </div>
+            </div>
         {% endif %}
 </form>
 
 {% endblock %}
 
 {% block scripts %}
+
+<script src="/static/js/form-loading/form-loading.js"></script>
 
 {% endblock %}

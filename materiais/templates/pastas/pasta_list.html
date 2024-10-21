@@ -71,12 +71,14 @@
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight"
     aria-labelledby="offcanvasRightLabel">
     <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasRightLabel">Adicionar Trilha</h5>
+        <h5 class="offcanvas-title" id="offcanvasRightLabel">Adicionar   
+ Trilha</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"
             aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
-        {% include 'pastas/forms/pasta_add.html' %}
+        {% include
+             'pastas/forms/pasta_add.html' %}
     </div>
 </div>
 
@@ -106,7 +108,7 @@
                                             <div class="notification-icon" style="position: relative; display: inline-block;">
                                                 <i class="fa-solid fa-bell"></i>
                                                 {% if item.nomes_funcionarios %}
-                                                    <span class="notification-count">{{item.nomes_funcionarios | length}}</span>
+                                                    <span class="notification-count">{{ item.total_funcionarios }}</span> 
                                                 {% endif %}
                                             </div>
                                         </a>
@@ -142,6 +144,20 @@
 {% endblock %}
 
 {% block scripts %}
+
+<script src="/static/js/adicionar_trilha/filtrar_setor_funcionario.js"></script>
+<script src="/static/js/adicionar_trilha/checkbox/setores.js"></script>
+<script src="/static/js/adicionar_trilha/checkbox/toggle.js"></script>
+
+<script>
+    document.getElementById('add-trilha').addEventListener('submit', function() {
+        var submitButton = document.getElementById('submit-edit');
+        submitButton.disabled = true; // Desabilita o botão
+        submitButton.querySelector('.spinner-border').classList.remove('d-none'); // Exibe o spinner
+        document.getElementById('button-text').textContent = 'Salvando...'; // Altera o texto
+    });
+</script>
+
 <script>
 
     document.getElementById('btnSearch').addEventListener('click',function(){

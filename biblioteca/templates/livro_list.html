@@ -216,6 +216,7 @@
             <div class="card-header">Livros</div>
             <div class="card-body">
                 <div class="list-group">
+                    {% if livros %}
                     {% for livro in livros %}
                     <div class="list-group-item list-group-item-action flex-column align-items-start">
                         <div class="d-flex w-100">
@@ -281,6 +282,15 @@
                         </div>
                     </div>
                     {% endfor %}
+                    {% else %}
+                    <div class="list-group-item list-group-item-action flex-column align-items-start">
+                        <div class="d-flex w-100">
+                            <div>
+                                <h3>Não possui livros disponíveis</h3>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -296,7 +306,8 @@
 
 {% block scripts %}
 
-<script src="{% static 'js/visualizador_livro.js' %}"></script>
+<script src="{% static 'js/livro/visualizador_livro.js' %}"></script>
+<script src="{% static 'js/form-loading/form-loading.js' %}"></script>
 <script>
     // Abrir a lightbox
     function openLightbox(imgSrc) {

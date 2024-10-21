@@ -1,0 +1,40 @@
+
+<div class="card-header">Andamento Individual</div>
+<div class="card-body">
+    <div class="row mb-3">
+        <div class="col-lg-4 col-md-12 mb-3">
+            <div class="card bg-light text-black mb-4">
+                <div class="card-body">Progresso Geral de Trilhas</div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-black stretched-link"></a>
+                    <div class="small text-black">{{ progresso_geral_individual|floatformat:2 }}%</div>
+                </div>
+            </div>
+            <div class="card bg-light text-black mb-4">
+                <div class="card-body">Trilhas Finalizadas</div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-black stretched-link"></a>
+                    <div class="small text-black">{{ trilhas_finalizadas }}</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8 col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">Progresso dos Funcionários:</div>
+                <div class="card-body" style="height: 173px; max-height: 173px; overflow-y: auto;">
+                    <ul class="list-group">
+                        {% for funcionario, progresso in progresso_funcionarios.items %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ funcionario }}
+                            <span class="badge badge-primary badge-pill" style="color: black;">
+                                {{ progresso.progresso|floatformat:0 }}%
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

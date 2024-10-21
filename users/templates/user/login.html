@@ -61,17 +61,20 @@
 
 
                         <!-- Form -->
-                        <form method="post">
+                        <form id="logar" method="post">
                             {% csrf_token %}
                             <!-- 2 column grid layout with text inputs for the first and last names -->
                             <!-- Email input -->
                             <div data-mdb-input-init class="form-outline mb-4">
                                 {{ form.as_p }}
                             </div>
-                            <div class="text-end">
-                                <button type="submit" data-mdb-button-init data-mdb-ripple-init class="btn btn-primary btn-block mb-4">
-                                    Login
-                                </button>
+                            <div class="d-flex justify-content-end">
+                                <div class="d-flex justify-content-end">
+                                    <button id="login-edit" class="btn btn-primary mt-4" type="submit">
+                                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                        <span id="button-login">Login</span>
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </div>
@@ -81,5 +84,15 @@
         </div>
         </div>
     </section>
+
+    <script>
+        document.getElementById('logar').addEventListener('submit', function() {
+            var submitButton = document.getElementById('login-edit');
+            submitButton.disabled = true; // Desabilita o botão
+            submitButton.querySelector('.spinner-border').classList.remove('d-none'); // Exibe o spinner
+            document.getElementById('button-login').textContent = 'Logando...'; // Altera o texto
+        });
+    </script>
+
 </body>
 </html>

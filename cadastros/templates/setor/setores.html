@@ -8,7 +8,7 @@
 
 <div>
   <h1>Adicionar Novo Setor</h1>
-  <form method="post">
+  <form id="form-setor" method="post">
       {% csrf_token %}
       <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
           <div class="card">
@@ -19,13 +19,16 @@
                           {{ form.area.label_tag }}
                           {{ form.area }}
                       </div>
-                      <div class="col-sm-3 mt-4">
+                      <div class="col-sm-5 mt-4">
                           {{ form.nome.label_tag }}
                           {{ form.nome }}
                       </div>
-                      <div class="col-sm-2 mt-4">
-                          <button class="btn btn-primary" type="submit">Salvar</button>
-                      </div>
+                      <div class="col-sm-3 mt-4">
+                        <button id="submit-edit" class="btn btn-primary mt-4" type="submit">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            <span id="button-text">Salvar</span>
+                        </button>
+                    </div>
                   </div>
               </div>
           </div>
@@ -50,28 +53,11 @@
 </div>
 
 
-<div class="modal fade" id="addFuncionarioModal" tabindex="-1" aria-labelledby="addFuncionarioModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title" id="addFuncionarioModalLabel">Adicionar Novo Funcionário</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Salvar</button>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
-
 {% endblock %}
 
 {% block scripts %}
 <script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
 <script src="{% static 'js/filtro_cadasto/cadastrar_setor.js' %}"></script>
+<script src="{% static 'js/form-loading/form-loading.js' %}"></script>
 
 {% endblock %}

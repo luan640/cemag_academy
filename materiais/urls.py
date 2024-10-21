@@ -31,7 +31,8 @@ urlpatterns = [
     path('avaliacao/respostas-avaliacao/<int:pk_avaliacao>/', views.respostas_avaliacao, name='respostas-avaliacao'),
 
     path('jornada/detail/', views.jornada_detail, name='jornada_detail'),
-    path('jornada/detail/<int:matricula>', views.jornada_detail_unique, name='jornada_detail_unique')
+    path('jornada/detail/<int:matricula>', views.jornada_detail_unique, name='jornada_detail_unique'),
+    path('funcionarios/', views.funcionarios_list, name='funcionarios_list'),
 
     
     

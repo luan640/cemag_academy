@@ -27,14 +27,16 @@
         <h1 style="font-weight: 700;"><label for="">Filtrar Funcionário</label></h1>
         <p class="fw-medium" style="color: #6e6e77;">Explore o desempenho e progresso de cada colaborador</p>
         <div class="input-group">
-          <input class="form-control custom-select custom-select-sm fw-semibold" list="encodings" id="filterInput" type="text" placeholder="Pesquisar jornada do funcionário..." aria-label="Pesquisar jornada do funcionário" aria-describedby="search-icon">
+          <input class="form-control custom-select custom-select-sm fw-semibold" list="encodings" id="filterInput" type="text" placeholder="Pesquisar jornada do funcionário..." aria-label="Pesquisar jornada do funcionário" aria-describedby="filtrar_funcionario">
           <datalist id="encodings">
             {% for funcionario in funcionarios_iniciais %}
               <option value="{{ funcionario.nome }}" data-matricula="{{ funcionario.matricula }}">{{ funcionario.nome }}</option>
             {% endfor %}
           </datalist>
-          <button id="filtrar_funcionario" class="input-group-text btn btn-light border" id="search-icon">
-            <i class="fa-solid fa-magnifying-glass"></i>
+          <button id="filtrar_funcionario" class="input-group-text btn btn-light border" type="button">
+            <i id="search-icon-glass" class="fa-solid fa-magnifying-glass"></i>
+            <span class="spinner-border spinner-border-sm d-none" aria-hidden="true"></span>
+            <span class="visually-hidden" role="status">Loading...</span>
           </button>
         </div>
     </div>

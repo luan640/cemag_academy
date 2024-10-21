@@ -1,4 +1,10 @@
   document.getElementById('filtrar_funcionario').addEventListener('click', function() {
+    this.disabled = true;
+    let searcIconGlass = document.getElementById('search-icon-glass');
+    let spinnerBorder = document.querySelector('.spinner-border');
+    searcIconGlass.style.display = 'none';
+    spinnerBorder.classList.remove('d-none');
+
     const inputElement = document.getElementById('filterInput');
     const funcionarioNome = inputElement.value;
     const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
@@ -7,6 +13,12 @@
     const options = Array.from(document.querySelectorAll('#encodings option'));
     // Encontra a opção que corresponde ao nome digitado
     const option = options.find(opt => opt.value === funcionarioNome);
+
+    // <button id="filtrar_funcionario" class="input-group-text btn btn-light border" type="button">
+    //   <i id="search-icon-glass" class="fa-solid fa-magnifying-glass"></i>
+    //   <span class="spinner-border spinner-border-sm d-none" aria-hidden="true"></span>
+    //   <span class="visually-hidden" role="status">Loading...</span>
+    // </button>
 
     if (option) {
       const funcionarioMatricula = option.getAttribute('data-matricula');
@@ -206,8 +218,16 @@
     }).catch(error => {
       console.error('Erro:', error)
       alert("Usuário não encontrado.");
+    }).finally(() => {
+      // Este bloco será executado sempre, independentemente do sucesso ou falha da requisição
+      spinnerBorder.classList.add('d-none');
+      this.disabled = false;
+      searcIconGlass.style.display = 'block';
     });
   } else {
     alert("Funcionário não encontrado.");
+    spinnerBorder.classList.add('d-none');
+    this.disabled = false
+    searcIconGlass.style.display = 'block';
   }
 });
