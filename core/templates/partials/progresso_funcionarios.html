@@ -1,0 +1,19 @@
+<div class="card mb-4">
+    <div class="card-header">Progresso dos Funcionários:</div>
+    <div class="card-body overflow-auto" style="height: 173px;">
+        {% if progresso_funcionarios %}
+        <ul class="list-group">
+            {% for funcionario, progresso in progresso_funcionarios.items %}
+            <li class="list-group-item d-flex justify-content-between">
+                {{ funcionario }}
+                <span class="badge badge-primary" style="color: black;">
+                    {{ progresso.progresso|floatformat:0 }}%
+                </span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <p class="text-muted">Nenhum progresso disponível.</p>
+        {% endif %}
+    </div>
+</div>

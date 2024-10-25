@@ -23,28 +23,13 @@ class Funcionario(models.Model):
     matricula = models.IntegerField(unique=True)
     nome = models.CharField(max_length=200)
     setor = models.ForeignKey(Setor, related_name='funcionario_setor', on_delete=models.CASCADE) 
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name='funcionario', null=True, blank=True)
 
     def __str__(self):
         return self.nome
 
     def display_name(self):
-        # Retorna o nome do funcionário junto com o setor
         return f"{self.nome} ({self.setor.nome})"
-    
-    def is_leader(self):
-        try:
-            user = CustomUser.objects.get(matricula=self.matricula)
-            return user.type == "LID"
-        except CustomUser.DoesNotExist:
-            return False  # Se não existir, retorna False
-    
-    def is_adm(self):
-        try:
-            user = CustomUser.objects.get(matricula=self.matricula)
-            return user.type == "ADM"
-        except CustomUser.DoesNotExist:
-            return False  # Se não existir, retorna False
-
 
 class AreaTrilha(models.Model):
 

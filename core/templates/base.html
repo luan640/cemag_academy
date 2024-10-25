@@ -131,8 +131,13 @@
                             id="logout-form" style="display: none;">
                             {% csrf_token %}
                         </form>
-                        <a href="#"
-                            onclick="document.getElementById('logout-form').submit();">Sair</a>
+                        <div class="d-flex justify-content-between">
+                            <a href="#"
+                                onclick="document.getElementById('logout-form').submit();">Sair</a>
+                            {% if request.user.type == 'ADM' %}
+                                <a href="/admin">Admin</a>
+                            {% endif %}
+                        </div>
                     </div>
                 </nav>
             </div>

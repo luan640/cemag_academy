@@ -36,16 +36,16 @@
         <div class="card-body">
             <div class="row mb-3">
                 <div class="col-lg-4 col-md-12 mb-3">
-                    <div class="card bg-light text-black mb-4">
+                    <div class="card bg-light text-black mb-4" id="progresso-geral-individual">
                         <div class="card-body">Progresso Geral de Trilhas</div>
                         <div class="card-footer d-flex align-items-center justify-content-between">
                             <a class="small text-black stretched-link"></a>
                             <div class="small text-black">
                                 <div class="spinner loading-spinner"></div> <!-- AQUI -->
-                            </div>
+                            </div>                     
                         </div>
                     </div>
-                    <div class="card bg-light text-black mb-4">
+                    <div class="card bg-light text-black mb-4" id="trilhas-finalizadas">
                         <div class="card-body">Trilhas Finalizadas</div>
                         <div class="card-footer d-flex align-items-center justify-content-between">
                             <a class="small text-black stretched-link"></a>
@@ -56,14 +56,16 @@
                     </div>
                 </div>
 
-                <div class="col-lg-8 col-md-12">
+                <div class="col-lg-8 col-md-12" id="progresso-funcionarios">
                     <div class="card mb-4">
                         <div class="card-header">Progresso dos Funcionários:</div>
                         <div class="card-body" style="height: 173px; max-height: 173px; overflow-y: auto;">
                             <ul class="list-group">
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    <div class="spinner loading-spinner"></div> <!-- AQUI -->
-                                    <span class="badge badge-primary badge-pill" style="color: black;"></span>
+                                    <div id="progresso-funcionarios">
+                                        <div class="spinner loading-spinner"></div> <!-- AQUI -->
+                                        <span class="badge badge-primary badge-pill" style="color: black;"></span>
+                                    </div>
                                 </li>
                             </ul>
                         </div>
@@ -118,60 +120,90 @@
 {% endblock %}
 
 {% block scripts %}
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
-    $(document).ready(function() {
-        loadDynamicContent();
-        loadUltimasTrilhas();
-        loadUltimosAcessos();
+$(document).ready(function() {
+    loadTrilhasFinalizadas();
+    loadProgressoGeralIndividual();
+    loadProgressoFuncionarios();
+    loadUltimasTrilhas();
+    loadUltimosAcessos();
+});
+
+function loadTrilhasFinalizadas() {
+    $.ajax({
+        url: "{% url 'load_trilhas_finalizadas' %}",
+        method: "GET",
+        success: function(data) {
+            $('#trilhas-finalizadas').html(data.html);
+            $('.loading-spinner-trilhas').hide();
+        },
+        error: function(xhr, status, error) {
+            console.error("Erro ao carregar trilhas finalizadas: ", error);
+            $('#trilhas-finalizadas').html('<p>Erro ao carregar trilhas finalizadas. Tente novamente mais tarde.</p>');
+        }
     });
+}
 
-    function loadDynamicContent() {
-        $.ajax({
-            url: "{% url 'loading_painel' %}",
-            method: "GET",
-            success: function(data) {
-                // Substitui o conteúdo do #dynamic-content com os dados recebidos
-                $('#dynamic-content').html(data.html);
-                
-                // Oculta todos os spinners de carregamento
-                $('.loading-spinner').hide();
-            },
-            error: function(xhr, status, error) {
-                console.error("Erro ao carregar dados: ", error);
-                $('.loading-spinner').replaceWith('<p>Erro ao carregar dados. Tente novamente mais tarde.</p>');
-            }
-        });
-    }
+function loadProgressoGeralIndividual() {
+    $.ajax({
+        url: "{% url 'load_progresso_geral_individual' %}",
+        method: "GET",
+        success: function(data) {
+            $('#progresso-geral-individual').html(data.html);
+            $('.loading-spinner-progresso').hide();
+        },
+        error: function(xhr, status, error) {
+            console.error("Erro ao carregar progresso geral individual: ", error);
+            $('#progresso-geral-individual').html('<p>Erro ao carregar progresso geral. Tente novamente mais tarde.</p>');
+        }
+    });
+}
 
-    function loadUltimasTrilhas() {
-        $.ajax({
-            url: "{% url 'ultimas_trilhas' %}",
-            method: "GET",
-            success: function(data) {
-                // Substitui o conteúdo do #ultimas-trilhas com os dados recebidos
-                $('#ultimas-trilhas').html(data.html);
-            },
-            error: function(xhr, status, error) {
-                console.error("Erro ao carregar últimas trilhas: ", error);
-                $('#ultimas-trilhas').html('<p>Erro ao carregar últimas trilhas. Tente novamente mais tarde.</p>');
-            }
-        });
-    }
+function loadProgressoFuncionarios() {
+    $.ajax({
+        url: "{% url 'load_progresso_funcionarios' %}",
+        method: "GET",
+        success: function(data) {
+            $('#progresso-funcionarios').html(data.html);
+            $('.loading-spinner-funcionarios').hide();
+        },
+        error: function(xhr, status, error) {
+            console.error("Erro ao carregar progresso dos funcionários: ", error);
+            $('#progresso-funcionarios').html('<p>Erro ao carregar progresso dos funcionários. Tente novamente mais tarde.</p>');
+        }
+    });
+}
 
-    function loadUltimosAcessos() {
-        $.ajax({
-            url: "{% url 'ultimos_acessos' %}",
-            method: "GET",
-            success: function(data) {
-                // Substitui o conteúdo do #ultimos-acessos com os dados recebidos
-                $('#ultimos-acessos').html(data.html);
-            },
-            error: function(xhr, status, error) {
-                console.error("Erro ao carregar últimos acessos: ", error);
-                $('#ultimos-acessos').html('<p>Erro ao carregar últimos acessos. Tente novamente mais tarde.</p>');
-            }
-        });
-    }
+
+function loadUltimasTrilhas() {
+    $.ajax({
+        url: "{% url 'ultimas_trilhas' %}",
+        method: "GET",
+        success: function(data) {
+            // Substitui o conteúdo do #ultimas-trilhas com os dados recebidos
+            $('#ultimas-trilhas').html(data.html);
+        },
+        error: function(xhr, status, error) {
+            console.error("Erro ao carregar últimas trilhas: ", error);
+            $('#ultimas-trilhas').html('<p>Erro ao carregar últimas trilhas. Tente novamente mais tarde.</p>');
+        }
+    });
+}
+
+function loadUltimosAcessos() {
+    $.ajax({
+        url: "{% url 'ultimos_acessos' %}",
+        method: "GET",
+        success: function(data) {
+            // Substitui o conteúdo do #ultimos-acessos com os dados recebidos
+            $('#ultimos-acessos').html(data.html);
+        },
+        error: function(xhr, status, error) {
+            console.error("Erro ao carregar últimos acessos: ", error);
+            $('#ultimos-acessos').html('<p>Erro ao carregar últimos acessos. Tente novamente mais tarde.</p>');
+        }
+    });
+}
+
 </script>
 {% endblock %}

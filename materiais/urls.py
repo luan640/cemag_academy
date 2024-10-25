@@ -16,6 +16,8 @@ urlpatterns = [
     path('pasta/<int:pk>/participantes/', views.list_participantes, name='list-participantes'),
     
     path('pasta/certificado/', views.gerar_certificado, name='gerar-certificado'),
+    path('pasta/<int:pk>/funcionarios-avaliaram',views.funcionarios_avaliaram,name='funcionarios_avaliaram'),
+
     path('consultar/certificado/<str:uuid>/', views.consultar_certificado, name='consultar_certificado'),
     path('consultar/certificado/',login_required(TemplateView.as_view(template_name='certificados/consultar_certificados.html')),name='consultar_certificados'),
     
@@ -32,7 +34,6 @@ urlpatterns = [
 
     path('jornada/detail/', views.jornada_detail, name='jornada_detail'),
     path('jornada/detail/<int:matricula>', views.jornada_detail_unique, name='jornada_detail_unique'),
-    path('funcionarios/', views.funcionarios_list, name='funcionarios_list'),
 
     
     

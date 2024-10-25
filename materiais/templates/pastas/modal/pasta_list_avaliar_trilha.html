@@ -11,15 +11,17 @@
                 <div class="mb-4">
                     <label for="">Selecione um colaborador para concluir a avaliação</label>
                     <select class="form-control" name="filter_collaborator" id="filter_collaborator{{ item.pasta.pk }}" required onchange="fetchCollaboratorData('{{ item.pasta.pk }}')">
-                        <option value="" selected>-------</option>
-                        {% for nome_funcionario in item.nomes_funcionarios %}
-                        <option value="{{ nome_funcionario }}">{{ nome_funcionario }}</option>
-                        {% endfor %}
+                        <option value="" selected>Carregando...</option>
+
                     </select>
-                    <code>**Todos os colaboradores dessa lista já realizaram a avaliação da {{ item.pasta.nome }}</code>
+                    <code>**Todos os colaboradores dessa lista já realizaram a avaliação da trilha {{ item.pasta.nome }}</code>
                 </div>
                 <div id="resposta_do_colaborador_selecionado{{ item.pasta.pk }}" class="mb-4 border p-3" style="display: none; background-color: rgb(241, 241, 241);">
-                    <h6 id="resposta_colaborador_text{{ item.pasta.pk }}"></h6>
+                    <h6 id="resposta_colaborador_text{{ item.pasta.pk }}">
+                        <p class="placeholder-glow">
+                            <span class="placeholder col-10 rounded-pill"></span>
+                        </p>
+                    </h6>
                     <div class="border p-3">
                         <p>Você considera que a qualificação agregará valor para o seu trabalho?</p>
                         <label for="sim{{ item.pasta.pk }}">Sim</label>

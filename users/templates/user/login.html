@@ -48,17 +48,16 @@
 
                         <!-- Exibir mensagens de erro -->
                         {% if messages %}
-                            <ul class="messages">
-                                {% for message in messages %}
-                                    {% if 'login' in message.tags %}
-                                        <li class="login-message">{{ message }}</li>
-                                    {% else %}
-                                        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
-                                    {% endif %}
-                                {% endfor %}
-                            </ul>
+                        {% for message in messages %}
+                            {% if 'login' in message.tags %}
+                                {% if not message.tags == 'invalid_login' %}  {# Exclui mensagens de 'invalid_login' #}
+                                    <div class="alert alert-danger" role="alert">
+                                        {{ message }}
+                                    </div>
+                                {% endif %}
+                            {% endif %}
+                        {% endfor %}
                         {% endif %}
-
 
                         <!-- Form -->
                         <form id="logar" method="post">
@@ -66,7 +65,11 @@
                             <!-- 2 column grid layout with text inputs for the first and last names -->
                             <!-- Email input -->
                             <div data-mdb-input-init class="form-outline mb-4">
-                                {{ form.as_p }}
+                            {{ form.username.label_tag }}
+                            <input type="text" name="username" class="form-control mb-2" value="{{ form.username.value|default:'' }}" required>
+                            
+                            {{ form.password.label_tag }}
+                            <input type="password" name="password" class="form-control" required>  
                             </div>
                             <div class="d-flex justify-content-end">
                                 <div class="d-flex justify-content-end">

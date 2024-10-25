@@ -1,8 +1,9 @@
 from django.shortcuts import render,get_object_or_404,redirect
 from django.contrib.auth.decorators import login_required,user_passes_test
-from django.db.models import Q
 from django.http import JsonResponse
 from django.template.loader import render_to_string
+from django.core.cache import cache
+from django.db.models import Count, Q
 
 from cadastros.models import Funcionario
 from materiais.models import Pasta,Material,Visualizacao,Setor
@@ -76,7 +77,7 @@ import json
 @login_required
 def painel_home(request):
 
-    if request.user.type == 'ADM' or request.user.type == 'LID' or request.user.type == 'DIR':
+    if request.user.type in ['ADM','LID','DIR']:
         return redirect('painel_home_superuser')
     else:
         # funcionario = Funcionario.objects.filter(matricula=request.user.matricula)
@@ -121,6 +122,23 @@ def painel_home(request):
                 })
 
 def painel_home_superuser(request):
+
+    try:
+        funcionario = Funcionario.objects.get(matricula=request.user.matricula)
+    except Funcionario.DoesNotExist as e:
+        print('Usuário será adicionado como Funcionário')
+        setor_funcionario = Setor.objects.get(nome="GESTAO DE PESSOAS")
+        print(setor_funcionario)
+
+        funcionario, created = Funcionario.objects.get_or_create(
+            matricula=request.user.matricula,
+            nome="ADM",
+            setor=setor_funcionario
+        )  
+
+        if created:
+            print(f"Funcionário de matricula {funcionario.matricula} foi adicionado com sucesso")
+
     return render(request, 'home-superuser.html')
 
 def ultimas_trilhas(request):
@@ -150,23 +168,49 @@ def ultimos_acessos(request):
     })
     return JsonResponse({'html': html_content})
     
-def loading_painel(request):
-    setor_do_usuario = get_setor_do_usuario(request.user)
-    pastas = get_pastas(setor_do_usuario, request.user.matricula)
+# Função para carregar trilhas finalizadas
+def load_trilhas_finalizadas(request):
+    try:
+        setor_do_usuario = get_setor_do_usuario(request.user)
+        pastas = get_pastas(setor_do_usuario, request.user.matricula)
 
-    progresso_trilha_individual = calcular_progresso_trilha_individual(request.user, pastas)
-    trilhas_finalizadas = calcular_trilhas_finalizadas(pastas, progresso_trilha_individual['progresso_pasta'])
+        progresso_trilha_individual = calcular_progresso_trilha_individual(request.user, pastas)
+        trilhas_finalizadas = calcular_trilhas_finalizadas(pastas, progresso_trilha_individual['progresso_pasta'])
 
-    if request.user.type == 'ADM':
-        progresso_funcionarios = get_adm_data()        
-    else:
-        progresso_funcionarios = get_leader_data(request.user)
+    except Funcionario.DoesNotExist:
+        trilhas_finalizadas = f"Campo de trilhas para os colaboradores"
 
-    # Renderiza o conteúdo dinâmico como uma string HTML
-    html_content = render_to_string('partials/dynamic_content.html', {
-        'progresso_funcionarios': progresso_funcionarios,
+    html_content = render_to_string('partials/trilhas_finalizadas.html', {
         'trilhas_finalizadas': trilhas_finalizadas,
-        'progresso_geral_individual': progresso_trilha_individual['progresso_geral_individual'],
+    })
+
+    return JsonResponse({'html': html_content})
+
+# Função para carregar progresso geral individual
+def load_progresso_geral_individual(request):
+    try:
+        setor_do_usuario = get_setor_do_usuario(request.user)
+        pastas = get_pastas(setor_do_usuario, request.user.matricula)
+
+        progresso_trilha_individual = calcular_progresso_trilha_individual(request.user, pastas)
+        progresso_geral_individual = progresso_trilha_individual['progresso_geral_individual']
+    except Funcionario.DoesNotExist:
+        progresso_geral_individual = "Progresso geral de trilhas por colaborador"
+
+    html_content = render_to_string('partials/progresso_geral_individual.html', {
+        'progresso_geral_individual': progresso_geral_individual,
+    })
+
+    return JsonResponse({'html': html_content})
+
+
+# Função para carregar progresso dos funcionários
+def load_progresso_funcionarios(request):
+
+    progresso_funcionarios = get_leader_data(request.user)
+
+    html_content = render_to_string('partials/progresso_funcionarios.html', {
+        'progresso_funcionarios': progresso_funcionarios,
     })
 
     return JsonResponse({'html': html_content})
@@ -179,17 +223,24 @@ def get_pastas(setor_do_usuario, matricula):
     return Pasta.objects.filter(Q(setores=setor_do_usuario) | Q(funcionarios__matricula=matricula)).distinct()
 
 def calcular_progresso_trilha_individual(user, pastas):
+    cache_key = f"progresso_trilha_{user.matricula}"
+    progresso_cache = cache.get(cache_key)
+    if progresso_cache:
+        return progresso_cache
+
     progresso_trilha = ProgressoTrilha(Funcionario.objects.get(matricula=user.matricula), pastas)
     progresso_pasta = progresso_trilha.calcular_progresso_trilhas()
-
     progresso_valores = list(progresso_pasta.values())
     progresso_geral_individual = np.mean(progresso_valores) if progresso_valores else 0
 
-    return {
+    progresso_cache = {
         'pastas': pastas,
         'progresso_pasta': progresso_pasta,
         'progresso_geral_individual': progresso_geral_individual,
     }
+    cache.set(cache_key, progresso_cache, timeout=3600)  # 1 hora de cache
+
+    return progresso_cache
 
 def calcular_trilhas_finalizadas(pastas, progresso_pasta):
     trilhas_finalizadas = [pasta.nome for pasta in pastas if progresso_pasta.get(pasta.nome) == 100]
@@ -199,39 +250,39 @@ def calcular_media_progresso_area_trilha(user, pastas, progresso_pasta):
     progresso_trilha_individual_func = ProgressoTrilha(Funcionario.objects.get(matricula=user.matricula), pastas)
     return progresso_trilha_individual_func.calcular_media_progresso_area_trilha(progresso_pasta, pastas)
 
-def get_adm_data():
-    funcionarios = Funcionario.objects.all().order_by('nome')[:10]
-    progresso_funcionarios = {}
-    
-    for funcionario in funcionarios:
-        pastas = get_pastas(funcionario.setor, funcionario.matricula)
-        progresso_trilha = ProgressoTrilha(funcionario, pastas)
-        progresso_pasta = progresso_trilha.calcular_progresso_trilhas()
-        progresso_valores = list(progresso_pasta.values())
-        progresso_geral = np.mean(progresso_valores) if progresso_valores else 0
-
-        progresso_funcionarios[funcionario] = {
-            'progresso': progresso_geral,
-            'matricula': funcionario.matricula
-        }
-
-    return progresso_funcionarios
-
 def get_leader_data(user):
-    setor_funcionario = Funcionario.objects.get(matricula=user.matricula).setor
-    funcionarios = Funcionario.objects.filter(setor=setor_funcionario)[:10]
+    setor_funcionario = Funcionario.objects.select_related('setor').get(matricula=user.matricula).setor
+    funcionarios = Funcionario.objects.filter(
+        setor=setor_funcionario
+    ).select_related('setor', 'user').exclude(user__type='ADM')
+    print(funcionarios)
+    return get_progresso(funcionarios)
+
+def get_adm_data():
+    funcionarios = Funcionario.objects.select_related('setor').all().order_by('nome')
+    return get_progresso(funcionarios)
+
+def get_progresso(funcionarios):
     progresso_funcionarios = {}
+    pastas_cache = {}
 
     for funcionario in funcionarios:
-        pastas = get_pastas(setor_funcionario, funcionario.matricula)
+        # Tente obter as pastas do cache ou chame a função get_pastas
+        pastas = pastas_cache.get(funcionario.setor) or get_pastas(funcionario.setor, funcionario.matricula)
+        pastas_cache[funcionario.setor] = pastas
+
+        # Calcular progresso
         progresso_trilha = ProgressoTrilha(funcionario, pastas)
         progresso_pasta = progresso_trilha.calcular_progresso_trilhas()
+
+        # Calcular progresso geral
         progresso_valores = list(progresso_pasta.values())
         progresso_geral = np.mean(progresso_valores) if progresso_valores else 0
 
         progresso_funcionarios[funcionario] = {
             'progresso': progresso_geral,
-            'matricula': funcionario.matricula
+            'matricula': funcionario.matricula,
+            'progress_pasta': progresso_pasta
         }
 
     return progresso_funcionarios

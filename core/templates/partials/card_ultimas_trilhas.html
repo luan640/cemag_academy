@@ -9,7 +9,7 @@
                     <small>{{ trilhas.created_at }}</small>
                 </div>
                 <p class="mb-1">{{ trilhas.area_trilha }}</p>
-                <small>{{ trilhas.created_by.first_name }}</small>
+                <small>{{ trilhas.created_by.first_name }} {{ trilhas.created_by.last_name }}</small>
             </a>
             {% endfor %}
         </div>

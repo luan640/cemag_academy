@@ -4,7 +4,7 @@ from .models import Funcionario, Area, Setor, AreaTrilha
 # Adicione filtros específicos para cada modelo
 
 class FuncionarioAdmin(admin.ModelAdmin):
-    list_display = ('nome', 'matricula', 'setor', 'is_leader')  # Campos exibidos na lista de funcionários
+    list_display = ('nome', 'matricula', 'setor')  # Campos exibidos na lista de funcionários
     list_filter = ('setor',)  # Filtro para o campo setor
     search_fields = ('nome', 'matricula')  # Pesquisa por nome e matrícula
 

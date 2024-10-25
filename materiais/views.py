@@ -55,13 +55,6 @@ def get_filtered_usernames(logged_in_user):
     return nomes_usuarios
 
 @login_required
-def funcionarios_list(request):
-    # Usar select_related para evitar consultas adicionais ao acessar setor
-    funcionarios = Funcionario.objects.select_related('setor').all()
-    
-    return render(request, 'pastas/funcionario_list.html', {'funcionarios': funcionarios})
-
-@login_required
 def pastas_add(request):
     if request.method == 'POST':
         form = AddPasta(request.POST)
@@ -78,70 +71,88 @@ def pastas_add(request):
 @login_required
 def pastas_list(request):
     form = AddPasta()
-    setor_do_usuario_object = Funcionario.objects.get(matricula=request.user.matricula)
+    setor_do_usuario_object = Funcionario.objects.select_related('setor').get(matricula=request.user.matricula)
     setor_do_usuario = setor_do_usuario_object.setor
+
     # Filtrando as pastas com base no tipo de usuário logado
-    if request.user.type == 'ADM' or request.user.type == 'DIR':
-        pastas = Pasta.objects.all()
+    if request.user.type in ['ADM', 'DIR']:
+        pastas = Pasta.objects.all().select_related('created_by').prefetch_related('setores', 'funcionarios')
     elif request.user.type == 'LID':
         pastas = Pasta.objects.filter(
             Q(created_by=request.user) |
             Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
-        ).distinct()
+        ).distinct().select_related('created_by').prefetch_related('setores', 'funcionarios')
     else:
         pastas = Pasta.objects.filter(
             Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
-        ).distinct()
+        ).distinct().select_related('created_by').prefetch_related('setores', 'funcionarios')
 
-    # Pegar os nomes dos funcionários associados a cada pasta
-    pastas_com_funcionarios = []
-    for pasta in pastas:
-        funcionario_associados = pasta.funcionarios.all()
+    # Obter as avaliações pendentes de forma otimizada
+    if request.user.type == 'ADM':
+        avaliacoes_pendentes = AvaliacaoEficacia.objects.filter(
+            pasta__in=pastas,
+            avaliado_rh=False
+        ).values_list('pasta_id', flat=True)
+    elif request.user.type == 'DIR':
+        avaliacoes_pendentes = AvaliacaoEficacia.objects.filter(
+            pasta__in=pastas,
+            usuario__type = 'LID',
+            avaliado_chefia=False
+        ).values_list('pasta_id', flat=True)
+    elif request.user.type == 'LID':
+        avaliacoes_pendentes = AvaliacaoEficacia.objects.filter(
+            pasta__in=pastas,
+            usuario__type = 'LEI',
+            avaliado_chefia=False
+        ).values_list('pasta_id', flat=True)
+    else:
+        avaliacoes_pendentes = []
 
-        setores_associados = pasta.setores.all()
-        funcionario_dos_setores = Funcionario.objects.filter(setor__in=setores_associados)
+    # Transformar os IDs das pastas com avaliações pendentes em um set para acesso rápido
+    pastas_com_avaliacao_pendente = set(avaliacoes_pendentes)
 
-        todos_funcionarios = funcionario_associados | funcionario_dos_setores
-        todos_funcionarios = todos_funcionarios.distinct()
-
-        nomes_funcionarios = []
-
-        criador = CustomUser.objects.get(id=pasta.created_by_id)
-        criador_nome_completo = f"{criador.first_name} {criador.last_name}"
-        
-        for funcionario in todos_funcionarios:
-            try:
-                usuario = CustomUser.objects.get(matricula=funcionario.matricula)
-                avaliacao = AvaliacaoEficacia.objects.filter(usuario=usuario,pasta=pasta)
-                if request.user.type == "LID" and usuario.type == "LEI" and funcionario.setor == setor_do_usuario:
-                    avaliado = avaliacao.filter(avaliado_chefia=False)
-                elif request.user.type == "DIR" and usuario.type == "LID":
-                    avaliado = avaliacao.filter(avaliado_chefia=False)
-                # Caso o tipo de usuário seja 'ADM', pegar avaliações ainda não avaliadas pelo RH (avaliado_rh=False)
-                elif request.user.type == "ADM":
-                    avaliado = avaliacao.filter(avaliado_rh=False)
-                else:
-                    avaliado = AvaliacaoEficacia.objects.none()
-                # Verificar se há avaliações para esse funcionário que atendam ao critério
-                if avaliado.exists():
-                    nome_completo = f"{funcionario.nome}"
-                    nomes_funcionarios.append(nome_completo)
-            except CustomUser.DoesNotExist:
-                pass  # Se o usuário não for encontrado, pode ignorar ou lidar com isso como preferir
-
-        pastas_com_funcionarios.append({
+    # Pegar os nomes dos funcionários associados a cada pasta e verificar avaliações pendentes
+    pastas_com_funcionarios = [
+        {
             'pasta': pasta,
-            'criador_nome_completo': criador_nome_completo,
-            'nomes_funcionarios': nomes_funcionarios,
-        })
-
+            'criador_nome_completo': f"{pasta.created_by.first_name} {pasta.created_by.last_name}",
+            'possui_avaliacao_pendente': pasta.id in pastas_com_avaliacao_pendente,
+        }
+        for pasta in pastas
+    ]
 
     return render(request, 'pastas/pasta_list.html', {
         'pastas_com_criadores': pastas_com_funcionarios,
         'form': form,
     })
+
+@login_required
+def funcionarios_avaliaram(request, pk):
+    # Verifica se a requisição é do tipo AJAX (opcional)
+    if request.method == 'GET' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Obtém a pasta usando o ID fornecido
+        pasta = get_object_or_404(Pasta, id=pk)
+        
+        # Filtra as avaliações de eficácia relacionadas a essa pasta
+        avaliacoes = AvaliacaoEficacia.objects.filter(pasta=pasta)
+
+        if request.user.type == "ADM":
+            usuarios_avaliados = list(avaliacoes.filter(avaliado_rh=False).values('usuario__first_name', 'usuario__last_name'))
+        elif request.user.type == "LID":
+            usuarios_avaliados = list(avaliacoes.filter(avaliado_chefia=False, usuario__type='LEI').values('usuario__first_name', 'usuario__last_name'))
+        else:
+            usuarios_avaliados = list(avaliacoes.filter(avaliado_chefia=False, usuario__type='LID').values('usuario__first_name', 'usuario__last_name'))
+
+        print(usuarios_avaliados)
+        # Retorna uma JsonResponse com as informações
+        return JsonResponse({
+            'usuarios_avaliados': usuarios_avaliados
+        })
+    
+    # Caso não seja uma requisição GET ou AJAX, retorna um erro 400
+    return JsonResponse({'error': 'Requisição inválida'}, status=400)
 
 @login_required
 def pastas_detail(request, pk):
@@ -314,7 +325,7 @@ def avaliacao(request, pk):
         trilha_nome = pasta.nome  # Nome da trilha
 
         # Enviar email ao LID informando sobre a trilha
-        subject = f"Cemag Academy - Trilha {trilha_nome} foi finalizada e avaliada pelo {user.first_name} {user.last_name}"
+        subject = f"Cemag Academy - Trilha {trilha_nome} foi finalizada e avaliada pelo colaborador {user.first_name} {user.last_name}"
         html_content = f"""
         <html>
         <body style="font-family: Arial, sans-serif; line-height: 1.6;">
@@ -356,11 +367,12 @@ def avaliacao(request, pk):
         """
         if lid and user.type != 'LID':
             if lid.email:
+                print("ENTROU AQUI")
                 # Cria um objeto EmailMultiAlternatives para o LID
                 email_lid = EmailMultiAlternatives(
                     subject,
                     "Este é um email em texto simples.",
-                    env('DEFAULT_FROM_EMAIL'),
+                    settings.DEFAULT_FROM_EMAIL,
                     [lid.email],
                 )
                 email_lid.attach_alternative(html_content, "text/html")  # Adiciona o conteúdo HTML
@@ -378,7 +390,7 @@ def avaliacao(request, pk):
                 email_adm = EmailMultiAlternatives(
                     subject,
                     "Este é um email em texto simples.",
-                    env('DEFAULT_FROM_EMAIL'),
+                    settings.DEFAULT_FROM_EMAIL,
                     [adm.email],
                 )
                 email_adm.attach_alternative(html_content, "text/html")  # Adiciona o conteúdo HTML

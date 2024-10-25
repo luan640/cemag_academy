@@ -50,6 +50,16 @@
         font-weight: bold;
     }
 
+    #notification-dot {
+        position: absolute;
+        top: 2px;
+        right:-4px;
+        width: 10px;
+        height: 10px;
+        background-color: red;
+        border-radius: 50%;
+        z-index: 888;
+    }
 </style>
 {% endblock %}
 
@@ -66,7 +76,6 @@
         </button>
     </div>
 </div>
-{% endif %}
 
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight"
     aria-labelledby="offcanvasRightLabel">
@@ -77,10 +86,10 @@
             aria-label="Close"></button>
     </div>
     <div class="offcanvas-body">
-        {% include
-             'pastas/forms/pasta_add.html' %}
+        {% include 'pastas/forms/pasta_add.html' %}
     </div>
 </div>
+{% endif %}
 
 <div class="row">
     
@@ -104,11 +113,12 @@
                                     <h3><a href="{% url 'detail-pasta' item.pasta.pk %}" class="trilha-nome">{{ item.pasta.nome }}</a></h3>
                                     {% if request.user.type != 'LEI' %}
                                     <h3>
-                                        <a class="btn-primary" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#staticBackdrop{{ item.pasta.pk }}">
+                                        <a class="btn-primary" style="cursor: pointer;" onclick="fetchPastaDetail('{{ item.pasta.pk }}')"
+                                         data-bs-toggle="modal"  data-bs-target="#staticBackdrop{{ item.pasta.pk }}">
                                             <div class="notification-icon" style="position: relative; display: inline-block;">
                                                 <i class="fa-solid fa-bell"></i>
-                                                {% if item.nomes_funcionarios %}
-                                                    <span class="notification-count">{{ item.total_funcionarios }}</span> 
+                                                {% if item.possui_avaliacao_pendente %}
+                                                    <span id="notification-dot"></span>
                                                 {% endif %}
                                             </div>
                                         </a>
@@ -228,7 +238,12 @@
         const justificativa = document.getElementById(`justificativa_avaliacao${pastaId}`);
         const checkboxSim = document.getElementById(`sim${pastaId}`); // Agregou valor
         const checkboxNao = document.getElementById(`nao${pastaId}`); // Não agregou valor
-
+        textResposta.innerHTML = `<p class="placeholder-glow">
+                                    <span class="placeholder col-10 rounded-pill"></span>
+                                  </p>`;
+        justificativa.value = "";                               
+        checkboxSim.checked = false;
+        checkboxNao.checked = false;                           
         // Verifique se um colaborador foi selecionado
         if (collaborator) {
             // Crie a URL para o GET request
@@ -258,6 +273,59 @@
         }
     }
 
+</script>
 
+<script>
+    function fetchPastaDetail(pastaId) {
+        // URL da view no backend que vai lidar com o detalhe da pasta
+        const url = `${pastaId}/funcionarios-avaliaram`;
+        const select = document.getElementById(`filter_collaborator${pastaId}`);
+        select.innerHTML = '<option value="" selected>Carregando...</option>'; // Reseta as opções
+        const resposta_parecer_rh = document.getElementById(`resposta_parecer_rh${pastaId}`);
+        const resposta_avaliacao_chefia = document.getElementById(`resposta_avaliacao_chefia${pastaId}`);
+        const resposta_do_colaborador_selecionado = document.getElementById(`resposta_do_colaborador_selecionado${pastaId}`);
+        if(resposta_parecer_rh){
+            resposta_parecer_rh.style.display = "none";
+        }
+        if(resposta_do_colaborador_selecionado){
+            resposta_do_colaborador_selecionado.style.display = "none";
+        }
+        if(resposta_avaliacao_chefia){
+            resposta_avaliacao_chefia.style.display = "none";
+        }
+        // Fazer a requisição para a view no backend
+        fetch(url, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest', // Identifica que é uma requisição AJAX
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCSRFToken() // Função para obter o CSRF token
+            },
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Erro na requisição');
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Lógica para lidar com a resposta do backend (ex.: redirecionar ou exibir detalhes)
+            select.innerHTML = '<option value="" selected>-------</option>'; // Reseta as opções
+            console.log(data.usuarios_avaliados)
+            data.usuarios_avaliados.forEach(collaborator => {
+                const option = document.createElement('option');
+                option.value = `${collaborator.usuario__first_name} ${collaborator.usuario__last_name}`; // ID do colaborador
+                option.textContent = `${collaborator.usuario__first_name} ${collaborator.usuario__last_name}`; // Nome completo
+                select.appendChild(option);
+            });
+        })
+        .catch(error => console.error('Erro ao buscar detalhes da pasta:', error));
+    }
+
+// Função para obter o CSRF token do cookie
+function getCSRFToken() {
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    return csrfToken;
+}
 </script>
 {% endblock %}

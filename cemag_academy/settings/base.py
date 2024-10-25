@@ -66,18 +66,18 @@ TEMPLATES = [
 WSGI_APPLICATION = 'cemag_academy.wsgi.application'
 
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    # },
 ]
 
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
@@ -100,6 +100,13 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = '/home'  # Define a URL de redirecionamento após o login
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST='smtp.gmail.com'
+EMAIL_PORT=587
+EMAIL_USE_TLS=True
+EMAIL_HOST_USER='saulsantos111@gmail.com'
+EMAIL_HOST_PASSWORD='xqwn khso iedb xeae'
+DEFAULT_FROM_EMAIL='saulsantos111@gmail.com'
+
 # Static files
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [

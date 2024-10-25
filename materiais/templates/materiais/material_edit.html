@@ -6,7 +6,7 @@
 
 <div>
     <h1 class="mb-4">Editar Material</h1>
-    <form method="post" enctype="multipart/form-data">
+    <form id="material-edit" method="post" enctype="multipart/form-data">
         {% csrf_token %}
         <div class="card col-12 col-sm-12 col-md-12 col-lg-12 col-xl-7 m-auto mt-4">
             <div class="card-header fw-bold">Editar Material</div>
@@ -32,7 +32,7 @@
                     <div class="col-sm-6 mb-4">
                         <label for="{{ form.arquivo.id_for_label }}">Arquivo</label>
                         {{ form.arquivo }}
-                        <small>Extensões permitidas: <code>pdf, doc, docx, txt</code></small>
+                        <small>Extensões permitidas: <code>pdf, doc, docx</code></small>
                     </div>
                     <div class="col-sm-6 mb-4">
                         <label for="{{ form.fotos.id_for_label }}">Fotos</label>
@@ -46,12 +46,65 @@
                         {{ form.video_youtube }}
                     </div>
                 </div>
-                <div class="text-end">
-                    <button type="submit" class="btn btn-primary">Salvar</button>
+                <div class="d-flex justify-content-end">
+                    <div class="d-flex justify-content-end">
+                        <button id="submit-edit" class="btn btn-primary mt-4" type="submit">
+                            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                            <span id="button-text">Editar</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </form>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('material-edit').addEventListener('submit', function() {
+        var submitButton = document.getElementById('submit-edit');
+        submitButton.disabled = true; // Desabilita o botão
+        submitButton.querySelector('.spinner-border').classList.remove('d-none'); // Exibe o spinner
+        document.getElementById('button-text').textContent = 'Editando...'; // Altera o texto
+    });
+
+    const videoInput = document.getElementById('id_video');
+    const arquivoInput = document.getElementById('id_arquivo');
+    const fotosInput = document.getElementById('id_fotos');
+    videoInput.setAttribute('accept', '.mp4');
+    arquivoInput.setAttribute('accept', '.pdf, .doc, .docx');
+    fotosInput.setAttribute('accept', '.png, .jpeg, .jpg');
+
+    videoInput.addEventListener('change', function() {
+    const file = this.files[0];
+    const allowedExtensions = /(\.mp4)$/i;
+
+    if (!allowedExtensions.exec(file.name)) {
+        alert('Por favor, selecione um arquivo de vídeo com a extensão .mp4');
+        this.value = ''; // Limpa o input
+    }
+    });
+
+    arquivoInput.addEventListener('change', function() {
+    const file = this.files[0];
+    const allowedExtensions = /(\.pdf|\.doc|\.docx)$/i;
+
+    if (!allowedExtensions.exec(file.name)) {
+        alert('Por favor, selecione um arquivo com uma das seguintes extensões: .pdf, .doc, .docx, .txt');
+        this.value = '';
+    }
+    });
+
+    fotosInput.addEventListener('change', function() {
+    const file = this.files[0];
+    const allowedExtensions = /(\.png|\.jpeg|\.jpg)$/i;
+
+    if (!allowedExtensions.exec(file.name)) {
+        alert('Por favor, selecione uma imagem com uma das seguintes extensões: .png, .jpeg, .jpg');
+        this.value = '';
+    }
+    });
+</script>
 {% endblock %}

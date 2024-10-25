@@ -6,8 +6,8 @@
 
 {% block content %}
 <div>
-    <h2>Corrigir Questões Dissertativas - {{ prova.titulo }}</h2>
-    <h3>Funcionário: {{ funcionario.matricula }} - {{ funcionario.first_name }} {{ funcionario.last_name }}</h3>
+    <h2 class="mb-4">Corrigir Questões Dissertativas - {{ prova.titulo }}</h2>
+    <h6 class="mb-4">Funcionário: {{ funcionario.matricula }} - {{ funcionario.first_name }} {{ funcionario.last_name }}</h6>
 
     <form method="post">
         {% csrf_token %}
@@ -22,7 +22,9 @@
             {% endfor %}
                 <button class="btn btn-primary" type="submit">Salvar Correções</button>
             {% else %}
-            <strong>Não possui questões dissertativas</strong>
+            <div class="alert alert-danger" role="alert">
+                Não possui questões dissertativas
+            </div>
         {% endif %}
     </form>
     

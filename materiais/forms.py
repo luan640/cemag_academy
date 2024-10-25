@@ -26,12 +26,10 @@ class AddPasta(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.fields['setores'].queryset = Setor.objects.all()
-        self.fields['setores'].required = False  # Torna o campo não obrigatório
-
-        # Atualiza as opções de funcionários para exibir o nome do setor
-        self.fields['funcionarios'].queryset = Funcionario.objects.all()
-        self.fields['funcionarios'].label_from_instance = lambda obj: f"{obj.display_name()} {'(LÍD)' if obj.is_leader() else ''}"
+        
+        # Use select_related to avoid additional queries for user
+        self.fields['funcionarios'].queryset = Funcionario.objects.select_related('user').prefetch_related('setor').all()
+        self.fields['funcionarios'].label_from_instance = lambda obj: f"{obj.display_name()} {'(LÍD)' if obj.user and obj.user.type == 'LID' else ''}"
 
         for field_name, field in self.fields.items():
             if not isinstance(field.widget, forms.HiddenInput) and not isinstance(field.widget, forms.CheckboxSelectMultiple):

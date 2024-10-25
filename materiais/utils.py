@@ -1,9 +1,4 @@
 from materiais.models import Pasta,Material,Visualizacao
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import A4, landscape
-from reportlab.lib.units import mm
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
-from reportlab.lib.styles import getSampleStyleSheet
 
 class ProgressoTrilha:
 
@@ -12,22 +7,19 @@ class ProgressoTrilha:
         self.pastas = pastas
 
     def calcular_progresso_pasta(self, pasta):
-        materiais_pasta = Material.objects.filter(pasta=pasta)
-        visualizacoes_pasta = Visualizacao.objects.filter(funcionario=self.funcionario, material__in=materiais_pasta)
-        
-        total_materiais = materiais_pasta.count()
-        total_visualizados = visualizacoes_pasta.count()
+        materiais_count = Material.objects.filter(pasta=pasta).count()
+        visualizacoes_count = Visualizacao.objects.filter(
+            funcionario=self.funcionario,
+            material__pasta=pasta
+        ).count()
 
-        if total_materiais > 0:
-            progresso = (total_visualizados / total_materiais) * 100
-        else:
-            progresso = 0
-
+        progresso = (visualizacoes_count / materiais_count) * 100 if materiais_count > 0 else 0
         return progresso
 
     def calcular_progresso_trilhas(self):
-    # Otimizar utilizando agregações e cálculos no banco de dados, se possível
-        progresso_pasta = {pasta.nome: self.calcular_progresso_pasta(pasta) for pasta in self.pastas}
+        progresso_pasta = {
+            pasta.nome: self.calcular_progresso_pasta(pasta) for pasta in self.pastas
+        }
         return progresso_pasta
 
     def calcular_media_progresso_area_trilha(self, progresso_pasta, pastas):
