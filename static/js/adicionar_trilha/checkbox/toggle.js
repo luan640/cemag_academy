@@ -36,8 +36,6 @@ document.querySelectorAll('.setor-checkbox').forEach(function(setorCheckbox) {
         document.querySelectorAll('.funcionario-checkbox').forEach(function(funcionarioCheckbox) {
             // Verifica se o funcionário pertence ao setor marcado
             const funcionarioSetor = funcionarioCheckbox.parentElement.textContent.trim();
-            console.log(funcionarioSetor)
-            console.log(funcionarioSetor.includes(`(${setorNome})`))
             // Se o nome do setor estiver no texto do funcionário, marca/desmarca o checkbox
             if (funcionarioSetor.includes(`(${setorNome})`)) {
                 funcionarioCheckbox.checked = setorCheckbox.checked;

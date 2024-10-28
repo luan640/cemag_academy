@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
         });
-
+        // Atualiza a exibição dos funcionários
         // Atualiza a exibição dos funcionários
         filtrarFuncionarios();
     });
