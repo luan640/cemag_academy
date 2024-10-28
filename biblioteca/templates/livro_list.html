@@ -188,28 +188,30 @@
 
 <h1>Biblioteca Cemag</h1>
 
-<div class="row mb-3">
-    <div class="col-lg-8 mx-auto text-end">
-        <button class="btn btn-pastel" type="button" data-bs-toggle="offcanvas"
-            data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
-            <i class="fas fa-plus"></i> Adicionar livro
-        </button>
+{% if request.user.type == 'ADM' %}
+    <div class="row mb-3">
+        <div class="col-lg-8 mx-auto text-end">
+            <button class="btn btn-pastel" type="button" data-bs-toggle="offcanvas"
+                data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+                <i class="fas fa-plus"></i> Adicionar livro
+            </button>
+        </div>
     </div>
-</div>
 
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight"
-    aria-labelledby="offcanvasRightLabel">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasRightLabel">Adicionar Livro</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"
-            aria-label="Close"></button>
+    <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight"
+        aria-labelledby="offcanvasRightLabel">
+        <div class="offcanvas-header">
+            <h5 class="offcanvas-title" id="offcanvasRightLabel">Adicionar Livro</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas"
+                aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            {% include 'forms/livro_add.html' %}
+        </div>
     </div>
-    <div class="offcanvas-body">
-        {% include 'forms/livro_add.html' %}
-    </div>
-</div>
+{% endif %}
 
-<div class="row">
+<div class="row mt-4">
     
     <div class="col-lg-8 mx-auto">
         <div class="card">

@@ -76,18 +76,18 @@ def pastas_list(request):
 
     # Filtrando as pastas com base no tipo de usuário logado
     if request.user.type in ['ADM', 'DIR']:
-        pastas = Pasta.objects.all().select_related('created_by').prefetch_related('setores', 'funcionarios')
+        pastas = Pasta.objects.all().select_related('created_by').prefetch_related('setores', 'funcionarios').order_by("id")
     elif request.user.type == 'LID':
         pastas = Pasta.objects.filter(
             Q(created_by=request.user) |
             Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
-        ).distinct().select_related('created_by').prefetch_related('setores', 'funcionarios')
+        ).distinct().select_related('created_by').prefetch_related('setores', 'funcionarios').order_by("id")
     else:
         pastas = Pasta.objects.filter(
             Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
-        ).distinct().select_related('created_by').prefetch_related('setores', 'funcionarios')
+        ).distinct().select_related('created_by').prefetch_related('setores', 'funcionarios').order_by("id")
 
     # Obter as avaliações pendentes de forma otimizada
     if request.user.type == 'ADM':
@@ -105,7 +105,8 @@ def pastas_list(request):
         avaliacoes_pendentes = AvaliacaoEficacia.objects.filter(
             pasta__in=pastas,
             usuario__type = 'LEI',
-            avaliado_chefia=False
+            avaliado_chefia=False,
+            usuario__funcionario__setor = request.user.funcionario.setor
         ).values_list('pasta_id', flat=True)
     else:
         avaliacoes_pendentes = []
@@ -141,7 +142,11 @@ def funcionarios_avaliaram(request, pk):
         if request.user.type == "ADM":
             usuarios_avaliados = list(avaliacoes.filter(avaliado_rh=False).values('usuario__first_name', 'usuario__last_name'))
         elif request.user.type == "LID":
-            usuarios_avaliados = list(avaliacoes.filter(avaliado_chefia=False, usuario__type='LEI').values('usuario__first_name', 'usuario__last_name'))
+            usuarios_avaliados = list(avaliacoes.filter(
+                avaliado_chefia=False,
+                usuario__type='LEI',
+                usuario__funcionario__setor=request.user.funcionario.setor
+            ).values('usuario__first_name', 'usuario__last_name'))
         else:
             usuarios_avaliados = list(avaliacoes.filter(avaliado_chefia=False, usuario__type='LID').values('usuario__first_name', 'usuario__last_name'))
 
@@ -162,7 +167,9 @@ def pastas_detail(request, pk):
 
     existe_avaliacao_eficacia = resposta_avaliacao_eficacia.exists()
     
-    materiais = Material.objects.filter(pasta=pasta)
+    materiais = Material.objects.filter(pasta=pasta).order_by("id")
+
+    print(materiais)
 
     visualizacoes = Visualizacao.objects.filter(
         funcionario__matricula=request.user.matricula,
@@ -759,24 +766,6 @@ def list_participantes(request, pk):
         'prova': prova
     })
 
-# def gerar_certificado(request, pk):
-    
-#     template = get_template('certificados/certificado1.html')  # Carrega o template HTML
-#     context = {'teste':'teste'}  # Passa os dados para o template
-#     html = template.render(context)  # Renderiza o HTML
-
-#     # Converte o HTML renderizado em PDF
-#     pdf = BytesIO()
-#     pisa.CreatePDF(BytesIO(html.encode('UTF-8')), dest=pdf)  # Converte HTML para PDF
-
-#     # Configuração da resposta HTTP
-#     response = HttpResponse(pdf.getvalue(), content_type='application/pdf')
-#     response['Content-Disposition'] = f'attachment; filename="certificado_.pdf"'
-
-
-#     return response
-    
-#     # return render(request, "certificados/certificado1.html")
 @login_required
 def gerar_certificado(request):
     

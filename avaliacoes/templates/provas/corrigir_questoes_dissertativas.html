@@ -14,7 +14,7 @@
         {{ formset.management_form }}
         {% if questoes_e_respostas %}
             {% for form, enunciado, resposta in questoes_e_respostas %}
-                <div class="questao">
+                <div class="questao col-12 col-sm-12 col-md-6 col-lg-5 col-xl-5 mb-4">
                     <h4>{{ enunciado }}</h4>
                     <p>Resposta do usuário: {{ resposta }}</p>
                     {{ form.as_table }}

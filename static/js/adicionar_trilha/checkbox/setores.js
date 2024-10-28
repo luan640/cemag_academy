@@ -11,8 +11,9 @@ document.addEventListener('DOMContentLoaded', function () {
                     checkbox.checked = true; // Marca o checkbox do funcionário se ele for um líder
                 }
             } else {
-                // Desmarca todos os checkboxes se o checkbox "Líder" não estiver marcado
-                checkbox.checked = false;
+                if (checkbox.parentElement.innerText.includes('(LÍD)')) {
+                    checkbox.checked = false; // Marca o checkbox do funcionário se ele for um líder
+                }
             }
         });
 

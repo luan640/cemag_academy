@@ -9,6 +9,7 @@
 {% block content %}
 
 <div class="row">
+    <a style="color: black; text-decoration: none;" href="{% url 'detail-pasta' pasta.id %}"><i class="fa-solid fa-arrow-left"></i> Voltar</a>
     <div class="col-md-7 order-2 order-md-1">
         <h1 class="mb-4 mt-4" style="font-size: 25px;">Provas para a trilha: {{ pasta.nome }}</h1>
         <div class="card">                   
@@ -30,7 +31,7 @@
                         <div class="list-group-item">
                             {% if prova.possui_dissertativas and not provas_corrigidas|get_item:prova.id and realizou_provas|get_item:prova.id %}
                                 {% if request.user.type != 'ADM' and request.user.id != pasta.created_by.id %}
-                                    <code style="font-weight: 600;">Aguardando correção</code> 
+                                    <code style="font-weight: 600;">Aguardando correção da dissertativa</code> 
                                 {% endif %}
                             {% endif %}
                             <p style="font-weight: 600;">{{ prova.titulo }}</p> 

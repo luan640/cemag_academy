@@ -50,11 +50,11 @@
 </form>
 
 {% if form_errors %}
-<div class="errors">
-    <h3>Erros no formulário:</h3>
-    <ul>
+<div class="alert alert-danger mt-4" role="alert">
+    <h3 class="alert-heading">Erros no formulário:</h3>
+    <ul class="mb-0">
         {% for field, errors in form_errors.items %}
-            <li>{{ field }}: {{ errors|join:", " }}</li>
+            <li><strong>{{ field }}:</strong> {{ errors|join:", " }}</li>
         {% endfor %}
     </ul>
 </div>
