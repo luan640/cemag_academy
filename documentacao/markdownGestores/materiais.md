@@ -1,0 +1,1 @@
+<!-- >**Nota 2**: O supervisor só conseguirá editar as informações da trilha que foram criadas por ele, caso um ADM crie uma trilha, a visualização do supervisor ficará igual a do colaborador. -->
