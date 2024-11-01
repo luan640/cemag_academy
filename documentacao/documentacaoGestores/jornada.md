@@ -6,4 +6,4 @@
 
 > **Nota 2:** Esta página está disponível exclusivamente para administradores.
 
-[Página anterior](/documentacao/markdownGestores/avaliarTrilha.md) --- [Próxima Página](/documentacao/markdownGestores/prova.md)
+[Página anterior](/documentacao/documentacaoGestores/avaliarTrilha.md) --- [Próxima Página](/documentacao/documentacaoGestores/prova.md)

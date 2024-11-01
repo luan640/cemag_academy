@@ -20,4 +20,4 @@
 
 ---
 
-[Próxima página](/documentacao/markdownGestores/dashboard.md)
+[Próxima página](/documentacao/documentacaoGestores/dashboard.md)

@@ -13,4 +13,4 @@
 
 ---
 
-[Página anterior](/documentacao/markdownGestores/certificado.md) --- [Página Inicial da documentação](/README.md)
+[Página anterior](/documentacao/documentacaoGestores/certificado.md) --- [Página Inicial da documentação](/README.md)

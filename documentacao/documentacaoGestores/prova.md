@@ -23,7 +23,7 @@
 
 #### Lista de provas
 
-- Na lista de provas, serão exibidas todas as provas atribuídas a essa trilha, mostrando o [certificado](/documentacao/markdownGestores/certificado.md) somente para colaboradores, supervisores (caso não tenham criado a trilha) e para o diretor.
+- Na lista de provas, serão exibidas todas as provas atribuídas a essa trilha, mostrando o [certificado](/documentacao/documentacaoGestores/certificado.md) somente para colaboradores, supervisores (caso não tenham criado a trilha) e para o diretor.
 
 - Funcionalidades incluem:
   - **Visualizar**: provas criadas. 
@@ -61,7 +61,7 @@
 
 #### Lista de provas
 
-- Na lista de provas, serão exibidas todas as provas atribuídas a essa trilha, mostrando o [certificado](/documentacao/markdownGestores/certificado.md) somente para colaboradores, supervisores (caso não tenham criado a trilha) e para o diretor.
+- Na lista de provas, serão exibidas todas as provas atribuídas a essa trilha, mostrando o [certificado](/documentacao/documentacaoGestores/certificado.md) somente para colaboradores, supervisores (caso não tenham criado a trilha) e para o diretor.
 
 - Funcionalidades incluem:
   - **Realizar**: Prova.
@@ -79,4 +79,4 @@
 
 ---
 
-[Página anterior](/documentacao/markdownGestores/jornada.md) --- [Próxima Página](/documentacao/markdownGestores/certificado.md)
+[Página anterior](/documentacao/documentacaoGestores/jornada.md) --- [Próxima Página](/documentacao/documentacaoGestores/certificado.md)

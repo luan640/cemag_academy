@@ -18,4 +18,4 @@
 
 ---
 
-[Página anterior](/documentacao/markdownGestores/cadastros.md) --- [Próxima página](/documentacao/markdownGestores/materiais.md)
+[Página anterior](/documentacao/documentacaoGestores/cadastros.md) --- [Próxima página](/documentacao/documentacaoGestores/materiais.md)

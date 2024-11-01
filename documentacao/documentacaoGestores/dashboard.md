@@ -22,4 +22,4 @@
 
 ---
 
-[Página anterior](/documentacao/markdownGestores/login.md) --- [Próxima página](/documentacao/markdownGestores/cadastros.md)
+[Página anterior](/documentacao/documentacaoGestores/login.md) --- [Próxima página](/documentacao/documentacaoGestores/cadastros.md)

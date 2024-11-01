@@ -18,4 +18,4 @@
 
 ---
 
-[Página anterior](/documentacao/markdownGestores/prova.md) --- [Próxima Página](/documentacao/markdownGestores/livros.md)
+[Página anterior](/documentacao/documentacaoGestores/prova.md) --- [Próxima Página](/documentacao/documentacaoGestores/livros.md)

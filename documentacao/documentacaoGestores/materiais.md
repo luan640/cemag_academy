@@ -58,7 +58,7 @@
   - Título e descrição do material.
 - **Acessar Material**: O usuário pode clicar no material para visualizá-lo em uma janela modal.
 - **Marcar como Visualizado**: Botão para marcar o material como visualizado, atualizando o progresso da trilha.
-- **Avaliar a Trilha**: O botão de [avaliar trilha](/documentacao/markdownGestores/list_trilhas.md) estará disponível após a visualização de todos os materiais. Enquanto o usuário não avaliar, o status permanecerá como **Pendente 🕝**. Após a avaliação, o status será **Concluída ✅**, impedindo o usuário de avaliar a trilha novamente.
+- **Avaliar a Trilha**: O botão de [avaliar trilha](/documentacao/documentacaoGestores/list_trilhas.md) estará disponível após a visualização de todos os materiais. Enquanto o usuário não avaliar, o status permanecerá como **Pendente 🕝**. Após a avaliação, o status será **Concluída ✅**, impedindo o usuário de avaliar a trilha novamente.
 
 ![Lista de Materiais do Colaborador](/documentacao/imgs_documentacao/listacolMATERIAL.png)
 
@@ -87,4 +87,4 @@
 
 ---
 
-[Página anterior](/documentacao/markdownGestores/list_trilhas.md) --- [Próxima página](/documentacao/markdownGestores/avaliarTrilha.md)
+[Página anterior](/documentacao/documentacaoGestores/list_trilhas.md) --- [Próxima página](/documentacao/documentacaoGestores/avaliarTrilha.md)

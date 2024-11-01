@@ -37,4 +37,4 @@
 
 --- 
 
-[Página anterior](/documentacao/markdownGestores/materiais.md) --- [Próxima Página](/documentacao/markdownGestores/jornada.md)
+[Página anterior](/documentacao/documentacaoGestores/materiais.md) --- [Próxima Página](/documentacao/documentacaoGestores/jornada.md)
