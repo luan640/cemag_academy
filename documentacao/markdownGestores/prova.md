@@ -1,13 +1,32 @@
 ## Gerenciamento de Acesso às Provas
 
-> Consulte a documentação de [materiais](/documentacao/markdownGestores/materiais.md) para ver como entrar na aba de provas.
+### Visualização do Administrador ou Supervisor que criou a trilha
 
-### Visualização do Administrador
+#### Acesso a prova
+ - Para ter acesso a área de provas deverá clicar em visualizar provas.
+
+![alt text](/documentacao/imgs_documentacao/entraradmPROVA.png)
+
+#### Criar prova
+
+- O botão de Add Prova vai encaminhar para uma página de criação de prova.
+- Poderá adicionar quantas questões quiser, sendo elas objetiva e dissertativa.
+- Ao clicar em **➕**, será adicionada uma nova questão e ao clicar em 🗑️, a última questão criada será removida.
+- Como mensionado anteriormente, terá dois tipos de questões, dissertativa e objetiva, ao selecionar objetiva em "**Tipo**", exibirá dois botões, ***Adicionar alternativa*** e ***Excluir alternativa*** (para remover a última alternativa criada).
+- Ao clicar em ✅, será encaminhado para a lista de provas e vai criar a nova prova. 
+
+![alt text](/documentacao/imgs_documentacao/criarPROVA.png)
+
+![alt text](/documentacao/imgs_documentacao/adicionarALTERNATIVA.png)
+
+>**Nota**: Fiquem atentos na hora de criar a prova, por enquanto não tem nenhuma área para administradores editarem as questões, mas caso aconteça qualquer tipo de erro, entrar em contato com um dos desenvolvedores para aplicar essas edições.
+
+#### Lista de provas
 
 - Na lista de provas, serão exibidas todas as provas atribuídas a essa trilha, mostrando o [certificado](/documentacao/markdownGestores/certificado.md) somente para colaboradores, supervisores (caso não tenham criado a trilha) e para o diretor.
 
 - Funcionalidades incluem:
-  - **Adicionar**: Adicionar novas provas.
+  - **Visualizar**: provas criadas. 
   - **Visualizar**: Informações sobre os participantes.
   - **Excluir**: Provas existentes.
 
@@ -35,6 +54,13 @@
 
 ### Visualização do Colaborador
 
+#### Acesso a prova
+ - Para ter acesso a área de provas deverá clicar em Provas disponíveis, esse botão só estará disponível se todos os campos de ***Marcar como visualizado*** estiverem marcados.
+
+![alt text](/documentacao/imgs_documentacao/entrarcolPROVA.png)
+
+#### Lista de provas
+
 - Na lista de provas, serão exibidas todas as provas atribuídas a essa trilha, mostrando o [certificado](/documentacao/markdownGestores/certificado.md) somente para colaboradores, supervisores (caso não tenham criado a trilha) e para o diretor.
 
 - Funcionalidades incluem:
@@ -50,3 +76,7 @@
 - Se a prova possuir apenas questões objetivas, a nota é imediata.
 
   ![Exemplo de Prova](/documentacao/imgs_documentacao/exemploPROVA.png)
+
+---
+
+[Página anterior](/documentacao/markdownGestores/jornada.md) --- [Próxima Página](/documentacao/markdownGestores/certificado.md)

@@ -34,3 +34,7 @@
 
   ![Menu Jornada](/documentacao/imgs_documentacao/outramaneiraAVALIACAO.png)
   ![Avaliação Realizada](/documentacao/imgs_documentacao/outramaneira2AVALIACAO.png)
+
+--- 
+
+[Página anterior](/documentacao/markdownGestores/materiais.md) --- [Próxima Página](/documentacao/markdownGestores/jornada.md)

@@ -5,3 +5,5 @@
 > **Nota:** As informações do funcionário só serão exibidas se ele possuir um usuário cadastrado. Caso contrário, um alerta informará que o usuário não foi encontrado.
 
 > **Nota 2:** Esta página está disponível exclusivamente para administradores.
+
+[Página anterior](/documentacao/markdownGestores/avaliarTrilha.md) --- [Próxima Página](/documentacao/markdownGestores/prova.md)

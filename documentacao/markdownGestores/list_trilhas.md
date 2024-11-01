@@ -15,3 +15,7 @@
   ![Adicionar Trilha](/documentacao/imgs_documentacao/adicionarTRILHA.png)
 
 > **Nota**: O botão para adicionar trilhas está disponível apenas para administradores e supervisores.
+
+---
+
+[Página anterior](/documentacao/markdownGestores/cadastros.md) --- [Próxima página](/documentacao/markdownGestores/materiais.md)

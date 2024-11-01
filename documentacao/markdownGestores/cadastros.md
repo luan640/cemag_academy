@@ -70,4 +70,7 @@
 </div>
 
 ![Editar Área](/documentacao/imgs_documentacao/editarAREA.png)
+
 ---
+
+[Página anterior](/documentacao/markdownGestores/dashboard.md) --- [Próxima página](/documentacao/markdownGestores/list_trilhas.md)

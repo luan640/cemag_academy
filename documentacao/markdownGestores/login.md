@@ -4,7 +4,6 @@
 
 - **Colaboradores**:
    - A senha inicial é configurada igual à matrícula.
-   - Consultar os desenvolvedores caso queiram alterar a senha dos usuários.
 
 - **Administradores**:
    - Não utilizam números de matrícula.
@@ -20,3 +19,5 @@
 ![Tela de Login](/documentacao/imgs_documentacao/login.png)
 
 ---
+
+[Próxima página](/documentacao/markdownGestores/dashboard.md)

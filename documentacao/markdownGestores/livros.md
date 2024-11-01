@@ -10,3 +10,7 @@
   ![Detalhes do Livro](/documentacao/imgs_documentacao/LIVROS.png)
 
 > **Nota**: O campo para editar informações dos livros não está disponível no momento. Em caso de erros de digitação ou outras necessidades de edição, fale com um dos desenvolvedores para realizar a alteração.
+
+---
+
+[Página anterior](/documentacao/markdownGestores/certificado.md) --- [Página Inicial da documentação](/README.md)

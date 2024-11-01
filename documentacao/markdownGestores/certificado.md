@@ -15,3 +15,7 @@
 - Em **Materiais >> Certificado**, é possível consultar o certificado utilizando o identificador fornecido.
 
   ![Consulta de Certificado](/documentacao/imgs_documentacao/consultarCERTIFICADO.png)
+
+---
+
+[Página anterior](/documentacao/markdownGestores/prova.md) --- [Próxima Página](/documentacao/markdownGestores/livros.md)
