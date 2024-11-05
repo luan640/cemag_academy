@@ -16,7 +16,7 @@
 
 ## Exemplo de Tela de Login
 
-![Tela de Login](/documentacao/imgs_documentacao/1_login.png)
+![Tela de Login](/documentacao/imgs_documentacao/login.png)
 
 ---
 
