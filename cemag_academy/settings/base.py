@@ -103,9 +103,9 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST='smtp.gmail.com'
 EMAIL_PORT=587
 EMAIL_USE_TLS=True
-EMAIL_HOST_USER='saulsantos111@gmail.com'
-EMAIL_HOST_PASSWORD='xqwn khso iedb xeae'
-DEFAULT_FROM_EMAIL='saulsantos111@gmail.com'
+EMAIL_HOST_USER='ti.cemag@cemag.com.br'
+EMAIL_HOST_PASSWORD='koys sccb hnoj nrbb'
+DEFAULT_FROM_EMAIL='ti.cemag@cemag.com.br'
 
 # Static files
 STATIC_URL = 'static/'
