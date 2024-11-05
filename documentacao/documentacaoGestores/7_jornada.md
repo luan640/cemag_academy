@@ -6,4 +6,4 @@
 
 > **Nota 2:** Esta página está disponível exclusivamente para administradores.
 
-[Página anterior](/documentacao/documentacaoGestores/avaliarTrilha.md) --- [Próxima Página](/documentacao/documentacaoGestores/prova.md)
+[Página anterior](/documentacao/documentacaoGestores/6_avaliarTrilha.md) --- [Próxima Página](/documentacao/documentacaoGestores/8_prova.md)

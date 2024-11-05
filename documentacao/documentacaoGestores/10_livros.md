@@ -1,7 +1,7 @@
 # Biblioteca de Livros de Aprendizagem
 
 ### Visão Geral da Lista de Livros
-- O campo de avaliação dos livros está disponível para **colaboradores**, **supervisores** e **diretores**. Para administradores, é exibida a **média geral das avaliações**.
+- O campo de avaliação dos livros está disponível para **colaboradores**, **supervisores** e **diretor**. Para administradores, é exibida a **média geral das avaliações**.
 
   ![Lista de Livros](/documentacao/imgs_documentacao/listaLIVROS.png)
 
@@ -13,4 +13,4 @@
 
 ---
 
-[Página anterior](/documentacao/documentacaoGestores/certificado.md) --- [Página Inicial da documentação](/README.md)
+[Página anterior](/documentacao/documentacaoGestores/9_certificado.md) --- [Página Inicial da documentação](/README.md)

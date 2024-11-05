@@ -79,4 +79,4 @@
 
 ---
 
-[Página anterior](/documentacao/documentacaoGestores/jornada.md) --- [Próxima Página](/documentacao/documentacaoGestores/certificado.md)
+[Página anterior](/documentacao/documentacaoGestores/7_jornada.md) --- [Próxima Página](/documentacao/documentacaoGestores/9_certificado.md)

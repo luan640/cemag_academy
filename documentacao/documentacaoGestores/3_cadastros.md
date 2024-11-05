@@ -73,4 +73,4 @@
 
 ---
 
-[Página anterior](/documentacao/documentacaoGestores/dashboard.md) --- [Próxima página](/documentacao/documentacaoGestores/list_trilhas.md)
+[Página anterior](/documentacao/documentacaoGestores/2_dashboard.md) --- [Próxima página](/documentacao/documentacaoGestores/4_list_trilhas.md)

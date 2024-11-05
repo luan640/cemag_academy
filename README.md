@@ -13,13 +13,13 @@ Bem-vindo ao projeto **Cemag Academy**. Este repositório contém vários módul
 
 ## Seções do projeto para os gestores
 
-- [Login](/documentacao/documentacaoGestores/login.md): Orientações sobre como realizar o login no sistema.
-- [Dashboard](/documentacao/documentacaoGestores/dashboard.md): Visão geral do painel de controle, onde os gestores podem visualizar métricas de desempenho, estatísticas de cursos e usuários ativos, bem como acessar funcionalidades rápidas.
-- [Cadastros](/documentacao/documentacaoGestores/cadastros.md): Instruções sobre como gerenciar o cadastro de usuários, incluindo a criação, edição e exclusão de usuários, funcionários, setores e área, além.
-- [Trilhas de Aprendizado](/documentacao/documentacaoGestores/list_trilhas.md): Detalhes sobre a criação e gerenciamento de trilhas de aprendizado.
-- [Materiais](/documentacao/documentacaoGestores/materiais.md): Diretrizes para gerenciar os materiais didáticos disponíveis, incluindo upload de novos conteúdos e a relação com os cursos.
-- [Avaliar Trilha](/documentacao/documentacaoGestores/avaliarTrilha.md): Processo de avaliação das trilhas de aprendizado, com foco em métodos de feedback, análise de resultados e ajustes necessários para melhorar a eficácia dos cursos.
-- [Jornada Funcionário](/documentacao/documentacaoGestores/jornada.md): Informações sobre como acompanhar a jornada de aprendizado dos funcionários, desde a inscrição em cursos até a conclusão e certificação.
-- [Prova](/documentacao/documentacaoGestores/prova.md): Orientações sobre a aplicação e gestão de provas, incluindo criação e análise de resultados.
-- [Certificado](/documentacao/documentacaoGestores/certificado.md): Processo de emissão de certificados de conclusão para os funcionários.
-- [Livros](/documentacao/documentacaoGestores/livros.md): Acesso e criação da biblioteca digital da cemagAcademy.
+- [Login](/documentacao/documentacaoGestores/1_login.md): Orientações sobre como realizar o login no sistema.
+- [Dashboard](/documentacao/documentacaoGestores/2_dashboard.md): Visão geral do painel de controle, onde os gestores podem visualizar métricas de desempenho, estatísticas de cursos e usuários ativos, bem como acessar funcionalidades rápidas.
+- [Cadastros](/documentacao/documentacaoGestores/3_cadastros.md): Instruções sobre como gerenciar o cadastro de usuários, incluindo a criação, edição e exclusão de usuários, funcionários, setores e área, além.
+- [Trilhas de Aprendizado](/documentacao/documentacaoGestores/4_list_trilhas.md): Detalhes sobre a criação e gerenciamento de trilhas de aprendizado.
+- [Materiais](/documentacao/documentacaoGestores/5_materiais.md): Diretrizes para gerenciar os materiais didáticos disponíveis, incluindo upload de novos conteúdos e a relação com os cursos.
+- [Avaliar Trilha](/documentacao/documentacaoGestores/6_avaliarTrilha.md): Processo de avaliação das trilhas de aprendizado, com foco em métodos de feedback, análise de resultados e ajustes necessários para melhorar a eficácia dos cursos.
+- [Jornada Funcionário](/documentacao/documentacaoGestores/7_jornada.md): Informações sobre como acompanhar a jornada de aprendizado dos funcionários, desde a inscrição em cursos até a conclusão e certificação.
+- [Prova](/documentacao/documentacaoGestores/8_prova.md): Orientações sobre a aplicação e gestão de provas, incluindo criação e análise de resultados.
+- [Certificado](/documentacao/documentacaoGestores/9_certificado.md): Processo de emissão de certificados de conclusão para os funcionários.
+- [Livros](/documentacao/documentacaoGestores/10_livros.md): Acesso e criação da biblioteca digital da cemagAcademy.
