@@ -52,10 +52,10 @@
 
     #notification-dot {
         position: absolute;
-        top: 2px;
+        top: 6px;
         right:-4px;
-        width: 10px;
-        height: 10px;
+        width: 8px;
+        height: 8px;
         background-color: red;
         border-radius: 50%;
         z-index: 888;
@@ -109,17 +109,20 @@
                         <div class="w-100">
                             <div>
                                 <div class="d-flex justify-content-between">
-                                    <h3><a href="{% url 'detail-pasta' item.pasta.pk %}" class="trilha-nome">{{ item.pasta.nome }}</a></h3>
+                                    <h3 class="w-75"><a href="{% url 'detail-pasta' item.pasta.pk %}" class="trilha-nome">{{ item.pasta.nome }}</a></h3>
                                     {% if request.user.type != 'LEI' %}
-                                    <h3>
-                                        <a class="btn-primary" style="cursor: pointer;" onclick="fetchPastaDetail('{{ item.pasta.pk }}')"
+                                    <h3 class="d-flex text-end" style="gap: 20px;">
+                                        <a style="cursor: pointer;" onclick="fetchPastaDetail('{{ item.pasta.pk }}')"
                                          data-bs-toggle="modal"  data-bs-target="#staticBackdrop{{ item.pasta.pk }}">
                                             <div class="notification-icon" style="position: relative; display: inline-block;">
-                                                <i class="fa-solid fa-bell"></i>
+                                                <i class="fa-solid fa-bell" style="color: #0d6efd; font-size: 20px;"></i>
                                                 {% if item.possui_avaliacao_pendente %}
                                                     <span id="notification-dot"></span>
                                                 {% endif %}
                                             </div>
+                                        </a>
+                                        <a style="cursor: pointer;" target="_blank" href="{% url 'frequencia-pasta' item.pasta.pk %}">
+                                            <i class="fa-solid fa-users" style="color: #0d6efd;font-size: 20px;"></i>
                                         </a>
                                     </h3>
                                     {% endif %}

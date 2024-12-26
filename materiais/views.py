@@ -663,37 +663,72 @@ def registrar_visualizacao(request):
 
 @login_required
 def gerar_ficha_frequencia(request, pk):
-    pasta = get_object_or_404(Pasta, pk=pk)  # Busca a pasta pelo ID
+    if request.method == 'GET':
+        pasta = get_object_or_404(Pasta, pk=pk)  # Busca a pasta pelo ID
 
-    total_materiais = Material.objects.filter(pasta=pasta).count()
+        funcionarios_info = []
+        for funcionario in pasta.funcionarios.exclude(user__type='ADM').order_by('nome'):
+            info = {
+                'nome': funcionario.nome,
+                'matricula': funcionario.matricula,
+            }
+            funcionarios_info.append(info)
+        
+        print(request.user.id)
 
-    # Subquery para calcular a contagem de materiais visualizados por funcionário
-    visualizacoes_por_funcionario = (
-        Visualizacao.objects
-        .filter(pasta=pasta)
-        .values('funcionario','visualizado_em')
-        .annotate(total_visualizados=Count('material'))
-        .filter(total_visualizados=total_materiais)
-    )
+        exists = AvaliacaoEficacia.objects.filter(pasta_id=pasta.id, usuario_id=request.user.id).exists()
+        respostas_avaliacao = RespostaAvaliacaoEficacia.objects.filter(avaliacao_eficacia__pasta_id=pasta.id, avaliacao_eficacia__usuario_id=request.user.id)
 
-    funcionario_ids = [v['funcionario'] for v in visualizacoes_por_funcionario]
+        return render(request, 'frequencia/ficha_frequencia.html', {
+            'pasta': pasta,
+            'data_criacao_pasta': pasta.created_at,
+            'nome_pasta': pasta.nome,
+            'id_pasta': pasta.id,
+            'funcionarios_info': funcionarios_info,
+            'avaliacao_exists': exists,
+            'respostas_avaliacao': respostas_avaliacao
+        })
+    if request.method == 'POST':
+        # Capturando os valores do formulário
+        valor_trabalho = request.POST.get('valor_trabalho')
+        justificativa = request.POST.get('justificativa')
 
-    funcionarios = Funcionario.objects.filter(id__in=funcionario_ids)
+        print(valor_trabalho)
+        print(justificativa)
 
-    # Lógica para gerar o PDF (utilizando reportlab ou outra biblioteca)
-    template = get_template('frequencia/ficha_frequencia.html')  # Carrega o template HTML
-    context = {'funcionarios': funcionarios, 'pasta': pasta, 'visualizacoes_por_funcionario': visualizacoes_por_funcionario}  # Passa os dados para o template
-    html = template.render(context)  # Renderiza o HTML
+        # Convertendo para booleano
+        eficacia_qualificacao = True if valor_trabalho == 'true' else False
 
-    # Converte o HTML renderizado em PDF
-    pdf = BytesIO()
-    pisa.CreatePDF(BytesIO(html.encode('UTF-8')), dest=pdf)  # Converte HTML para PDF
+        print(eficacia_qualificacao)
 
-    # Configuração da resposta HTTP
-    response = HttpResponse(pdf.getvalue(), content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="ficha_frequencia_{pasta.nome}.pdf"'
+        # Obter a instância da pasta correspondente
+        pasta = get_object_or_404(Pasta, id=pk)
 
-    return response
+        # Verificar se já existe uma avaliação para esse usuário e essa pasta
+        avaliacao_eficacia, created = AvaliacaoEficacia.objects.get_or_create(
+            pasta=pasta,
+            usuario=request.user
+        )
+
+        # Marcar como avaliado pela chefia ou RH, dependendo do tipo de usuário
+        if request.user.type == 'ADM':
+            avaliacao_eficacia.avaliado_rh = True
+            avaliacao_eficacia.avaliado_chefia = True
+        else:
+            return redirect('detail-pasta', pk=pk) 
+        
+        avaliacao_eficacia.save()
+
+        # Criar a resposta da avaliação
+        RespostaAvaliacaoEficacia.objects.create(
+            avaliacao_eficacia=avaliacao_eficacia,
+            eficacia_qualificacao=eficacia_qualificacao,
+            justificativa_qualificacao=justificativa,
+            usuario=request.user
+        )
+
+        # Redirecionar após o processamento
+        return redirect('list-pasta')
 
 @login_required
 def list_participantes(request, pk):

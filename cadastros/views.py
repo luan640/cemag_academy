@@ -53,7 +53,8 @@ def funcionario_edit(request, pk):
 @login_required
 def funcionario_delete(request, pk):
     funcionario = get_object_or_404(Funcionario,pk=pk)
-    funcionario.delete()
+    funcionario.excluido = True
+    funcionario.save()
 
     messages.success(request, 'Funcionario excluído com sucesso.')
 
@@ -63,7 +64,7 @@ def funcionario_delete(request, pk):
 @login_required
 def setor_cadastro(request):
     if request.user.type == "ADM":
-        setores = Setor.objects.all()  # Consulta fora do bloco if/else
+        setores = Setor.objects.filter(excluido=False)  # Filtra setores onde excluido é False
         if request.method == 'POST':
             form = AddSetor(request.POST)
             if form.is_valid():
@@ -103,7 +104,8 @@ def setor_edit(request, pk):
 @login_required
 def setor_delete(request, pk):
     setor = get_object_or_404(Setor,pk=pk)
-    setor.delete()
+    setor.excluido = True
+    setor.save()
 
     messages.success(request, 'Setor excluído com sucesso.')
 
@@ -147,7 +149,8 @@ def area_edit(request, pk):
 @login_required
 def area_delete(request, pk):
     area = get_object_or_404(Area,pk=pk)
-    area.delete()
+    area.excluido = True
+    area.save()
 
     messages.success(request, 'Area excluído com sucesso.')
 

@@ -1,142 +1,148 @@
-{% load custom_filters %}
-
 <!DOCTYPE html>
-
-<html>
-    <head>
-        <title>Ficha de Frequência</title>
-        <style>
-            .header-container {
-            display: flex;
-            align-items: flex-start; /* Alinha a logo ao topo */
-            justify-content: space-between;
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Frequência</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .header {
+            background-color: #f1f3f5;
+            padding: 20px 0;
+        }
+        .date {
+            font-size: 1.2em;
+            color: #6c757d;
+        }
+        .table-container {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             padding: 20px;
-            border-bottom: 1px solid #ccc;
-            }
-
-            .logo-container img {
-            max-width: 150px; /* Define um tamanho máximo para a logo */
-            height: auto;  /* Mantém a proporção da imagem */
-            }
-
-            .header-content table {
-            width: 300px; /* Largura fixa da tabela */
-            border-collapse: collapse; /* Mescla as bordas das células */
-            }
-
-            .header-content th, .header-content td {
-            padding: 8px;
-            border: 1px solid #ccc; /* Adiciona bordas às células */
-            text-align: left;
-            }
-        </style>
-    </head>
-    <body>
-
-        <div class="header-content">
-            <table>
-                <tr>
-                    <td rowspan="4">LOGO CEMAG</td>
-                    <td colspan="3" rowspan="2">FREQUÊNCIA DE TREINAMENTO E
-                        DESENVOLVIMENTO</td>
-                    <td>CÓDIGO:</td>
-                    <td>RQ GP-004-001</td>
-                </tr>
-                <tr>
-                    <td>DATA EMISSÃO:</td>
-                    <td>05/04/2024</td>
-                </tr>
-                <tr>
-                    <td colspan="3" rowspan="2">GESTÃO DE PESSOAS</td>
-                    <td>DATA REVISÃO:</td>
-                    <td>-</td>
-                </tr>
-                <tr>
-                    <td>PÁGINA:</td>
-                    <td>1/1</td>
-                </tr>
-            </table>
+            margin-top: 20px;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col">
+                    <h1 class="mb-0">Lista de Frequência</h1>
+                </div>
+                <div class="col-auto">
+                    <div class="d-flex justify-content-end">
+                        <button 
+                        class="btn {% if avaliacao_exists %}btn-secondary{% else %}btn-primary{% endif %}" 
+                        style="border-radius: 0.375rem 0px 0px 0.375rem; font-size: 0.875rem;" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#staticBackdrop">
+                        Avaliação de Eficácia da Trilha
+                    </button>
+                    <span class="btn {% if avaliacao_exists %}btn-success{% else %}btn-secondary{% endif %}" style="border-radius: 0px 0.375rem 0.375rem 0px">
+                        {% if avaliacao_exists %}Concluída <i class="fa-solid fa-check"></i>{% else %}Pendente <i class="fa-regular fa-clock"></i>{% endif %}
+                    </span>
+                    </div>
+                </div>
+                <div class="col-auto">
+                    <button class="btn btn-primary" id="downloadBtn">Download</button>
+                </div>
+            </div>
         </div>
+    </header>
 
-        <hr>
-        <div class="header-content">
+    <main class="container" id="frequency">
+        <div class="d-flex justify-content-between">
+            <img src="/static/img/SELO 50 ANOS ISOLADO_Prancheta 1.png" alt="Logo Cemag" style="width: 100px; height: auto;">
+            <div class="text-end mt-4">
+                <p class="date">Data do Treinamento: <strong>{{data_criacao_pasta}}</strong></p>
+                <p class="date">Nome da trilha: <strong>{{nome_pasta}}</strong></p>
+            </div>
+        </div>
+        
 
-            <table>
-                <tbody>
-                    <tr>
-                        <td colspan="5">{{ pasta }}</td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">Data/Horário: N/A</td>
-                        <td colspan="3">Instrutor: N/A</td>
-                    </tr>
-                    <tr>
-                        <td>Local: Online</td>
-                        <td>Setor: N/A</td>
-                        <td colspan="3">Tipo: Interno</td>
-                    </tr>
-                    <tr>
-                        <td colspan="2">Carga horária: 30min.</td>
-                        <td colspan="3">Data limite da avaliação: N/A</td>
-                    </tr>
-                </tbody>
-            </table>
-            <table>
-                <tbody>
-                    <tr>
-                        <td colspan="2" rowspan="2">Funcionário</td>
-                        <td colspan="2" rowspan="2">Data de visualização</td>
-                        <td colspan="2">Avaliação do Gestor</td>
-                    </tr>
-                    <tr>
-                        <td>Foi eficaz?</td>
-                        <td>Data de Avaliação</td>
-                    </tr>
-                    {% for funcionario in funcionarios %}
-                        {% for visualizacao in visualizacoes_por_funcionario %}
-                            {% if visualizacao.funcionario == funcionario.id %}
-                            <tr>
-                                <td colspan="2">{{ funcionario.matricula }} - {{ funcionario.nome }}</td>
-                                <td colspan="2">{{ visualizacao.visualizado_em }}</td>
-                                <td>Sim &#9744;Não &#9744;</td>
-                                <td> </td>
-                            </tr>
-                            {% endif %}
-                        {% endfor %}
-                    {% endfor %}
-                </tbody>
-            </table>
 
-            <!-- <table>
+        <div class="table-container" style="margin-top: 33px;">
+            <table class="table table-hover">
                 <thead>
                     <tr>
-                        <th>Funcionário</th>
-                        <th>Data de visualização</th>
-                        <th>Avaliação do Gestor</th>
-                        <th>Foi eficaz?
-                            Sim | Não
-                        </th>
+                        <th>Matrícula</th>
+                        <th>Nome</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for funcionario in funcionarios %}
-                    {% for visualizacao in visualizacoes_por_funcionario %}
-                    {% if visualizacao.funcionario == funcionario.id %}
+                    {% for info in funcionarios_info %}
                     <tr>
-                        <td>{{ funcionario.matricula }} - {{ funcionario.nome }}</td>
-                        <td>{{ visualizacao.visualizado_em }}</td>
-                        <td></td>
-                        <td>
-                            Sim &#9744;
-                            Não &#9744;
-                        </td>
+                        <td>{{ info.matricula }}</td>
+                        <td>{{ info.nome }}</td>
                     </tr>
-                    {% endif %}
-                    {% endfor %}
                     {% endfor %}
                 </tbody>
-            </table> -->
-        
-        </div>        
-    </body>
+            </table>
+        </div>
+    </main>
+
+    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <div class="modal-dialog" style="margin-top: 60px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="staticBackdropLabel">Avaliação pelo Gestor</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form action="{% url 'frequencia-pasta' id_pasta %}" method="POST" id="avaliacao-form">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="border p-3">
+                            <p>Você considera que a qualificação foi eficaz?</p>
+                            <label for="sim_colaborador">Sim</label>
+                            <input type="radio" name="valor_trabalho" id="sim_colaborador" value="true" required>
+                            <label for="nao_colaborador">Não</label>
+                            <input type="radio" name="valor_trabalho" id="nao_colaborador" value="false" required>
+                        </div>
+                        <div class="mt-4">
+                            <label for="justificativa">Justifique</label>
+                            <input class="form-control" type="text" name="justificativa" id="justificativa" required>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" id="submit-button" class="btn btn-primary">Enviar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <script>
+        document.getElementById('downloadBtn').addEventListener('click', function () {
+            const element = document.getElementById('frequency');
+            
+            const opt = {
+                margin:       [10, 10, 10, 10], // top, right, bottom, left
+                filename:     'lista-frequência.pdf',
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2 },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+                pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] },
+            };
+
+            html2pdf().set(opt).from(element).toPdf().get('pdf').then(function (pdf) {
+                const totalPages = pdf.internal.getNumberOfPages();
+                for (let i = 1; i <= totalPages; i++) {
+                    pdf.setPage(i);
+                    pdf.setFontSize(10);
+                }
+            }).save();
+        });
+    </script>
+</body>
 </html>
+

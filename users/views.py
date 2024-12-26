@@ -71,4 +71,14 @@ class CustomLoginView(LoginView):
         username = request.POST.get('username')
         if not username.isdigit():
             return self.form_invalid(self.get_form())
+        
+        try:
+            funcionario = Funcionario._base_manager.get(matricula=username)
+            if funcionario.excluido:
+                # Exibir mensagem de erro e redirecionar para a página de login
+                messages.error(self.request, "Sua conta está desativada. Entre em contato com o administrador.", extra_tags='login')
+                return redirect('login')
+        except Funcionario.DoesNotExist:
+            pass  # Caso o usuário não tenha um Funcionario associado, continuar normalmente
+
         return super().post(request, *args, **kwargs)
