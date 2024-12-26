@@ -4,6 +4,22 @@
 
 {% block content %}
 
+
+{% if messages %}
+{% for message in messages %}
+    {% if 'add-material' in message.tags %}
+        {% if not message.tags == 'invalid_login' %}  {# Exclui mensagens de 'invalid_login' #}
+            <div class="d-flex justify-content-center">
+                <div class="alert alert-danger alert-dismissible fade show w-50" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+{% endfor %}
+{% endif %}
+
 <div>
     <h1>Adicionar Novo Material</h1>
     <form method="post" enctype="multipart/form-data" id="editar-material">

@@ -114,19 +114,29 @@ def pastas_list(request):
     # Transformar os IDs das pastas com avaliações pendentes em um set para acesso rápido
     pastas_com_avaliacao_pendente = set(avaliacoes_pendentes)
 
+    pastas_com_avaliacao = set(
+        AvaliacaoEficacia.objects.filter(usuario_id=request.user.id).values_list('pasta_id', flat=True)
+    )
+
     # Pegar os nomes dos funcionários associados a cada pasta e verificar avaliações pendentes
     pastas_com_funcionarios = [
         {
             'pasta': pasta,
+            'setores': [setor.nome for setor in pasta.setores.all()],
             'criador_nome_completo': f"{pasta.created_by.first_name} {pasta.created_by.last_name}",
             'possui_avaliacao_pendente': pasta.id in pastas_com_avaliacao_pendente,
+            'possui_avaliacao': pasta.id in pastas_com_avaliacao,  # Verifica se a pasta possui AvaliacaoEficacia
         }
         for pasta in pastas
     ]
 
+    # Levando setores para filtro
+    setores = Setor.objects.all().order_by('nome')
+
     return render(request, 'pastas/pasta_list.html', {
         'pastas_com_criadores': pastas_com_funcionarios,
         'form': form,
+        'setores':setores
     })
 
 @login_required
@@ -232,6 +242,8 @@ def material_add_in_pasta(request, pk):
 
     if request.method == 'POST':
         form = AddMaterial(request.POST, request.FILES)
+        print(form)
+        print(form)
         if form.is_valid():
             material = form.save(commit=False)
             material.pasta = pasta  # Define a pasta associada
@@ -245,6 +257,8 @@ def material_add_in_pasta(request, pk):
             material.save()
             form.save_m2m()
             return redirect('detail-pasta', pk=pasta.pk)
+        else:
+            messages.error(request, 'Erro ao adicionar o material. Verifique se o nome do arquivo pdf é muito extenso.', extra_tags='add-material')
         
     else:
         form = AddMaterial()
@@ -666,18 +680,27 @@ def gerar_ficha_frequencia(request, pk):
     if request.method == 'GET':
         pasta = get_object_or_404(Pasta, pk=pk)  # Busca a pasta pelo ID
 
-        funcionarios_info = []
-        for funcionario in pasta.funcionarios.exclude(user__type='ADM').order_by('nome'):
-            info = {
-                'nome': funcionario.nome,
-                'matricula': funcionario.matricula,
-            }
-            funcionarios_info.append(info)
-        
-        print(request.user.id)
+        materiais = Material.objects.filter(pasta=pasta)
+        total_materiais = materiais.count()
+
+        funcionarios_visualizacao_completa = Funcionario.objects.filter(
+            visualizacoes__material__in=materiais  # Visualizações relacionadas à pasta
+        ).annotate(
+            total_visualizacoes=Count('visualizacoes', filter=Q(visualizacoes__material__in=materiais), distinct=True)
+        ).filter(
+            total_visualizacoes=total_materiais
+        ).exclude(
+            user__type='ADM'
+        ).order_by('nome')
+
+        # Criar a lista de informações dos funcionários
+        funcionarios_info = [
+            {'nome': funcionario.nome, 'matricula': funcionario.matricula}
+            for funcionario in funcionarios_visualizacao_completa
+        ]
 
         exists = AvaliacaoEficacia.objects.filter(pasta_id=pasta.id, usuario_id=request.user.id).exists()
-        respostas_avaliacao = RespostaAvaliacaoEficacia.objects.filter(avaliacao_eficacia__pasta_id=pasta.id, avaliacao_eficacia__usuario_id=request.user.id)
+        respostas_avaliacao = RespostaAvaliacaoEficacia.objects.filter(avaliacao_eficacia__pasta_id=pasta.id, avaliacao_eficacia__usuario_id=request.user.id).first()
 
         return render(request, 'frequencia/ficha_frequencia.html', {
             'pasta': pasta,
@@ -693,13 +716,8 @@ def gerar_ficha_frequencia(request, pk):
         valor_trabalho = request.POST.get('valor_trabalho')
         justificativa = request.POST.get('justificativa')
 
-        print(valor_trabalho)
-        print(justificativa)
-
         # Convertendo para booleano
         eficacia_qualificacao = True if valor_trabalho == 'true' else False
-
-        print(eficacia_qualificacao)
 
         # Obter a instância da pasta correspondente
         pasta = get_object_or_404(Pasta, id=pk)

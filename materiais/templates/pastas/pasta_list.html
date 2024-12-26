@@ -60,6 +60,13 @@
         border-radius: 50%;
         z-index: 888;
     }
+    #filterSection {
+        position: absolute;
+        top: 90px; /* Define a posição a partir do topo */
+        right: 0px; /* Define a posição a partir da lateral direita */
+        z-index: 1050; /* Garante que fique acima de outros elementos */
+        width: 300px; /* Largura da seção */
+    }
 </style>
 {% endblock %}
 
@@ -95,17 +102,47 @@
     <div class="col-lg-8 mx-auto mt-4 mb-4">
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <div>Trilhas</div>
+                <h4>Trilhas</h4>
+                <div class="flex-column text-end">
                     <div class="input-group" style="width: 200px;">
                         <input class="form-control" id="inputSearch" type="text" placeholder="Pesquisar trilha..." aria-label="Pesquisar trilha..." aria-describedby="btnSearch" />
                         <button class="btn btn-primary" id="btnSearch" type="button"><i class="fas fa-search"></i></button>
                     </div>
+                    {% if request.user.type == 'ADM' %}
+                    <button class="btn btn-light mt-2" 
+                            id="filterButton" 
+                            style="background-color: rgb(235, 235, 235); border: 1px solid #cfcfcf; font-size: 14px; border-radius: 20px;" 
+                            data-bs-toggle="collapse" 
+                            data-bs-target="#filterSection" 
+                            aria-expanded="true" 
+                            aria-controls="filterSection">
+                        <i class="fa-solid fa-filter"></i> 
+                        <span id="filterButtonText">Filtros</span>
+                        <span id="clearFilter" style="cursor: pointer; margin-left: 10px; display: none;"><i class="fa-solid fa-xmark"></i></span>
+                    </button>
+                    {% endif %}
+
+                    <!-- Seção de Filtros -->
+                    <div class="collapse" id="filterSection">
+                        <div class="card card-body shadow">
+                            <div class="mb-3">
+                                <label for="filterCategory" class="form-label">Setores:</label>
+                                <select class="form-select" id="filterCategory">
+                                    <option value="" disabled hidden selected>Selecione um setor</option>
+                                    {% for setor in setores %}
+                                        <option value="{{setor}}">{{setor}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+            </div>
             <div class="card-body" style="max-height:600px;overflow-y: auto;">
                 <div class="list-group">
                     {% if pastas_com_criadores %}
                     {% for item in pastas_com_criadores %}
-                    <div class="list-group-item flex-column align-items-start trilha-item">
+                    <div class="list-group-item flex-column align-items-start trilha-item" data-setores="{{ item.setores }}">
                         <div class="w-100">
                             <div>
                                 <div class="d-flex justify-content-between">
@@ -121,9 +158,17 @@
                                                 {% endif %}
                                             </div>
                                         </a>
-                                        <a style="cursor: pointer;" target="_blank" href="{% url 'frequencia-pasta' item.pasta.pk %}">
-                                            <i class="fa-solid fa-users" style="color: #0d6efd;font-size: 20px;"></i>
-                                        </a>
+                                        {% if request.user.type == 'ADM' %}
+                                            {% if item.possui_avaliacao %}
+                                            <a style="cursor: pointer;" title="Trilha Avaliada pelo Gestor" href="{% url 'frequencia-pasta' item.pasta.pk %}">
+                                                <i class="fa-solid fa-users" style="color: #198754;font-size: 20px;"></i>
+                                            </a>
+                                            {% else %}
+                                            <a style="cursor: pointer;" title="Trilha Não Avaliada pelo Gestor" href="{% url 'frequencia-pasta' item.pasta.pk %}">
+                                                <i class="fa-solid fa-users" style="color: #0d6efd;font-size: 20px;"></i>
+                                            </a>
+                                            {% endif %}
+                                        {% endif %}
                                     </h3>
                                     {% endif %}
                                 </div>
@@ -157,6 +202,7 @@
 
 {% block scripts %}
 
+<script src="/static/js/lista_trilha/trilha-list.js"></script>
 <script src="/static/js/adicionar_trilha/filtrar_setor_funcionario.js"></script>
 <script src="/static/js/adicionar_trilha/checkbox/setores.js"></script>
 <script src="/static/js/adicionar_trilha/checkbox/toggle.js"></script>
@@ -171,20 +217,6 @@
 </script>
 
 <script>
-
-    document.getElementById('btnSearch').addEventListener('click',function(){
-        const inputSearch = document.getElementById('inputSearch').value.toLowerCase();
-        const itemTrilha = document.querySelectorAll('.trilha-item');
-
-        itemTrilha.forEach(function(item) {
-            const nome = item.querySelector('.trilha-nome').textContent.toLowerCase();
-            if(nome.includes(inputSearch)){
-                item.style.display = 'block';
-            } else {
-                item.style.display = 'none';
-            }
-        })
-    })
 
     document.querySelector('form').addEventListener('submit', function(event) {
         const radios = document.querySelectorAll('input[name="valor_trabalho"]');

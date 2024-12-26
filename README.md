@@ -23,3 +23,9 @@ Bem-vindo ao projeto **Cemag Academy**. Este repositório contém vários módul
 - [Prova](/documentacao/documentacaoGestores/8_prova.md): Orientações sobre a aplicação e gestão de provas, incluindo criação e análise de resultados.
 - [Certificado](/documentacao/documentacaoGestores/9_certificado.md): Processo de emissão de certificados de conclusão para os funcionários.
 - [Livros](/documentacao/documentacaoGestores/10_livros.md): Acesso e criação da biblioteca digital da cemagAcademy.
+
+## Novas atualizações 
+- [Atualização 1.0](/documentacao/atualizacoes/1.0_26.12.2024.md) (26/12/2024)
+    - Ao deletar um funcionário, os dados dele não serão excluídos. 
+    - Lista codificada de frequência de treinamentos it´s.
+    - Visualização de Treinamentos por setor.
