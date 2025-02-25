@@ -29,3 +29,8 @@ Bem-vindo ao projeto **Cemag Academy**. Este repositório contém vários módul
     - Ao deletar um funcionário, os dados dele não serão excluídos. 
     - Lista codificada de frequência de treinamentos it´s.
     - Visualização de Treinamentos por setor.
+
+- [Atualização 1.1](/documentacao/atualizacoes/1.1_25.02.2025.md) (25/02/2025)
+    - Exibindo a descrição dentro do certificado. 
+    - Editar Prova.
+    - Campo de assinatura para trilhas do SESMT e SOLDA.
