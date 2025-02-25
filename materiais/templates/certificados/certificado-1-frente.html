@@ -9,7 +9,7 @@
     </div>
   </div>
   <div>
-    <div style="text-align: center; margin-top: 100px;">
+    <div style="text-align: center; margin-top: 90px;">
       <img src="{% static 'img/item_certificado.png' %}"
       alt="Item do Certificado">
       <h1>CERTIFICADO</h1>
@@ -17,16 +17,17 @@
       <h2>{{funcionario.nome}}</h2>
     </div>
   </div>
-  <div style="text-align: center; margin-top: 30px;">
+  <div style="text-align: center; margin-top: 20px;">
     <p>
-      Concluiu o treinamento em<br>
-      {{ prova.pasta.nome }} no dia {{ certificado.data_emissao_certificado.day }}/{{ certificado.data_emissao_certificado.month }}/{{ certificado.data_emissao_certificado.year }},<br>
+      Concluiu o treinamento <br>
+      {{ prova.pasta.nome }} no dia {{ certificado.data_emissao_certificado.day }}/{{ certificado.data_emissao_certificado.month|stringformat:"02d" }}/{{ certificado.data_emissao_certificado.year }},<br>
       na CEMAG - Ceará Máquinas Agrícolas Ltda.
     </p>
     <p>Fortaleza, {{ certificado.data_emissao_certificado }}</p>
     <p style="color: gray;">{{ certificado.identificador_finalizado }}</p>
   </div>
-  <!-- <div class="assinaturas">
+  {% if contem_setor_assinatura %}
+  <div class="assinaturas">
     <div class="assinatura">
       <p>_____________________________________</p>
       <p>Responsável Técnico</p>
@@ -36,5 +37,6 @@
       <p>{{funcionario.nome}}</p>
       <p>Funcionário</p>
     </div>
-  </div> -->
+  </div>
+  {% endif %}
 

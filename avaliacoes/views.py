@@ -2,6 +2,8 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
+from django.db import transaction
+from django.core.exceptions import ObjectDoesNotExist
 
 from .models import Prova, Questao, Alternativa, Resposta,ProvaRealizada, HistoricoProva
 from cadastros.models import Funcionario
@@ -140,7 +142,7 @@ def realizar_prova(request, pk):
         messages.info(request, "Você já realizou esta prova e não pode refazê-la.")
         return redirect('list-prova', pk=prova.pasta_id)
 
-    questoes = prova.questao_prova.all()
+    questoes = prova.questao_prova.all().order_by('id')
     
     alternativas_dict = {}
     
@@ -188,7 +190,7 @@ def realizar_prova(request, pk):
 
 def visualizar_prova(request, pk,pk_matricula=0):
     prova = get_object_or_404(Prova, pk=pk)
-    questoes = prova.questao_prova.all()
+    questoes = prova.questao_prova.all().order_by('id')
     
     alternativas_dict = {}
     alternativas_selecionadas = {}  # Dicionário para armazenar IDs das alternativas selecionadas e respostas dissertativas
@@ -233,6 +235,83 @@ def visualizar_prova(request, pk,pk_matricula=0):
             'alternativas': alternativas_dict,
             'alternativa_selecionada': alternativas_selecionadas  # Passar o dicionário de respostas selecionadas
         })
+
+def editar_prova(request, pk):
+    # Edita o título da prova
+    if request.method == 'POST':
+        with transaction.atomic():
+
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError:
+                return JsonResponse({"success": False, "error": "Formato JSON inválido"}, status=400)
+
+            try:
+                prova = Prova.objects.get(id=pk)
+            except ObjectDoesNotExist:
+                return JsonResponse({"success": False, "error": "Prova não encontrada" }, status=400)
+
+            prova.titulo = data.get("titulo", prova.titulo)
+            prova.save()
+
+            return JsonResponse({"success":data}, status=200)
+
+    elif request.method == 'GET':
+
+        prova = get_object_or_404(Prova, pk=pk)
+        questoes = prova.questao_prova.all().order_by('id')
+        
+        alternativas_dict = {}
+
+        for questao in questoes:
+            # Obter alternativas para cada questão
+            alternativas_questao = Alternativa.objects.filter(questao=questao)
+            
+            # Armazenar as alternativas no dicionário usando o ID da questão como chave
+            alternativas_dict[questao.pk] = alternativas_questao
+
+        return render(request, 'provas/editar-prova.html', {
+            'prova': prova,
+            'questoes': questoes,
+            'alternativas': alternativas_dict,
+        })
+
+def editar_questoes_alternativas(request, pk_questoes):
+    if request.method != 'POST':
+        return JsonResponse({"success": False, "error": "Método não permitido"}, status=405)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"success": False, "error": "Formato JSON inválido"}, status=400)
+
+    try:
+        with transaction.atomic():
+            # Atualiza a questão
+            try:
+                questao_alterada = Questao.objects.get(id=pk_questoes)
+            except ObjectDoesNotExist:
+                return JsonResponse({"success": False, "error": "Questão não encontrada"}, status=404)
+
+            questao_alterada.enunciado = data.get('enunciado', questao_alterada.enunciado)
+            questao_alterada.save()
+
+            # Atualiza as alternativas
+            alternativas_ids = [alt['id'] for alt in data.get('alternativas', [])]
+            alternativas_existentes = Alternativa.objects.filter(id__in=alternativas_ids)
+
+            if len(alternativas_existentes) != len(alternativas_ids):
+                return JsonResponse({"success": False, "error": "Uma ou mais alternativas não foram encontradas"}, status=404)
+
+            for alternativa in data.get('alternativas', []):
+                alternativa_alterada = alternativas_existentes.get(id=alternativa['id'])
+                alternativa_alterada.texto = alternativa.get('texto', alternativa_alterada.texto)
+                alternativa_alterada.save()
+
+            return JsonResponse({"success": True}, status=200)
+
+    except Exception as e:
+        return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 def corrigir_questoes_dissertativas(request, pk_prova, pk_user):
     prova = get_object_or_404(Prova, pk=pk_prova)

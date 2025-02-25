@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% load custom_filters %}
+
+{% block title %}Lista trilhas{% endblock %}
+
+{% block content %}
+
+<a style="color: black; text-decoration: none;" href="{% url 'list-prova' prova.pasta.id %}"><i class="fa-solid fa-arrow-left"></i> Voltar</a>
+
+<div id="container-edit-title" class="d-flex gap-3 mb-4 align-items-baseline">
+    <h1 id="title" class="mt-3" style="white-space: normal; word-break: break-word;">{{ prova.titulo }}</h1>
+    <input id="input-edit-title" style="width: 100%; display: none;" type="text" class="form-control mt-4">
+    <a id="button-edit-title" style="color: #0d6efd; text-decoration: underline; cursor: pointer; font-size: 22px;"><i class="fa-solid fa-pencil"></i></a>
+</div>
+
+<form id="form-realizar-prova" method="post">
+    {% csrf_token %}
+    {% for questao in questoes %}
+    <hr>
+    <div class="questao mb-4" id="questao_{{ questao.id }}">
+        <div class="d-flex gap-3 mb-4">
+            <strong id="enunciado_{{ questao.id }}">{{ questao.enunciado|linebreaksbr }}</strong>
+            <textarea id="input_enunciado_{{ questao.id }}" style="width: 100%; display: none;" type="text" class="form-control" rows="5"></textarea>
+            <!-- Link de edição -->
+            <a id="editar_enunciado_{{ questao.id }}" style="color: #0d6efd; text-decoration: underline; cursor: pointer;">
+                <i class="fa-solid fa-pencil"></i>
+            </a>
+            <!-- Botões de Editar e Cancelar (inicialmente ocultos) -->
+            <div id="botoes_edicao_{{ questao.id }}" style="display: none;">
+                <div class="d-flex gap-3">
+                    <button id="salvar_edicao_{{ questao.id }}" type="button" class="btn btn-success btn-sm">
+                        Editar
+                        <span class="spinner-border spinner-border-sm" style="display: none;" role="status"></span>
+                    </button>
+                    
+                    <button id="cancelar_edicao_{{ questao.id }}" type="button" class="btn btn-danger btn-sm"><i class="fa-solid fa-xmark"></i></button>
+                </div>
+            </div>
+        </div>
+        {% if questao.tipo == 'objetiva' %}
+            {% with questao.pk as questao_pk %}
+                {% for alternativa in alternativas|get_item:questao_pk %}
+                    <div class="alternativa d-flex gap-3 align-items-center">
+                        <input type="radio" id="alternativa_{{ alternativa.id }}" name="questao_{{ questao.id }}" value="{{ alternativa.id }}" 
+                                {% if forloop.first %}required{% endif %}
+                                {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}disabled{% endif %}>
+                        <label id="label_alternativa_{{ alternativa.id }}" for="alternativa_{{ alternativa.id }}">{{ alternativa.texto }}</label>
+                        <textarea id="textarea_alternativa_{{ alternativa.id }}" type="text" class="form-control" rows="1" style="width: 300px; display: none;"></textarea>
+                    </div>
+                {% endfor %}
+            {% endwith %}
+        {% elif questao.tipo == 'dissertativa' %}
+        <div style="width: 320px;">
+            <textarea class="form-control" name="questao_{{ questao.id }}" rows="2" cols="10" 
+                        {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}disabled{% endif %} 
+                        required></textarea>
+        </div>
+        {% endif %}
+    </div>        
+    {% endfor %}
+</form>
+
+{% endblock %}
+
+{% block scripts %}
+
+<script src="/static/js/form-loading/form-loading.js"></script>
+<script src="/static/js/prova/editar-titulo-prova.js"></script>
+<script src="/static/js/prova/editar-questoes-prova.js"></script>
+
+{% endblock %}

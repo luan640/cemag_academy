@@ -42,6 +42,7 @@
                                     <a href="{% url 'list-participantes' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Participantes</button></a>
                                 </div>
                                 <div class="col-md-6 text-center">
+                                    <a href="{% url 'editar-prova' prova.pk %}"><button class="btn btn-dark mb-4" style="width: 160px;">Editar prova</button></a>
                                     <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Visualizar prova</button></a>
                                 </div>
                             {% else %}

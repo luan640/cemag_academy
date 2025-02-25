@@ -831,6 +831,13 @@ def gerar_certificado(request):
 
         # Verificar se já existe um Certificado para esse usuário e pasta
         certificado = Certificado.objects.filter(pasta_id=pasta_id, usuario=usuario).first()
+
+        contem_setor_assinatura = Pasta.objects.filter(
+            id=pasta_id, 
+            setores__nome__in = ['SESMT','SOLDA']).exists()
+        
+        print(contem_setor_assinatura)
+
         if not certificado:
             # Criar um novo certificado
             pasta = get_object_or_404(Pasta, pk=pasta_id)
@@ -839,9 +846,12 @@ def gerar_certificado(request):
         # Obter materiais da pasta
         materiais = Material.objects.filter(pasta_id=pasta_id)
                 
-        context = {'funcionario':funcionario,
-                'materiais':materiais,
-                'certificado':certificado}
+        context = {
+            'funcionario':funcionario,
+            'materiais':materiais,
+            'certificado':certificado,
+            'contem_setor_assinatura':contem_setor_assinatura
+        }
 
         return render(request, 'certificados/certificado1.html', context=context)
 
@@ -857,9 +867,20 @@ def consultar_certificado(request, uuid):
             funcionario = get_object_or_404(Funcionario, matricula=certificado.usuario.matricula)
             materiais = Material.objects.filter(pasta_id=certificado.pasta)
 
-            # Contexto a ser passado para o template
-            context = {'funcionario': funcionario, 'materiais': materiais, 'certificado': certificado}
+            # Setores que precisam de assinatura são SESMT e Solda
+            contem_setor_assinatura = Pasta.objects.filter(
+                id=certificado.pasta.id, 
+                setores__nome__in = ['SESMT','SOLDA']).exists()
 
+            print(contem_setor_assinatura)
+
+            # Contexto a ser passado para o template
+            context = {
+                'funcionario': funcionario, 
+                'materiais': materiais, 
+                'certificado': certificado, 
+                'contem_setor_assinatura':contem_setor_assinatura
+            }
             # Renderiza a página `certificado1.html` com o contexto
             return render(request, 'certificados/certificado1.html', context=context)
         except Exception as e:

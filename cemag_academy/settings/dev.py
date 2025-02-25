@@ -25,7 +25,7 @@ DATABASES = {
         'HOST': env('DB_HOST'),
         'PORT': env('DB_PORT'),
         'OPTIONS': {
-            'options': '-c search_path=cemag_academy',
+            'options': f'-c search_path={env("SCHEMA_DB_NAME")}',
         },
     }
 }

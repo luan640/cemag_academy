@@ -131,7 +131,6 @@ function salvarProva() {
         const provaData = {};
 
         provaData.titulo = formData.get('titulo');
-        provaData.descricao = formData.get('descricao');
         provaData.questoes = [];
 
         const questoesContainer = document.getElementById('questoes-container');
