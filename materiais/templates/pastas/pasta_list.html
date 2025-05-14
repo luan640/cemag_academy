@@ -175,8 +175,15 @@
                                 <div style="color: #333; font-size: 10pt; margin-bottom: 10px;">
                                     {{ item.criador_nome_completo }}
                                 </div>
-                                <div class="authors" style="font-style: italic;">
-                                    {{ item.pasta.descricao }}
+                                <div class="d-flex justify-content-between">
+                                    <div class="authors" style="font-style: italic; width: 70%;">
+                                        {{ item.pasta.descricao }}
+                                    </div>
+                                    {% if item.pasta.is_norma_regulamentadora %}
+                                    <div class="m-2 workload" style="color: rgb(126, 126, 126); font-size: 14px;">
+                                        Carga Horária: {{ item.pasta.carga_horaria }} horas
+                                    </div>
+                                    {% endif %}
                                 </div>
                             </div>
                         </div>
@@ -281,7 +288,7 @@
         // Verifique se um colaborador foi selecionado
         if (collaborator) {
             // Crie a URL para o GET request
-            const url = `/materiais/avaliacao/supervisor/${pastaId}/?collaborator=${collaborator}`;
+            const url = `/materiais/avaliacao/supervisor/${pastaId}/?matricula_collaborator=${collaborator}`;
 
             // Envie o GET request usando fetch API
             fetch(url)
@@ -289,7 +296,7 @@
                 .then(data => {
                     // Atualize a resposta na página com os dados retornados
                     // Aqui você pode manipular a resposta e exibi-la na página
-                    textResposta.innerHTML = "Resposta - " + collaborator
+                    textResposta.innerHTML = "Resposta - " + data.user_name
                     document.getElementById(`resposta_do_colaborador_selecionado${pastaId}`).style.display = "block";
                     justificativa.value = data.resposta
                     if(data.qualificacao){
@@ -348,7 +355,7 @@
             console.log(data.usuarios_avaliados)
             data.usuarios_avaliados.forEach(collaborator => {
                 const option = document.createElement('option');
-                option.value = `${collaborator.usuario__first_name} ${collaborator.usuario__last_name}`; // ID do colaborador
+                option.value = `${collaborator.usuario__matricula}`; // ID do colaborador
                 option.textContent = `${collaborator.usuario__first_name} ${collaborator.usuario__last_name}`; // Nome completo
                 select.appendChild(option);
             });

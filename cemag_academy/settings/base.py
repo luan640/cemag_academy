@@ -100,12 +100,12 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = '/home'  # Define a URL de redirecionamento após o login
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST='smtp.gmail.com'
-EMAIL_PORT=587
+EMAIL_HOST=env('EMAIL_HOST')
+EMAIL_PORT=env('EMAIL_PORT')
 EMAIL_USE_TLS=True
-EMAIL_HOST_USER='ti.cemag@cemag.com.br'
-EMAIL_HOST_PASSWORD='koys sccb hnoj nrbb'
-DEFAULT_FROM_EMAIL='ti.cemag@cemag.com.br'
+EMAIL_HOST_USER=env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD=env('EMAIL_HOST_PASSWORD')
+DEFAULT_FROM_EMAIL=env('EMAIL_HOST_USER')
 
 # Static files
 STATIC_URL = 'static/'

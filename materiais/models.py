@@ -18,6 +18,8 @@ class Pasta(models.Model):
     setores = models.ManyToManyField(Setor, related_name='pastas_setores', blank=True)
     funcionarios = models.ManyToManyField(Funcionario, related_name='pastas_funcionarios', blank=True)
     area_trilha = models.ForeignKey(AreaTrilha, related_name='pasta_areatrilha', on_delete=models.CASCADE)
+    is_norma_regulamentadora = models.BooleanField(default=False)
+    carga_horaria = models.IntegerField(null=True, blank=True)
     created_by = models.ForeignKey(CustomUser, related_name='pasta_user', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)

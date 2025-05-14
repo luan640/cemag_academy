@@ -150,7 +150,7 @@ def funcionarios_avaliaram(request, pk):
         avaliacoes = AvaliacaoEficacia.objects.filter(pasta=pasta)
 
         if request.user.type == "ADM":
-            usuarios_avaliados = list(avaliacoes.filter(avaliado_rh=False).values('usuario__first_name', 'usuario__last_name'))
+            usuarios_avaliados = list(avaliacoes.filter(avaliado_rh=False).values('usuario__matricula', 'usuario__first_name', 'usuario__last_name'))
         elif request.user.type == "LID":
             usuarios_avaliados = list(avaliacoes.filter(
                 avaliado_chefia=False,
@@ -449,19 +449,17 @@ def avaliacao(request, pk):
 def avaliacao_chefia(request, pk):
 
     if request.method == 'GET':
-        colaborador = request.GET.get('collaborator')
+        matricula_colaborador = request.GET.get('matricula_collaborator')
         
         # O 'pk' é o identificador da pasta que você passou na URL
         pasta = get_object_or_404(Pasta, id=pk)
 
-        # Recupere o funcionário com base no nome
-        funcionario = Funcionario.objects.get(nome=colaborador)
-        usuario = CustomUser.objects.get(matricula=funcionario.matricula)
+        usuario = CustomUser.objects.get(matricula=matricula_colaborador)
 
         # Verificar se já existe uma avaliação para esse usuário e essa pasta
         avaliacao_eficacia = AvaliacaoEficacia.objects.get(
             pasta=pasta,
-            usuario__matricula=funcionario.matricula
+            usuario__matricula=matricula_colaborador
         )
 
         resposta_avaliacao = RespostaAvaliacaoEficacia.objects.get(
@@ -471,6 +469,7 @@ def avaliacao_chefia(request, pk):
 
         # Retorna os dados via JSON
         return JsonResponse({
+            'user_name': f'{usuario.first_name} {usuario.last_name}',
             'resposta': resposta_avaliacao.justificativa_qualificacao,
             'qualificacao': resposta_avaliacao.eficacia_qualificacao
         })
@@ -871,8 +870,6 @@ def consultar_certificado(request, uuid):
             contem_setor_assinatura = Pasta.objects.filter(
                 id=certificado.pasta.id, 
                 setores__nome__in = ['SESMT','SOLDA']).exists()
-
-            print(contem_setor_assinatura)
 
             # Contexto a ser passado para o template
             context = {

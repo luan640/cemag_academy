@@ -20,10 +20,15 @@
   <div style="text-align: center; margin-top: 20px;">
     <p>
       Concluiu o treinamento <br>
-      {{ prova.pasta.nome }} no dia {{ certificado.data_emissao_certificado.day }}/{{ certificado.data_emissao_certificado.month|stringformat:"02d" }}/{{ certificado.data_emissao_certificado.year }},<br>
+      <strong>{{ certificado.pasta.nome }}</strong> no dia {{ certificado.data_emissao_certificado.day }}/{{ certificado.data_emissao_certificado.month|stringformat:"02d" }}/{{ certificado.data_emissao_certificado.year }},<br>
       na CEMAG - Ceará Máquinas Agrícolas Ltda.
     </p>
     <p>Fortaleza, {{ certificado.data_emissao_certificado }}</p>
+    {% if certificado.pasta.is_norma_regulamentadora %}
+      <div class="workload" style="font-style: italic;">
+          Carga Horária: {{ certificado.pasta.carga_horaria }} horas
+      </div>
+    {% endif %}
     <p style="color: gray;">{{ certificado.identificador_finalizado }}</p>
   </div>
   {% if contem_setor_assinatura %}
