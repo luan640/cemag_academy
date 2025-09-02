@@ -18,7 +18,7 @@ class AddPasta(forms.ModelForm):
     )
     class Meta:
         model = Pasta
-        fields = ('nome', 'descricao', 'area_trilha', 'setores', 'funcionarios')
+        fields = ('nome', 'descricao', 'area_trilha', 'pasta_drive', 'setores', 'funcionarios')
         widgets = {
             'setores': forms.CheckboxSelectMultiple(attrs={'class': 'setor-checkbox'}),
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 1, 'cols': 40})
@@ -46,7 +46,7 @@ class AddPasta(forms.ModelForm):
 class AddMaterial(forms.ModelForm):
     class Meta:
         model = Material
-        fields = ('nome', 'descricao', 'pasta', 'video', 'arquivo', 'fotos', 'video_youtube')
+        fields = ('nome', 'descricao', 'pasta', 'video', 'arquivo', 'fotos', 'arquivo_drive', 'video_youtube')
         widgets = {
             'pasta': forms.HiddenInput(),  # Esconda o campo 'pasta'
             'descricao': forms.Textarea(attrs={'class': 'form-control', 'rows': 6, 'cols': 50})

@@ -4,14 +4,13 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Count, Q
 from django.db import connection
-from django.http import HttpResponse
 from django.template.loader import get_template
 from django.conf import settings  # Importe o módulo settings
-from django.core.mail import send_mail,EmailMultiAlternatives
-from django.core import serializers
-import json
+from django.core.mail import send_mail, EmailMultiAlternatives
+from django.urls import reverse
 
 from .models import Pasta,Material,Visualizacao,AvaliacaoEficacia, RespostaAvaliacaoEficacia,Certificado
+from .utils import Drive
 from avaliacoes.views import calcular_nota,validacao_certificado
 from .forms import AddPasta,AddMaterial,VisualizacaoForm
 from cadastros.models import Funcionario,Setor
@@ -20,13 +19,9 @@ from avaliacoes.models import ProvaRealizada, Prova
 from users.models import CustomUser
 from cemag_academy.settings.base import *
 
-from reportlab.pdfgen import canvas
+from googleapiclient.http import MediaIoBaseDownload
+import io
 import re
-import environ
-from io import BytesIO
-from xhtml2pdf import pisa  # Importa o conversor de HTML para PDF
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, PageTemplate, Frame
 
 def extrair_id_youtube(url):
     regex = r"(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?(.{11})"
@@ -192,6 +187,110 @@ def pastas_detail(request, pk):
         'visualizacoes': visualizacoes,
         'existe_avaliacao_eficacia': existe_avaliacao_eficacia
     })
+
+@login_required
+def pastas_detail_drive(request, pk):
+    
+    pasta = get_object_or_404(Pasta, pk=pk)
+    drive = Drive()
+    
+    if not pasta.pasta_drive:
+        return JsonResponse({
+            'success': False,
+            'error': 'Pasta do Drive não configurada',
+            'arquivos': []
+        })
+    
+    drive_id = drive.extrair_id_drive(pasta.pasta_drive)
+    
+    if not drive_id:
+        return JsonResponse({
+            'success': False,
+            'error': f'ID do Drive inválido: {pasta.pasta_drive}',
+            'arquivos': []
+        })
+    
+    # Obtém arquivos do Drive usando o ID extraído
+    arquivos_drive = drive.listar_arquivos_pasta(drive_id)
+    
+    # Processa os arquivos...
+    arquivos_processados = []
+    for arquivo in arquivos_drive[:15]:
+        # O 'id' do arquivo é essencial
+        file_id = arquivo.get('id')
+        if not file_id:
+            continue # Pula arquivos sem ID
+
+        arquivo_data = {
+            'id': file_id,
+            'nome': arquivo.get('name'),
+            'tipo': arquivo.get('mimeType'),
+            'extensao': arquivo.get('fileExtension'),
+            'link_visualizacao': reverse('download_drive_file', args=[file_id]),
+            'link_download': reverse('download_drive_file', args=[file_id]),
+            'thumbnail': arquivo.get('thumbnailLink'),
+            'modificado': arquivo.get('modifiedTime'),
+            'tamanho_bytes': arquivo.get('size'),
+            'tamanho': drive.formatar_tamanho_arquivo(arquivo.get('size')),
+            'icone': drive.obter_icone_por_tipo(arquivo.get('mimeType'))
+        }
+        
+        arquivos_processados.append(arquivo_data)
+    
+    arquivos_processados.sort(key=lambda x: x['nome'].lower())
+    
+    return JsonResponse({
+        'success': True,
+        'pasta_id': pasta.id,
+        'pasta_nome': pasta.nome,
+        'total_arquivos': len(arquivos_processados),
+        'arquivos': arquivos_processados
+    })
+
+@login_required
+def download_drive_file(request, file_id):
+    """
+    Esta view atua como um proxy. Ela baixa o arquivo do Drive usando a 
+    Conta de Serviço e o transmite para o usuário.
+    """
+    try:
+        drive = Drive()
+        service = drive.get_service()
+
+        # Pega os metadados do arquivo para saber o nome e o tipo (MIME type)
+        file_metadata = service.files().get(
+            fileId=file_id, 
+            fields='name, mimeType', 
+            supportsAllDrives=True
+        ).execute()
+        
+        # Prepara a requisição para baixar o conteúdo do arquivo
+        request_download = service.files().get_media(fileId=file_id)
+        
+        file_content = io.BytesIO()
+        downloader = MediaIoBaseDownload(file_content, request_download)
+        
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+            # logger.info(f"Download {int(status.progress() * 100)}%.")
+
+        file_content.seek(0)
+
+        # Cria a resposta HTTP com o conteúdo do arquivo
+        response = HttpResponse(
+            file_content.read(),
+            content_type=file_metadata.get('mimeType', 'application/octet-stream')
+        )
+        
+        # Define o cabeçalho para forçar o download com o nome original do arquivo
+        response['Content-Disposition'] = f'attachment; filename="{file_metadata["name"]}"'
+        
+        return response
+
+    except Exception as e:
+        # logger.error(f"Erro ao fazer download do arquivo {file_id}: {e}")
+        raise HttpResponse("Arquivo não encontrado ou erro ao acessar o Drive.")
 
 @login_required
 def pasta_edit(request, pk):
