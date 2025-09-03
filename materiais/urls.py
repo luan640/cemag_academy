@@ -11,6 +11,8 @@ urlpatterns = [
     path('pasta/<int:pk>/detail/', views.pastas_detail, name='detail-pasta'),
     path('pasta/<int:pk>/drive/', views.pastas_detail_drive, name='pastas-detail-drive'),
     path('drive/download/<str:file_id>/', views.download_drive_file, name='download_drive_file'),
+    path('drive/export/<str:file_id>/', views.export_drive_sheet, name='drive_export_sheet'),
+    path('drive/clear/<str:pk>/', views.limpar_cache_pasta_drive, name='limpar_cache_drive'),
     
     path('pasta/add/', views.pastas_add, name='add-pasta'),
     path('pasta/<int:pk>/edit/', views.pasta_edit, name='edit-pasta'),
