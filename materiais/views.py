@@ -219,7 +219,7 @@ def pastas_detail_drive(request, pk):
     
     # Processa os arquivos...
     arquivos_processados = []
-    for arquivo in arquivos_drive[:15]:
+    for arquivo in arquivos_drive:
         # O 'id' do arquivo é essencial
         file_id = arquivo.get('id')
         if not file_id:
@@ -266,13 +266,15 @@ def download_drive_file(request, file_id):
         drive = Drive()
         service = drive.get_service()
 
+        drive_id = drive.extrair_id_drive(file_id)
+
         file_metadata = service.files().get(
-            fileId=file_id, 
+            fileId=drive_id, 
             fields='name, mimeType', 
             supportsAllDrives=True
         ).execute()
         
-        request_download = service.files().get_media(fileId=file_id)
+        request_download = service.files().get_media(fileId=drive_id)
         
         file_content = io.BytesIO()
         downloader = MediaIoBaseDownload(file_content, request_download)
@@ -310,9 +312,11 @@ def export_drive_sheet(request, file_id):
         drive = Drive()
         service = drive.get_service()
 
+        drive_id = drive.extrair_id_drive(file_id)
+
         # Pega o nome do arquivo original
         file_metadata = service.files().get(
-            fileId=file_id, 
+            fileId=drive_id, 
             fields='name', 
             supportsAllDrives=True
         ).execute()
@@ -324,7 +328,7 @@ def export_drive_sheet(request, file_id):
         # Prepara a requisição para EXPORTAR o arquivo
         # O mimeType aqui é o formato de destino (Excel)
         request_export = service.files().export_media(
-            fileId=file_id,
+            fileId=drive_id,
             mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         )
         
@@ -351,6 +355,88 @@ def export_drive_sheet(request, file_id):
     except Exception as e:
         return HttpResponse(f"Erro ao exportar a planilha: {e}", status=500)
 
+@login_required
+def export_google_file(request, file_id):
+    """
+    Exporta arquivos do Google Workspace para formatos padrão
+    """
+    try:
+        drive = Drive()
+        service = drive.get_service()
+        drive_id = drive.extrair_id_drive(file_id)
+
+        # Obtém parâmetros da requisição
+        export_mime_type = request.GET.get('exportMimeType')
+        original_name = request.GET.get('originalName', 'arquivo')
+        
+        if not export_mime_type:
+            return JsonResponse({'error': 'Tipo de exportação não especificado'}, status=400)
+
+        # Prepara a requisição para exportar o arquivo
+        request_export = service.files().export_media(
+            fileId=drive_id,
+            mimeType=export_mime_type
+        )
+        
+        file_content = io.BytesIO()
+        downloader = MediaIoBaseDownload(file_content, request_export)
+        
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+
+        file_content.seek(0)
+
+        # Determina o content-type e extensão apropriados
+        content_type = export_mime_type
+        file_extension = drive.get_file_extension(export_mime_type)
+        
+        # Garante que o nome do arquivo tenha a extensão correta
+        if not original_name.endswith(file_extension):
+            export_filename = f"{original_name}{file_extension}"
+        else:
+            export_filename = original_name
+
+        # Cria a resposta HTTP
+        response = HttpResponse(
+            file_content.read(),
+            content_type=content_type
+        )
+        
+        response['Content-Disposition'] = f'attachment; filename="{export_filename}"'
+        
+        return response
+
+    except Exception as e:
+        return HttpResponse(f"Erro ao exportar o arquivo: {e}", status=500)
+
+@login_required
+def get_drive_file_metadata(request, file_id):
+    """
+    Retorna metadata do arquivo do Drive
+    """
+    try:
+        drive = Drive()
+        service = drive.get_service()
+        drive_id = drive.extrair_id_drive(file_id)
+
+        file_metadata = service.files().get(
+            fileId=drive_id, 
+            fields='name, mimeType, kind',
+            supportsAllDrives=True
+        ).execute()
+        
+        return JsonResponse({
+            'success': True,
+            'metadata': file_metadata
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=404)
+    
 @login_required
 def limpar_cache_pasta_drive(request, pk):
     """

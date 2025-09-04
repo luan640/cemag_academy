@@ -136,6 +136,24 @@ class Drive:
             return None
     
     @staticmethod
+    def get_file_extension(mime_type):
+        """Retorna a extensão de arquivo baseada no mime type"""
+        extensions = {
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+            'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
+            'image/png': '.png',
+            'application/pdf': '.pdf',
+            'application/zip': '.zip',
+            'text/plain': '.txt',
+            'text/csv': '.csv',
+            'application/vnd.ms-excel': '.xls',
+            'application/msword': '.doc',
+            'application/vnd.ms-powerpoint': '.ppt'
+        }
+        return extensions.get(mime_type, '')
+    
+    @staticmethod
     def gerar_link_visualizacao(file_id, mime_type):
         """Gera link de visualização baseado no tipo de arquivo"""
         # Links para documentos do Google

@@ -55,9 +55,6 @@
         padding-top: 1.5rem;
         border-top: 2px dashed #dee2e6;
     }
-    .ratio-16x9 {
-        height: 500px;
-    }
 
     /* Estilos para o spinner no modal */
     #driveModal .modal-body {
@@ -175,9 +172,9 @@
                                         {% endif %}
                                         
                                         <div style="padding: 20px; overflow-y: auto; height: 300px;">
-                                            <div class="d-flex justify-content-between">
+                                            <div class="d-flex justify-content-between align-items-center">
                                                 <h5 class="mb-4">{{ material.nome }}</h5>
-                                                <div class="d-flex justify-content-end" style="gap: 20px;">
+                                                <div class="d-flex justify-content-end align-items-start" style="gap: 20px;">
                                                     {% if material.video %}
                                                     <div class="video-overlay">
                                                         <button class="btn btn-secondary" onclick="openVideoInNewTab('{{ material.video.url }}')">
@@ -186,11 +183,11 @@
                                                     </div>
                                                     {% endif %}
                                                     {% if material.arquivo_drive %}
-                                                    <a href="{{ material.arquivo_drive }}" target="_blank">
-                                                        <button class="btn btn-secondary">
-                                                            <i class="fa-brands fa-google-drive" title="Drive"></i>
+                                                        <button class="btn btn-secondary drive-download-btn" 
+                                                                data-file-id="{{ material.arquivo_drive }}"
+                                                                title="Drive">
+                                                            <i class="fa-brands fa-google-drive"></i>
                                                         </button>
-                                                    </a>
                                                     {% endif %}
                                                     {% if material.fotos %}
                                                     <p>
@@ -262,7 +259,7 @@
         <div class="card">
             <div class="card-body" style="height: 100%;">
                 <p class="d-none" id="andamentoVisualizacoes"></p>
-                {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
+                {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id or not materiais and pasta.pasta_drive %}
                 {% else %}
                 <div class="d-flex align-items-baseline" style="gap: 15px;">
                     <p>Progresso: </p>
@@ -289,7 +286,7 @@
                 </div>
 
                 <div class="card p-3" id="card_provaDisponivel">
-                    {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
+                    {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id or not materiais and pasta.pasta_drive %}
                     <strong><a id="provaDisponivel" href="{% url 'list-prova' pasta.pk %}" style="text-decoration: none; width: 150px;">Visualizar Provas</a></strong>
                     {% else %}
                     <div class="d-flex justify-content-between">
@@ -368,8 +365,8 @@
     </div>
 </div>
 
-<div class="modal fade" id="driveModal" tabindex="-1" aria-labelledby="driveModalTitle" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
+<div class="modal fade" id="driveModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="driveModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title" id="driveModalTitle">Carregando arquivo...</h5>
@@ -388,7 +385,8 @@
 {% block scripts %}
 <script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
 <script src="{% static 'js/drive/carregar_arquivos_drive.js' %}"></script>
-{% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
+<script src="{% static 'js/drive/drive_sistema.js' %}"></script>
+{% if request.user.type == "ADM" or request.user.id == pasta.created_by.id or not materiais and pasta.pasta_drive %}
 {% else %}
 <script src="{% static 'js/contador_andamento.js' %}"></script>
 {% endif %}

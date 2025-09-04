@@ -225,9 +225,23 @@ function visualizarArquivoDrive(fileId, mimeType, fileName) {
             img.onerror = () => { modalBody.innerHTML = '<div class="alert alert-danger">Erro ao carregar a imagem.</div>'; };
         } else if (mimeType === 'application/pdf' || mimeType.startsWith('video/')) {
             const mediaTag = (mimeType === 'application/pdf')
-                ? `<iframe src="${viewUrl}" frameborder="0" style="width: 100%; height: 100%;"></iframe>`
-                : `<video controls src="${viewUrl}" style="width: 100%; height: 100%;">Vídeo não suportado.</video>`;
-            modalBody.innerHTML = `<div class="ratio ratio-16x9">${mediaTag}</div>`;
+                ? `<iframe src="${viewUrl}" frameborder="0" style="width: 100%; height: 100%;" onload="this.style.opacity = '1'"></iframe>`
+                : `<video controls src="${viewUrl}" style="width: 100%; height: 100%;" onloadeddata="this.style.opacity = '1'">Vídeo não suportado.</video>`;
+            
+            modalBody.innerHTML = `
+                <div class="ratio ratio-16x9">
+                    <div class="d-flex justify-content-center align-items-center" style="position: absolute; width: 100%; height: 100%;">
+                        <div class="spinner-border text-primary" role="status"></div>
+                    </div>
+                    ${mediaTag}
+                </div>`;
+            
+            // Inicialmente esconder o conteúdo até carregar
+            const mediaElement = modalBody.querySelector('iframe, video');
+            if (mediaElement) {
+                mediaElement.style.opacity = '0';
+                mediaElement.style.transition = 'opacity 0.3s ease';
+            }
         } else {
             modalBody.innerHTML = `
                 <div class="text-center py-4">
