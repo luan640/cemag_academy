@@ -136,6 +136,53 @@ def pastas_list(request):
     })
 
 @login_required
+def pastas_creators(request):
+    """
+    Retorna uma lista JSON de criadores de pastas, respeitando
+    as permissões do usuário logado.
+    """
+    # É importante obter o setor do usuário da mesma forma que na view principal.
+    # Supondo que o setor esteja no perfil do usuário:
+    try:
+        setor_do_usuario = request.user.setor 
+    except AttributeError:
+        # Lida com casos onde o usuário (ex: ADM) pode não ter um setor específico
+        setor_do_usuario = None
+
+    # 1. Aplicar a mesma lógica de filtro da sua view principal
+    if request.user.type in ['ADM', 'DIR']:
+        pastas = Pasta.objects.all()
+    elif request.user.type == 'LID':
+        pastas = Pasta.objects.filter(
+            Q(created_by=request.user) |
+            Q(setores=setor_do_usuario) |
+            Q(funcionarios__matricula=request.user.matricula)
+        ).distinct()
+    else:
+        pastas = Pasta.objects.filter(
+            Q(setores=setor_do_usuario) |
+            Q(funcionarios__matricula=request.user.matricula)
+        ).distinct()
+
+    creators_qs = pastas.order_by('created_by__first_name').values(
+        'created_by__id', 
+        'created_by__first_name',
+        'created_by__last_name'
+    ).distinct()
+    
+    # Formata a lista para o JSON
+    creators_list = [
+        {
+            'id': creator['created_by__id'], 
+            'name': f"{creator['created_by__first_name']} {creator['created_by__last_name']}".strip()
+        } 
+        for creator in creators_qs
+    ]
+
+    # 3. Retornar os dados como JSON
+    return JsonResponse({'creators': creators_list})
+
+@login_required
 def funcionarios_avaliaram(request, pk):
     # Verifica se a requisição é do tipo AJAX (opcional)
     if request.method == 'GET' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
