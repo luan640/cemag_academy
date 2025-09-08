@@ -5,6 +5,8 @@ from django.core.cache import cache
 from materiais.models import Pasta,Material,Visualizacao
 import logging
 import re
+import json
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -54,19 +56,42 @@ class ProgressoTrilha:
 
 
 class Drive:
-
     """Classe para gerenciar operações com Google Drive"""
-    
+
     def __init__(self):
         self.scopes = settings.GOOGLE_DRIVE_SCOPES
-        self.credentials_file = settings.GOOGLE_DRIVE_CREDENTIALS_FILE
         self.service = None
-    
+
     def _build_service(self):
-        """Constrói o serviço do Google Drive"""
+        """Constrói o serviço do Google Drive a partir de variáveis de ambiente separadas"""
         try:
-            creds = service_account.Credentials.from_service_account_file(
-                self.credentials_file, 
+            # CORREÇÃO: Usamos .strip('\'",') para remover aspas e vírgulas extras
+            def clean_env_var(var_name):
+                return os.getenv(var_name, '').strip('\'",')
+
+            private_key = clean_env_var('GOOGLE_PRIVATE_KEY').replace('\\n', '\n')
+
+            if not private_key:
+                raise ValueError("A variável de ambiente 'GOOGLE_PRIVATE_KEY' não foi definida ou está vazia.")
+
+            credentials_info = {
+                "type": clean_env_var('GOOGLE_TYPE'),
+                "project_id": clean_env_var('GOOGLE_PROJECT_ID'),
+                "private_key_id": clean_env_var('GOOGLE_PRIVATE_KEY_ID'),
+                "private_key": private_key,
+                "client_email": clean_env_var('GOOGLE_CLIENT_EMAIL'),
+                "client_id": clean_env_var('GOOGLE_CLIENT_ID'),
+                "auth_uri": clean_env_var('GOOGLE_AUTH_URI'),
+                "token_uri": clean_env_var('GOOGLE_TOKEN_URI'),
+                "auth_provider_x509_cert_url": clean_env_var('GOOGLE_AUTH_PROVIDER_X509_CERT_URL'),
+                "client_x509_cert_url": clean_env_var('GOOGLE_CLIENT_X509_CERT_URL'),
+            }
+
+            if not all(value for key, value in credentials_info.items() if key != 'private_key' and not value):
+                 raise ValueError("Uma ou mais variáveis de ambiente do Google Drive não foram definidas.")
+
+            creds = service_account.Credentials.from_service_account_info(
+                credentials_info,
                 scopes=self.scopes
             )
             self.service = build('drive', 'v3', credentials=creds)
@@ -74,33 +99,30 @@ class Drive:
         except Exception as e:
             logger.error(f"Erro ao construir serviço do Drive: {e}")
             raise
-    
+
     def get_service(self):
         """Retorna o serviço do Drive, construindo se necessário"""
         if self.service is None:
             return self._build_service()
         return self.service
-    
+
     def listar_arquivos_pasta(self, folder_id_or_url, cache_timeout=300):
-        """Lista arquivos de uma pasta do Drive, aceitando URL ou ID"""
-        # Extrai o ID real da URL ou valor fornecido
         folder_id = self.extrair_id_drive(folder_id_or_url)
-        
         if not folder_id:
             logger.error(f"ID da pasta do Drive inválido: {folder_id_or_url}")
             return []
-        
+
         cache_key = f"drive_files_{folder_id}"
-        
-        # Tenta obter do cache primeiro
         cached_files = cache.get(cache_key)
-        if cached_files:
+        if cached_files is not None:
             return cached_files
-        
+
         try:
             service = self.get_service()
+            if not service:
+                raise Exception("Serviço do Google Drive não pôde ser inicializado.")
+
             query = f"'{folder_id}' in parents and trashed = false"
-            
             results = service.files().list(
                 q=query,
                 fields="files(id, name, mimeType, webViewLink, webContentLink, thumbnailLink, modifiedTime, size, fileExtension)",
@@ -109,20 +131,14 @@ class Drive:
                 includeItemsFromAllDrives=True,
                 orderBy="name"
             ).execute()
-            
             files = results.get('files', [])
-            
-            # Armazena no cache
             cache.set(cache_key, files, cache_timeout)
-            
             return files
-            
         except Exception as e:
             logger.error(f"Erro ao listar arquivos da pasta {folder_id}: {e}")
             return []
-    
+
     def obter_arquivo_por_id(self, file_id):
-        """Obtém informações de um arquivo específico"""
         try:
             service = self.get_service()
             file = service.files().get(
@@ -134,54 +150,6 @@ class Drive:
         except Exception as e:
             logger.error(f"Erro ao obter arquivo {file_id}: {e}")
             return None
-    
-    @staticmethod
-    def get_file_extension(mime_type):
-        """Retorna a extensão de arquivo baseada no mime type"""
-        extensions = {
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': '.xlsx',
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
-            'application/vnd.openxmlformats-officedocument.presentationml.presentation': '.pptx',
-            'image/png': '.png',
-            'application/pdf': '.pdf',
-            'application/zip': '.zip',
-            'text/plain': '.txt',
-            'text/csv': '.csv',
-            'application/vnd.ms-excel': '.xls',
-            'application/msword': '.doc',
-            'application/vnd.ms-powerpoint': '.ppt'
-        }
-        return extensions.get(mime_type, '')
-    
-    @staticmethod
-    def gerar_link_visualizacao(file_id, mime_type):
-        """Gera link de visualização baseado no tipo de arquivo"""
-        # Links para documentos do Google
-        if mime_type == "application/vnd.google-apps.document":
-            return f"https://docs.google.com/document/d/{file_id}/preview"
-        elif mime_type == "application/vnd.google-apps.spreadsheet":
-            return f"https://docs.google.com/spreadsheets/d/{file_id}/preview"
-        elif mime_type == "application/vnd.google-apps.presentation":
-            return f"https://docs.google.com/presentation/d/{file_id}/preview"
-        elif mime_type == "application/vnd.google-apps.form":
-            return f"https://docs.google.com/forms/d/{file_id}/preview"
-        
-        # Links para arquivos normais
-        elif mime_type == "application/pdf":
-            return f"https://drive.google.com/file/d/{file_id}/preview"
-        elif mime_type.startswith("image/"):
-            return f"https://drive.google.com/uc?id={file_id}"
-        elif mime_type.startswith("video/"):
-            return f"https://drive.google.com/uc?id={file_id}"
-        elif mime_type.startswith("audio/"):
-            return f"https://drive.google.com/uc?id={file_id}"
-        else:
-            return None
-    
-    @staticmethod
-    def gerar_link_download(file_id):
-        """Gera link de download direto"""
-        return f"https://drive.google.com/uc?id={file_id}&export=download"
     
     @staticmethod
     def formatar_tamanho_arquivo(bytes_size):
@@ -249,36 +217,20 @@ class Drive:
         cache_key = f"drive_files_{folder_id}"
         cache.delete(cache_key)
         logger.info(f"Cache limpo para pasta: {folder_id}")
-    
+
     @staticmethod
     def extrair_id_drive(url_ou_id):
-        """
-        Extrai o ID do Google Drive de uma URL ou retorna o próprio valor se já for um ID
-        
-        Exemplos:
-        - '1c0MiC81UZ5nl3Ckr_uERYxx0MMA-ZGmH' → '1c0MiC81UZ5nl3Ckr_uERYxx0MMA-ZGmH'
-        - 'https://drive.google.com/drive/folders/1c0MiC81UZ5nl3Ckr_uERYxx0MMA-ZGmH?usp=drive_link' → '1c0MiC81UZ5nl3Ckr_uERYxx0MMA-ZGmH'
-        - 'https://drive.google.com/open?id=1c0MiC81UZ5nl3Ckr_uERYxx0MMA-ZGmH' → '1c0MiC81UZ5nl3Ckr_uERYxx0MMA-ZGmH'
-        """
         if not url_ou_id:
             return None
-        
-        # Se parece ser apenas um ID (sem caracteres de URL)
-        if len(url_ou_id) in [33, 44] and '/' not in url_ou_id and ':' not in url_ou_id:
-            return url_ou_id
-        
-        # Padrões de regex para URLs do Google Drive
         patterns = [
-            r'[/=]([0-9A-Za-z_-]{33})[/?]?',  # IDs de 33 caracteres
-            r'[/=]([0-9A-Za-z_-]{44})[/?]?',  # IDs de 44 caracteres (mais raros)
-            r'folders/([0-9A-Za-z_-]+)',      # Pattern específico para folders
-            r'id=([0-9A-Za-z_-]+)'           # Pattern para parâmetro id=
+            r'folders/([0-9A-Za-z_-]{20,})',
+            r'id=([0-9A-Za-z_-]{20,})',
+            r'/d/([0-9A-Za-z_-]{20,})'
         ]
-        
         for pattern in patterns:
             match = re.search(pattern, url_ou_id)
             if match:
                 return match.group(1)
-        
-        # Se não encontrou padrão, retorna o valor original (pode ser um ID válido)
-        return url_ou_id if len(url_ou_id) in [33, 44] else None
+        if len(url_ou_id) > 20 and '/' not in url_ou_id and ':' not in url_ou_id:
+            return url_ou_id
+        return None

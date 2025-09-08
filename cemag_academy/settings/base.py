@@ -81,7 +81,6 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 GOOGLE_DRIVE_SCOPES = ['https://www.googleapis.com/auth/drive.readonly']
-GOOGLE_DRIVE_CREDENTIALS_FILE = os.path.join(BASE_DIR, 'chave_servico.json')
 
 AWS_ACCESS_KEY_ID = env('AWS_ACCESS_KEY_ID')
 AWS_SECRET_ACCESS_KEY = env('AWS_SECRET_ACCESS_KEY')
