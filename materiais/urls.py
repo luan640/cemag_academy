@@ -8,9 +8,17 @@ from . import views
 
 urlpatterns = [
     path('pasta/', views.pastas_list, name='list-pasta'),
-    path('pasta/<int:pk>/detail', views.pastas_detail, name='detail-pasta'),
+    path('pasta/creators/', views.pastas_creators, name='pastas-creators'),
+    path('pasta/<int:pk>/detail/', views.pastas_detail, name='detail-pasta'),
+    path('pasta/<int:pk>/drive/', views.pastas_detail_drive, name='pastas-detail-drive'),
+    path('drive/download/<str:file_id>/', views.download_drive_file, name='download_drive_file'),
+    path('drive/export-google-file/<str:file_id>/', views.export_google_file, name='export_google_file'),
+    path('drive/export/<str:file_id>/', views.export_drive_sheet, name='drive_export_sheet'),
+    path('drive/clear/<str:pk>/', views.limpar_cache_pasta_drive, name='limpar_cache_drive'),
+    path('drive/metadata/<str:file_id>/', views.get_drive_file_metadata, name='get_drive_file_metadata'),
+    
     path('pasta/add/', views.pastas_add, name='add-pasta'),
-    path('pasta/<int:pk>/edit', views.pasta_edit, name='edit-pasta'),
+    path('pasta/<int:pk>/edit/', views.pasta_edit, name='edit-pasta'),
     path('pasta/<int:pk>/delete/', views.pasta_delete, name='delete-pasta'),
     path('pasta/<int:pk>/frequencia/', views.gerar_ficha_frequencia, name='frequencia-pasta'),
     path('pasta/<int:pk>/participantes/', views.list_participantes, name='list-participantes'),

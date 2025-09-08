@@ -134,6 +134,11 @@
                                     {% endfor %}
                                 </select>
                             </div>
+                            <div class="mb-3">
+                                <label for="creators" class="form-label">Criadores:</label>
+                                <select class="form-select" id="creators">
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -172,7 +177,7 @@
                                     </h3>
                                     {% endif %}
                                 </div>
-                                <div style="color: #333; font-size: 10pt; margin-bottom: 10px;">
+                                <div class="creator-name" style="color: #333; font-size: 10pt; margin-bottom: 10px;">
                                     {{ item.criador_nome_completo }}
                                 </div>
                                 <div class="d-flex justify-content-between">

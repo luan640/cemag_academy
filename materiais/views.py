@@ -4,14 +4,14 @@ from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
 from django.db.models import Count, Q
 from django.db import connection
-from django.http import HttpResponse
 from django.template.loader import get_template
 from django.conf import settings  # Importe o módulo settings
-from django.core.mail import send_mail,EmailMultiAlternatives
-from django.core import serializers
-import json
+from django.core.mail import send_mail, EmailMultiAlternatives
+from django.views.decorators.clickjacking import xframe_options_sameorigin
+from django.urls import reverse
 
 from .models import Pasta,Material,Visualizacao,AvaliacaoEficacia, RespostaAvaliacaoEficacia,Certificado
+from .utils import Drive
 from avaliacoes.views import calcular_nota,validacao_certificado
 from .forms import AddPasta,AddMaterial,VisualizacaoForm
 from cadastros.models import Funcionario,Setor
@@ -20,13 +20,9 @@ from avaliacoes.models import ProvaRealizada, Prova
 from users.models import CustomUser
 from cemag_academy.settings.base import *
 
-from reportlab.pdfgen import canvas
+from googleapiclient.http import MediaIoBaseDownload
+import io
 import re
-import environ
-from io import BytesIO
-from xhtml2pdf import pisa  # Importa o conversor de HTML para PDF
-from reportlab.lib.pagesizes import A4
-from reportlab.platypus import SimpleDocTemplate, PageTemplate, Frame
 
 def extrair_id_youtube(url):
     regex = r"(?:https?:\/\/)?(?:www\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=)?(.{11})"
@@ -140,6 +136,53 @@ def pastas_list(request):
     })
 
 @login_required
+def pastas_creators(request):
+    """
+    Retorna uma lista JSON de criadores de pastas, respeitando
+    as permissões do usuário logado.
+    """
+    # É importante obter o setor do usuário da mesma forma que na view principal.
+    # Supondo que o setor esteja no perfil do usuário:
+    try:
+        setor_do_usuario = request.user.setor 
+    except AttributeError:
+        # Lida com casos onde o usuário (ex: ADM) pode não ter um setor específico
+        setor_do_usuario = None
+
+    # 1. Aplicar a mesma lógica de filtro da sua view principal
+    if request.user.type in ['ADM', 'DIR']:
+        pastas = Pasta.objects.all()
+    elif request.user.type == 'LID':
+        pastas = Pasta.objects.filter(
+            Q(created_by=request.user) |
+            Q(setores=setor_do_usuario) |
+            Q(funcionarios__matricula=request.user.matricula)
+        ).distinct()
+    else:
+        pastas = Pasta.objects.filter(
+            Q(setores=setor_do_usuario) |
+            Q(funcionarios__matricula=request.user.matricula)
+        ).distinct()
+
+    creators_qs = pastas.order_by('created_by__first_name').values(
+        'created_by__id', 
+        'created_by__first_name',
+        'created_by__last_name'
+    ).distinct()
+    
+    # Formata a lista para o JSON
+    creators_list = [
+        {
+            'id': creator['created_by__id'], 
+            'name': f"{creator['created_by__first_name']} {creator['created_by__last_name']}".strip()
+        } 
+        for creator in creators_qs
+    ]
+
+    # 3. Retornar os dados como JSON
+    return JsonResponse({'creators': creators_list})
+
+@login_required
 def funcionarios_avaliaram(request, pk):
     # Verifica se a requisição é do tipo AJAX (opcional)
     if request.method == 'GET' and request.headers.get('X-Requested-With') == 'XMLHttpRequest':
@@ -192,6 +235,304 @@ def pastas_detail(request, pk):
         'visualizacoes': visualizacoes,
         'existe_avaliacao_eficacia': existe_avaliacao_eficacia
     })
+
+@login_required
+def pastas_detail_drive(request, pk):
+    
+    pasta = get_object_or_404(Pasta, pk=pk)
+    drive = Drive()
+    
+    if not pasta.pasta_drive:
+        return JsonResponse({
+            'success': False,
+            'error': 'Pasta do Drive não configurada',
+            'arquivos': []
+        })
+    
+    drive_id = drive.extrair_id_drive(pasta.pasta_drive)
+
+    can_clear_cache = (request.user.type == "ADM" or 
+                       request.user.id == pasta.created_by.id)
+    
+    if not drive_id:
+        return JsonResponse({
+            'success': False,
+            'error': f'ID do Drive inválido: {pasta.pasta_drive}',
+            'arquivos': []
+        })
+    
+    # Obtém arquivos do Drive usando o ID extraído
+    arquivos_drive = drive.listar_arquivos_pasta(drive_id)
+    
+    # Processa os arquivos...
+    arquivos_processados = []
+    for arquivo in arquivos_drive:
+        # O 'id' do arquivo é essencial
+        file_id = arquivo.get('id')
+        if not file_id:
+            continue # Pula arquivos sem ID
+
+        arquivo_data = {
+            'id': file_id,
+            'nome': arquivo.get('name'),
+            'tipo': arquivo.get('mimeType'),
+            'extensao': arquivo.get('fileExtension'),
+            'link_visualizacao': reverse('download_drive_file', args=[file_id]),
+            'link_download': reverse('download_drive_file', args=[file_id]),
+            'thumbnail': arquivo.get('thumbnailLink'),
+            'modificado': arquivo.get('modifiedTime'),
+            'tamanho_bytes': arquivo.get('size'),
+            'tamanho': drive.formatar_tamanho_arquivo(arquivo.get('size')),
+            'icone': drive.obter_icone_por_tipo(arquivo.get('mimeType')),
+
+            'can_clear_cache': can_clear_cache,
+        }
+        
+        arquivos_processados.append(arquivo_data)
+        
+    arquivos_processados.sort(key=lambda x: x['nome'].lower())
+    
+    return JsonResponse({
+        'success': True,
+        'can_clear_cache_pasta': can_clear_cache,
+        'pasta_id': pasta.id,
+        'pasta_nome': pasta.nome,
+        'total_arquivos': len(arquivos_processados),
+        'arquivos': arquivos_processados
+    })
+
+@xframe_options_sameorigin 
+@login_required
+def download_drive_file(request, file_id):
+    """
+    Esta view atua como um proxy. Ela baixa o arquivo do Drive usando a 
+    Conta de Serviço e o transmite para o usuário.
+    """
+    try:
+        # ... (todo o resto do seu código permanece igual) ...
+        drive = Drive()
+        service = drive.get_service()
+
+        drive_id = drive.extrair_id_drive(file_id)
+
+        file_metadata = service.files().get(
+            fileId=drive_id, 
+            fields='name, mimeType', 
+            supportsAllDrives=True
+        ).execute()
+        
+        request_download = service.files().get_media(fileId=drive_id)
+        
+        file_content = io.BytesIO()
+        downloader = MediaIoBaseDownload(file_content, request_download)
+        
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+
+        file_content.seek(0)
+
+        response = HttpResponse(
+            file_content.read(),
+            content_type=file_metadata.get('mimeType', 'application/octet-stream')
+        )
+        
+        is_for_viewing = request.GET.get('view') == 'true'
+        file_name = file_metadata["name"]
+
+        if is_for_viewing:
+            response['Content-Disposition'] = f'inline; filename="{file_name}"'
+        else:
+            response['Content-Disposition'] = f'attachment; filename="{file_name}"'
+            
+        return response
+
+    except Exception as e:
+        return HttpResponse(f"Arquivo não encontrado ou erro ao acessar o Drive: {e}", status=404)
+    
+@login_required
+def export_drive_sheet(request, file_id):
+    """
+    Exporta uma Planilha Google para o formato XLSX e a transmite para o usuário.
+    """
+    try:
+        drive = Drive()
+        service = drive.get_service()
+
+        drive_id = drive.extrair_id_drive(file_id)
+
+        # Pega o nome do arquivo original
+        file_metadata = service.files().get(
+            fileId=drive_id, 
+            fields='name', 
+            supportsAllDrives=True
+        ).execute()
+        
+        original_name = file_metadata.get('name')
+        # Garante que o nome do arquivo exportado termine com .xlsx
+        export_filename = f"{original_name}.xlsx" if not original_name.endswith('.xlsx') else original_name
+
+        # Prepara a requisição para EXPORTAR o arquivo
+        # O mimeType aqui é o formato de destino (Excel)
+        request_export = service.files().export_media(
+            fileId=drive_id,
+            mimeType='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        
+        file_content = io.BytesIO()
+        downloader = MediaIoBaseDownload(file_content, request_export)
+        
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+
+        file_content.seek(0)
+
+        # Cria a resposta HTTP com o conteúdo do arquivo exportado
+        response = HttpResponse(
+            file_content.read(),
+            content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+        
+        # Define o cabeçalho para forçar o download com o novo nome .xlsx
+        response['Content-Disposition'] = f'attachment; filename="{export_filename}"'
+        
+        return response
+
+    except Exception as e:
+        return HttpResponse(f"Erro ao exportar a planilha: {e}", status=500)
+
+@login_required
+def export_google_file(request, file_id):
+    """
+    Exporta arquivos do Google Workspace para formatos padrão
+    """
+    try:
+        drive = Drive()
+        service = drive.get_service()
+        drive_id = drive.extrair_id_drive(file_id)
+
+        # Obtém parâmetros da requisição
+        export_mime_type = request.GET.get('exportMimeType')
+        original_name = request.GET.get('originalName', 'arquivo')
+        
+        if not export_mime_type:
+            return JsonResponse({'error': 'Tipo de exportação não especificado'}, status=400)
+
+        # Prepara a requisição para exportar o arquivo
+        request_export = service.files().export_media(
+            fileId=drive_id,
+            mimeType=export_mime_type
+        )
+        
+        file_content = io.BytesIO()
+        downloader = MediaIoBaseDownload(file_content, request_export)
+        
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+
+        file_content.seek(0)
+
+        # Determina o content-type e extensão apropriados
+        content_type = export_mime_type
+        file_extension = drive.get_file_extension(export_mime_type)
+        
+        # Garante que o nome do arquivo tenha a extensão correta
+        if not original_name.endswith(file_extension):
+            export_filename = f"{original_name}{file_extension}"
+        else:
+            export_filename = original_name
+
+        # Cria a resposta HTTP
+        response = HttpResponse(
+            file_content.read(),
+            content_type=content_type
+        )
+        
+        response['Content-Disposition'] = f'attachment; filename="{export_filename}"'
+        
+        return response
+
+    except Exception as e:
+        return HttpResponse(f"Erro ao exportar o arquivo: {e}", status=500)
+
+@login_required
+def get_drive_file_metadata(request, file_id):
+    """
+    Retorna metadata do arquivo do Drive
+    """
+    try:
+        drive = Drive()
+        service = drive.get_service()
+        drive_id = drive.extrair_id_drive(file_id)
+
+        file_metadata = service.files().get(
+            fileId=drive_id, 
+            fields='name, mimeType, kind',
+            supportsAllDrives=True
+        ).execute()
+        
+        return JsonResponse({
+            'success': True,
+            'metadata': file_metadata
+        })
+
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': str(e)
+        }, status=404)
+    
+@login_required
+def limpar_cache_pasta_drive(request, pk):
+    """
+    Endpoint para limpar o cache de uma pasta específica do Drive.
+    """
+    try:
+        # Obtém a pasta e verifica permissões
+        pasta = get_object_or_404(Pasta, pk=pk)
+        
+        # Verifica se o usuário tem permissão
+        if request.user.type != "ADM" and request.user.id != pasta.created_by.id:
+            return JsonResponse({
+                'success': False,
+                'error': 'Permissão negada'
+            }, status=403)
+        
+        # Verifica se a pasta do Drive está configurada
+        if not pasta.pasta_drive:
+            return JsonResponse({
+                'success': False,
+                'error': 'Pasta do Drive não configurada'
+            }, status=400)
+        
+        # Extrai o ID do Drive e limpa o cache
+        drive = Drive()
+        drive_id = drive.extrair_id_drive(pasta.pasta_drive)
+        
+        if not drive_id:
+            return JsonResponse({
+                'success': False,
+                'error': 'ID da pasta do Drive inválido'
+            }, status=400)
+        
+        # Limpa o cache da pasta
+        drive.limpar_cache_pasta(drive_id)
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Cache da pasta "{pasta.nome}" limpo com sucesso',
+            'pasta_id': drive_id,
+            'pasta_nome': pasta.nome
+        })
+        
+    except Exception as e:
+        return JsonResponse({
+            'success': False,
+            'error': f'Erro interno do servidor: {str(e)}'
+        }, status=500)
+    
 
 @login_required
 def pasta_edit(request, pk):

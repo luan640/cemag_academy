@@ -41,6 +41,37 @@
     .checked {
         color: orange;
     }
+
+    .drive-item {
+        transition: all 0.2s ease;
+        border-left: 4px solid #28a745 !important;
+    }
+    .drive-item:hover {
+        background-color: #f8fff9;
+        transform: translateX(2px);
+    }
+    #drive-section {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 2px dashed #dee2e6;
+    }
+
+    /* Estilos para o spinner no modal */
+    #driveModal .modal-body {
+        min-height: 400px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Estilos para o iframe do PDF */
+    #driveModal .ratio-16x9 {
+        min-height: 400px;
+    }
+
+    #driveModal iframe {
+        border-radius: 0.375rem;
+    }
 </style>
 
 <div class="row">
@@ -48,108 +79,167 @@
         <h1 class="mb-4 mt-4">Materiais</h1>
         <div class="card">
             <div class="card-body">
-                <div class="list-group">
+                <div class="list-group" id="lista-materiais" 
+                    data-pasta-id="{% if pasta and pasta.pasta_drive %}{{ pasta.id }}{% endif %}"
+                    data-has-drive="{% if pasta and pasta.pasta_drive %}true{% else %}false{% endif %}">
                     {% if materiais %}
-                    {% for material in materiais %}
-                    <a class="list-group-item list-group-item-action flex-column align-items-start" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#modal{{ material.pk }}">
-                        <div class="d-flex w-100 justify-content-between">
-                            <div class="d-flex align-items-center" style="gap: 10px;">
-                                <i style="width: 50px; height: auto;" class="fa-regular fa-circle-play"></i>
-                                <h5 class="mb-1">{{ material.nome }}</h5>
-                            </div>
-                            <div class="d-flex flex-column flex-md-row justify-content-between" style="gap: 5px;">
-                                {% if material.video_youtube or material.video %}
-                                <small style="font-weight: bold; border: 2px solid gray; border-radius: 10px;
-                                height: 38px;padding: 5px;">Vídeo</small>
-                                {% endif %}
-
-                                {% if material.arquivo %}
-                                <small style="font-weight: bold; border: 2px solid gray; border-radius: 10px;
-                                height: 38px;padding: 5px;">Arquivo</small>
-                                {% endif %}
-
-                                {% if material.fotos %}
-                                <small style="font-weight: bold; border: 2px solid gray; border-radius: 10px;
-                                height: 38px;padding: 5px;">Foto</small>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <p class="mb-1 mt-4">{{ material.descricao }}</p>
-                    </a>
-                    <div class="d-flex justify-content-between align-items-center mt-2">
-                        <div>
-                            {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
-                            <a href="{% url 'delete-material' material.pk pasta.pk %}" class="mb-3 btn btn-dark delete-link" style="width: 100px;">Excluir</a>
-                            <a href="{% url 'edit-material' material.pk pasta.pk %}" class="mb-3 btn btn-light" style="width: 100px;">Editar</a>
-                            {% endif %}
-                        </div>
-                        {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
-                        {% else %}
-                        <div class="d-flex justify-content-between mb-2"  style="width: 300px; background-color: #f3f3f3;padding: 10px;border-radius: 10px;font-weight: 600; border: 2px solid rgb(229 229 229);">
-                            Marcar como visualizado<input
-                            style="width: 30px;"
-                            class="material-visualizado ms-2"
-                            type="checkbox"
-                            data-material-id="{{ material.id }}"
-                            data-pasta-id="{{ material.pasta.id }}"
-                            data-url="{% url 'registrar_visualizacao' %}"
-                            {% if material.id in visualizacoes %}checked{% endif %}>
-                        </div>
-                        {% endif %}
-                    </div>
-
-                    <div class="overlay-bg" id="overlayBg">
-                        <img src="" alt="Imagem em destaque" id="overlayImg">
-                    </div>
-        
-                    <div class="modal fade" id="modal{{ material.pk }}" tabindex="-1" aria-labelledby="modalLabel{{ material.pk }}" aria-hidden="true" data-bs-backdrop="static">
-                        <div class="modal-dialog" style="margin-top: 60px;">
-                            <div class="modal-content">
-                                <div class="modal-body" style="padding: 0;">
-                    
-                                    {% if material.video_youtube %}
-                                    <iframe class="w-100" style="height: 400px; border-radius: 7px;" src="https://www.youtube.com/embed/{{ material.video_youtube }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                                    {% endif %}
-                                    
-                                    <div style="padding: 20px; overflow-y: auto; height: 300px;">
-                                        <div class="d-flex justify-content-between">
-                                            <h5 class="mb-4">{{ material.nome }}</h5>
-                                            <div class="d-flex justify-content-end" style="gap: 20px;">
-                                                {% if material.video %}
-                                                <div class="video-overlay">
-                                                    <button class="btn btn-secondary" onclick="openVideoInNewTab('{{ material.video.url }}')">
-                                                        <i class="fa-solid fa-circle-play"></i>
-                                                    </button>
-                                                </div>
-                                                {% endif %}
-                                                {% if material.fotos %}
-                                                <p>
-                                                    <button class="btn btn-secondary img-overlay" data-img-url="{{ material.fotos.url }}">
-                                                        <i class="fa-solid fa-image" title="Imagem"></i>
-                                                    </button>
-                                                </p>
-                                                {% endif %}
+                    <div class="mb-4">
+                        <h4 class="text-primary mb-3">
+                            <i class="fa-solid fa-database me-2"></i>
+                            Materiais do Sistema
+                        </h4>
+                        {% for material in materiais %}
+                        <div class="list-group-item flex-column align-items-start system-item mb-3 p-3">
                             
-                                                {% if material.arquivo %}
-                                                <p>
-                                                    <button class="btn btn-secondary" data-file-url="{{ material.arquivo.url }}" onclick="window.open(this.getAttribute('data-file-url'), '_blank')">
-                                                        <i class="fa-solid fa-file" title="Arquivo"></i>
-                                                    </button>
-                                                </p>
-                                                {% endif %}
-                                            </div>
+                            <div class="d-flex w-100 justify-content-between align-items-center">
+                                <div class="d-flex align-items-center" style="gap: 15px;">
+                                    <i class="fa-solid fa-layer-group fa-2x text-primary"></i>
+                                    
+                                    <div>
+                                        <h6 class="mb-1 fw-bold">{{ material.nome }}</h6>
+                                        <small class="text-muted d-block">{{ material.descricao|truncatechars:80 }}</small>
+                                        
+                                        <div class="mt-2">
+                                            {% if material.video_youtube or material.video %}
+                                                <span class="badge rounded-pill bg-danger me-1">
+                                                    <i class="fa-solid fa-film me-1"></i> Vídeo
+                                                </span>
+                                            {% endif %}
+                                            {% if material.arquivo %}
+                                                <span class="badge rounded-pill bg-info me-1">
+                                                    <i class="fa-solid fa-file-pdf me-1"></i> Arquivo
+                                                </span>
+                                            {% endif %}
+                                            {% if material.arquivo_drive %}
+                                                <span class="badge rounded-pill bg-success me-1">
+                                                    <i class="fa-brands fa-google-drive me-1"></i> Arquivo Drive
+                                                </span>
+                                            {% endif %}
+                                            {% if material.fotos.exists %}
+                                                <span class="badge rounded-pill bg-primary me-1">
+                                                    <i class="fa-solid fa-images me-1"></i> Foto(s)
+                                                </span>
+                                            {% endif %}
                                         </div>
-                                        <p>{{ material.descricao }}</p>
                                     </div>
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+
+                                <div class="btn-group">
+                                    <button class="btn btn-outline-primary btn-sm" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#modal{{ material.pk }}" 
+                                            title="Visualizar Material">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </button>
+                                    {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
+                                    <a href="{% url 'edit-material' material.pk pasta.pk %}" class="btn btn-outline-secondary btn-sm" title="Editar">
+                                        <i class="fa-solid fa-pencil"></i>
+                                    </a>
+                                    <a href="{% url 'delete-material' material.pk pasta.pk %}" class="btn btn-outline-danger btn-sm delete-link" title="Excluir">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            {% if request.user.type != "ADM" and request.user.id != pasta.created_by.id %}
+                            <div class="d-flex justify-content-end mt-3">
+                                <div class="form-check form-switch bg-light p-2 ps-3 pe-3 rounded-pill border">
+                                    <input
+                                        class="form-check-input material-visualizado ms-2"
+                                        type="checkbox"
+                                        role="switch"
+                                        id="visualizado-{{ material.id }}"
+                                        data-material-id="{{ material.id }}"
+                                        data-pasta-id="{{ material.pasta.id }}"
+                                        data-url="{% url 'registrar_visualizacao' %}"
+                                        {% if material.id in visualizacoes %}checked{% endif %}>
+                                    <label class="form-check-label small" for="visualizado-{{ material.id }}">
+                                        Marcar como concluído
+                                    </label>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="modal fade" id="modal{{ material.pk }}" tabindex="-1" aria-labelledby="modalLabel{{ material.pk }}" aria-hidden="true" data-bs-backdrop="static">
+                            <div class="modal-dialog" style="margin-top: 60px;">
+                                <div class="modal-content">
+                                    <div class="modal-body" style="padding: 0;">
+                        
+                                        {% if material.video_youtube %}
+                                            <iframe class="w-100" style="height: 400px; border-radius: 7px;" src="https://www.youtube.com/embed/{{ material.video_youtube }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                                        {% endif %}
+                                        
+                                        <div style="padding: 20px; overflow-y: auto; height: 300px;">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <h5 class="mb-4">{{ material.nome }}</h5>
+                                                <div class="d-flex justify-content-end align-items-start" style="gap: 20px;">
+                                                    {% if material.video %}
+                                                    <div class="video-overlay">
+                                                        <button class="btn btn-secondary" onclick="openVideoInNewTab('{{ material.video.url }}')">
+                                                            <i class="fa-solid fa-circle-play"></i>
+                                                        </button>
+                                                    </div>
+                                                    {% endif %}
+                                                    {% if material.arquivo_drive %}
+                                                        <button class="btn btn-secondary drive-download-btn" 
+                                                                data-file-id="{{ material.arquivo_drive }}"
+                                                                title="Drive">
+                                                            <i class="fa-brands fa-google-drive"></i>
+                                                        </button>
+                                                    {% endif %}
+                                                    {% if material.fotos %}
+                                                    <p>
+                                                        <button class="btn btn-secondary img-overlay" data-img-url="{{ material.fotos.url }}">
+                                                            <i class="fa-solid fa-image" title="Imagem"></i>
+                                                        </button>
+                                                    </p>
+                                                    {% endif %}
+                                
+                                                    {% if material.arquivo %}
+                                                    <p>
+                                                        <button class="btn btn-secondary" data-file-url="{{ material.arquivo.url }}" onclick="window.open(this.getAttribute('data-file-url'), '_blank')">
+                                                            <i class="fa-solid fa-file" title="Arquivo"></i>
+                                                        </button>
+                                                    </p>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                            <p>{{ material.descricao }}</p>
+                                        </div>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
-                {% else %}
+                {% endif %}
+
+                <!-- SEÇÃO 2: ARQUIVOS DO GOOGLE DRIVE -->
+                {% if pasta and pasta.pasta_drive %}
+                    <div id="drive-section">
+                        <h4 class="text-success mb-3">
+                            <i class="fa-brands fa-google-drive me-2"></i>
+                            Arquivos do Google Drive
+                        </h4>
+                        
+                        <div id="drive-content">
+                            <div id="drive-loading" class="text-center py-4">
+                                <div class="spinner-border text-success" role="status">
+                                    <span class="visually-hidden">Carregando...</span>
+                                </div>
+                                <p class="mt-2 text-muted">Carregando arquivos do Drive...</p>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+
+                <!-- SEÇÃO 3: NENHUM MATERIAL DISPONÍVEL -->
+                {% if not materiais and not pasta.pasta_drive %}
                 <a class="list-group-item list-group-item-action flex-column align-items-start" style="cursor: pointer;">
                     <div class="d-flex w-100 justify-content-between">
                         <div class="d-flex align-items-center" style="gap: 20px;">
@@ -169,7 +259,7 @@
         <div class="card">
             <div class="card-body" style="height: 100%;">
                 <p class="d-none" id="andamentoVisualizacoes"></p>
-                {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
+                {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id or not materiais and pasta.pasta_drive %}
                 {% else %}
                 <div class="d-flex align-items-baseline" style="gap: 15px;">
                     <p>Progresso: </p>
@@ -196,7 +286,7 @@
                 </div>
 
                 <div class="card p-3" id="card_provaDisponivel">
-                    {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
+                    {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id or not materiais and pasta.pasta_drive %}
                     <strong><a id="provaDisponivel" href="{% url 'list-prova' pasta.pk %}" style="text-decoration: none; width: 150px;">Visualizar Provas</a></strong>
                     {% else %}
                     <div class="d-flex justify-content-between">
@@ -274,11 +364,29 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="driveModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="driveModalTitle" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="driveModalTitle">Carregando arquivo...</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" id="driveModalBody">
+        </div>
+      <div class="modal-footer" id="driveModalFooter">
+        </div>
+    </div>
+  </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
 <script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
-{% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
+<script src="{% static 'js/drive/carregar_arquivos_drive.js' %}"></script>
+<script src="{% static 'js/drive/drive_sistema.js' %}"></script>
+{% if request.user.type == "ADM" or request.user.id == pasta.created_by.id or not materiais and pasta.pasta_drive %}
 {% else %}
 <script src="{% static 'js/contador_andamento.js' %}"></script>
 {% endif %}

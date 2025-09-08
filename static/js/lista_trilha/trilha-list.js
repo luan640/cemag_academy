@@ -76,3 +76,72 @@ document.getElementById('btnSearch').addEventListener('click',function(){
         }
     })
 })
+
+document.addEventListener('DOMContentLoaded', function() {
+    const creatorsSelect = document.getElementById('creators');
+
+    async function loadCreators() {
+        try {
+            const response = await fetch("creators/");
+            
+            if (!response.ok) {
+                throw new Error('Falha ao carregar os criadores.');
+            }
+            
+            const data = await response.json();
+            
+            // 1. Limpa completamente o select
+            creatorsSelect.innerHTML = '';
+
+            // 2. Adiciona a nova opção padrão (Default)
+            // Esta será a opção para "Todos", permitindo limpar o filtro.
+            const defaultOption = document.createElement('option');
+            defaultOption.value = ""; // Valor vazio
+            defaultOption.textContent = "Todos os Criadores"; // Texto descritivo
+            defaultOption.selected = true; // Define como selecionada por padrão
+            creatorsSelect.appendChild(defaultOption);
+
+            // 3. Adiciona os outros criadores vindos da API
+            data.creators.forEach(creator => {
+                const option = document.createElement('option');
+                option.value = creator.id;
+                option.textContent = creator.name;
+                creatorsSelect.appendChild(option);
+            });
+
+        } catch (error) {
+            console.error('Erro:', error);
+            creatorsSelect.innerHTML = '<option value="">Erro ao carregar</option>';
+        }
+    }
+
+    loadCreators();
+
+    const allItems = document.querySelectorAll('.list-group-item.trilha-item');
+
+    // 2. Adiciona um "ouvinte" que executa uma função sempre que o filtro de criadores é alterado
+    creatorsSelect.addEventListener('change', function() {
+        
+        // 3. Pega o NOME do criador que foi selecionado no filtro
+        // Usamos .text para pegar o texto visível da opção (ex: "Fulano de Tal")
+        const selectedCreatorName = this.options[this.selectedIndex].text;
+
+        // 4. Percorre cada item da lista para decidir se deve exibi-lo ou escondê-lo
+        allItems.forEach(item => {
+            // Pega o elemento que marcamos com a classe 'creator-name' dentro do item atual
+            const creatorNameElement = item.querySelector('.creator-name');
+            
+            if (creatorNameElement) {
+                const itemCreatorName = creatorNameElement.textContent.trim();
+
+                // 5. Compara o nome do item com o nome selecionado no filtro
+                // A condição é: mostrar se "Todos os Criadores" está selecionado OU se os nomes são iguais
+                const shouldBeVisible = (selectedCreatorName === "Todos os Criadores" || itemCreatorName === selectedCreatorName);
+                
+                // Exibe o item se a condição for verdadeira, senão, oculta
+                // Usamos '' para que o item volte ao seu display padrão (definido pelo CSS/Bootstrap)
+                item.style.display = shouldBeVisible ? '' : 'none';
+            }
+        });
+    });
+});
