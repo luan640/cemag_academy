@@ -199,9 +199,9 @@ def funcionarios_avaliaram(request, pk):
                 avaliado_chefia=False,
                 usuario__type='LEI',
                 usuario__funcionario__setor=request.user.funcionario.setor
-            ).values('usuario__first_name', 'usuario__last_name'))
+            ).values('usuario__matricula','usuario__first_name', 'usuario__last_name'))
         else:
-            usuarios_avaliados = list(avaliacoes.filter(avaliado_chefia=False, usuario__type='LID').values('usuario__first_name', 'usuario__last_name'))
+            usuarios_avaliados = list(avaliacoes.filter(avaliado_chefia=False, usuario__type='LID').values('usuario__matricula', 'usuario__first_name', 'usuario__last_name'))
 
         print(usuarios_avaliados)
         # Retorna uma JsonResponse com as informações
