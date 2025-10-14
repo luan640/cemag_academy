@@ -34,3 +34,5 @@ Bem-vindo ao projeto **Cemag Academy**. Este repositório contém vários módul
     - Exibindo a descrição dentro do certificado. 
     - Editar Prova.
     - Campo de assinatura para trilhas do SESMT e SOLDA.
+
+https://www.figma.com/design/nPRla86JVbtOKRmTAd8uhw/Ilustra%C3%A7%C3%A3o-CemagAcademy?node-id=0-1&p=f&t=BX2qPKxXEJm7HEDK-0
