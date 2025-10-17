@@ -1,21 +1,41 @@
 {% extends 'base.html' %}
-
 {% load static %}
 
 {% block title %}Adicionar funcionario{% endblock %}
 
 {% block content %}
 
+<style>
+    #drop-zone {
+        border: 2px dashed #ccc;
+        border-radius: 10px;
+        padding: 40px;
+        text-align: center;
+        color: #aaa;
+        cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s;
+    }
+    #drop-zone.drag-over {
+        background-color: #f0f8ff; /* Azul claro */
+        border-color: #0d6efd; /* Azul do Bootstrap */
+    }
+    #file-name-display {
+        margin-top: 15px;
+        font-weight: bold;
+        color: #333;
+    }
+</style>
+
 <div>
     {% if messages %}
     {% for message in messages %}
-            {% if 'funcionario' in message.tags %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endif %}
-        {% endfor %}
+        {% if 'funcionario' in message.tags %}
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        {% endif %}
+    {% endfor %}
     {% endif %}
     
     <h1>Adicionar Novo Funcionário</h1>
@@ -56,7 +76,12 @@
     <div class="card" style="max-height: 500px;">
         <div class="card-header fw-bold d-flex justify-content-between align-items-center">
             <label>Lista de Funcionários</label>
-            <input type="text" id="filtrar_funcionario" class="form-control" style="width: 150px; font-size: 14px;" placeholder="Filtrar Funcionário...">
+            <div>
+                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#importarModal">
+                    <i class="fa-solid fa-file-excel"></i> Importar Planilha
+                </button>
+                <input type="text" id="filtrar_funcionario" class="form-control d-inline-block" style="width: 150px; font-size: 14px;" placeholder="Filtrar...">
+            </div>
         </div>
         <div class="card-body" style="overflow-y: auto;">
             <ul class="list-group" id="lista_funcionarios">
@@ -64,9 +89,40 @@
                 <li class="funcionarios_cadastrados list-group-item justify-content-between align-items-center" style="display: flex;">
                     <a href="{% url 'edit-funcionario' funcionario.pk %}" class="flex-grow-1 matricula_nome" style="width: 80%;">{{ funcionario.matricula }} - {{ funcionario.nome }}</a> 
                     <a href="{% url 'delete-funcionario' funcionario.pk %}" class="btn btn-link p-0 delete-link"><i class="fa-solid fa-trash" style="color: red;"></i></a>
-                </li>                  
+                </li>
                 {% endfor %}
             </ul>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="importarModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="importarModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="importarModalLabel">Importar Funcionários via Planilha</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="upload-area">
+                    <div id="drop-zone">
+                        <p>Arraste e solte o arquivo .xlsx aqui<br>ou<br><strong>clique para selecionar</strong></p>
+                        <input type="file" id="file-input" accept=".xlsx" style="display: none;">
+                    </div>
+                    <div id="file-name-display" class="text-center mt-2"></div>
+                </div>
+
+                <div id="import-progress" class="mt-3 d-none">
+                    </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                <button type="button" class="btn btn-primary" id="enviar-arquivo-btn" disabled>
+                    <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                    <span id="enviar-btn-text">Enviar</span>
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -78,5 +134,202 @@
 <script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
 <script src="{% static 'js/filtro_cadasto/cadastrar_funcionario.js' %}"></script>
 <script src="{% static 'js/form-loading/form-loading.js' %}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Seletores dos elementos do DOM
+    const dropZone = document.getElementById('drop-zone');
+    const fileInput = document.getElementById('file-input');
+    const fileNameDisplay = document.getElementById('file-name-display');
+    const enviarBtn = document.getElementById('enviar-arquivo-btn');
+    const enviarBtnText = document.getElementById('enviar-btn-text');
+    const spinner = enviarBtn.querySelector('.spinner-border');
+    const importModalElement = document.getElementById('importarModal');
+    
+    // Controles do Modal que serão desativados
+    const closeButtonFooter = importModalElement.querySelector('.modal-footer .btn-secondary');
+    const closeButtonHeader = importModalElement.querySelector('.modal-header .btn-close');
+
+    // Áreas do corpo do modal
+    const uploadArea = document.getElementById('upload-area');
+    const importProgressDiv = document.getElementById('import-progress');
+
+    let selectedFile = null;
+    let isImporting = false;
+
+    // --- Funções de Controle ---
+
+    // Função para resetar o estado do modal para o inicial
+    function resetModalState() {
+        selectedFile = null;
+        isImporting = false;
+        fileInput.value = '';
+        fileNameDisplay.textContent = '';
+        enviarBtn.disabled = true;
+        
+        // Garante que os botões de fechar estejam ativos
+        closeButtonFooter.disabled = false;
+        closeButtonHeader.disabled = false;
+        
+        // Mostra a área de upload e esconde a de progresso
+        uploadArea.classList.remove('d-none');
+        importProgressDiv.classList.add('d-none');
+        importProgressDiv.innerHTML = '';
+    }
+
+    // Função que bloqueia a interface durante o envio
+    function lockUIForImport() {
+        isImporting = true;
+        spinner.classList.remove('d-none');
+        enviarBtnText.textContent = 'Enviando...';
+        enviarBtn.disabled = true;
+        closeButtonFooter.disabled = true;
+        closeButtonHeader.disabled = true;
+
+        // Esconde a área de upload e mostra a de progresso com a mensagem estilizada
+        uploadArea.classList.add('d-none');
+        importProgressDiv.innerHTML = `
+            <div class="alert alert-info d-flex align-items-center" role="alert">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-info-circle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Info:">
+                    <path d="M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16zm.93-9.412-1 4.705c-.07.34.029.533.304.533.194 0 .487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703 0-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381 2.29-.287zM8 5.5a1 1 0 1 1 0-2 1 1 0 0 1 0 2z"/>
+                </svg>
+                <div>
+                    <strong>Importação em andamento...</strong><br>
+                    Este processo pode demorar alguns minutos. Por favor, não feche ou atualize esta página para não interromper a operação.
+                </div>
+            </div>
+        `;
+        importProgressDiv.classList.remove('d-none');
+
+        // Adiciona o listener para prevenir o fechamento da página
+        window.addEventListener('beforeunload', beforeUnloadHandler);
+    }
+
+    // Função que desbloqueia a interface após o envio (principalmente em caso de erro)
+    function unlockUI() {
+        isImporting = false;
+        spinner.classList.add('d-none');
+        enviarBtnText.textContent = 'Enviar';
+        // Não reabilita o botão enviar para evitar reenvio com o mesmo arquivo
+        closeButtonFooter.disabled = false;
+        closeButtonHeader.disabled = false;
+        
+        // Remove o listener que previne o fechamento
+        window.removeEventListener('beforeunload', beforeUnloadHandler);
+    }
+    
+    // Handler para o evento beforeunload
+    const beforeUnloadHandler = (event) => {
+        // Se a importação estiver em andamento, ativa o aviso do navegador
+        if (isImporting) {
+            event.preventDefault();
+            // Padrão para compatibilidade entre navegadores
+            event.returnValue = '';
+            return '';
+        }
+    };
+
+    // --- Listeners de Eventos ---
+
+    dropZone.addEventListener('click', () => fileInput.click());
+
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('drag-over');
+    });
+
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag-over'));
+
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('drag-over');
+        if (e.dataTransfer.files.length > 0) {
+            handleFileSelect(e.dataTransfer.files[0]);
+        }
+    });
+
+    fileInput.addEventListener('change', () => {
+        if (fileInput.files.length > 0) {
+            handleFileSelect(fileInput.files[0]);
+        }
+    });
+
+    function handleFileSelect(file) {
+        if (file && file.name.endsWith('.xlsx')) {
+            selectedFile = file;
+            fileNameDisplay.innerHTML = `<i class="bi bi-file-earmark-excel"></i> Arquivo selecionado: <strong>${file.name}</strong>`;
+            enviarBtn.disabled = false;
+        } else {
+            alert('Por favor, selecione um arquivo .xlsx válido.');
+            resetModalState();
+        }
+    }
+
+    enviarBtn.addEventListener('click', () => {
+        if (!selectedFile) {
+            alert('Nenhum arquivo selecionado.');
+            return;
+        }
+        
+        lockUIForImport();
+
+        const formData = new FormData();
+        formData.append('arquivo_excel', selectedFile);
+
+        fetch("{% url 'importar-funcionarios' %}", {
+            method: 'POST',
+            headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+            body: formData,
+        })
+        .then(response => {
+            if (!response.ok) {
+                // Se a resposta não for OK, lança um erro para ser pego pelo .catch
+                return response.json().then(err => { throw err; });
+            }
+            return response.json();
+        })
+        .then(data => {
+            // Importante: remove o listener ANTES de recarregar a página
+            isImporting = false; 
+            window.removeEventListener('beforeunload', beforeUnloadHandler);
+
+            Swal.fire({
+                title: 'Importação Concluída!',
+                text: data.message || 'Os dados foram importados com sucesso.',
+                icon: 'success',
+                toast: true,
+                position: 'bottom-end',
+                showConfirmButton: false,
+                timer: 8000,
+                timerProgressBar: true,
+            });
+            
+            // Recarrega a página após um pequeno delay para o usuário ver o Swal
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+
+        })
+        .catch(error => {
+            console.error('Erro:', error);
+            unlockUI(); // Desbloqueia a UI em caso de erro
+
+            // Mostra novamente a área de upload
+            uploadArea.classList.remove('d-none');
+            importProgressDiv.classList.add('d-none');
+
+            Swal.fire({
+                title: 'Erro na Importação',
+                text: error.detail || 'Ocorreu um erro na comunicação com o servidor. Verifique o console para mais detalhes.',
+                icon: 'error',
+                confirmButtonText: 'Entendido'
+            });
+        });
+    });
+
+    // Reseta o modal para o estado inicial sempre que ele for fechado
+    importModalElement.addEventListener('hidden.bs.modal', resetModalState);
+});
+</script>
 
 {% endblock %}
