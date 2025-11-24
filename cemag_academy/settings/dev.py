@@ -32,5 +32,5 @@ DATABASES = {
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 # Configurações adicionais para desenvolvimento (opcional)
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+
 
