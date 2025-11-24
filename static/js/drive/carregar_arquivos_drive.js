@@ -106,7 +106,7 @@ function renderizarArquivosDrive(arquivos, pastaId) {
     return html;
 }
 
-export function renderizarMensagemVaziaDrive(mensagem) {
+function renderizarMensagemVaziaDrive(mensagem) {
     return `
     <div class="alert alert-info">
         <i class="fa-solid fa-info-circle"></i>
@@ -114,7 +114,7 @@ export function renderizarMensagemVaziaDrive(mensagem) {
     </div>`;
 }
 
-export function renderizarErroDrive(mensagem) {
+function renderizarErroDrive(mensagem) {
     return `
     <div class="alert alert-danger">
         <i class="fa-solid fa-triangle-exclamation"></i>
@@ -280,7 +280,7 @@ function visualizarArquivoDrive(fileId, mimeType, fileName) {
     }
 }
 
-export function escapeHtml(text) {
+function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
