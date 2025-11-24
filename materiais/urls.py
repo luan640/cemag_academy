@@ -4,13 +4,16 @@ from django.urls import path
 from django.views.generic import TemplateView
 from django.contrib.auth.decorators import login_required
 
-from . import views
+from . import views, views_drive
 
 urlpatterns = [
     path('pasta/', views.pastas_list, name='list-pasta'),
     path('pasta/creators/', views.pastas_creators, name='pastas-creators'),
     path('pasta/<int:pk>/detail/', views.pastas_detail, name='detail-pasta'),
+    # Drive (lista completa) - usado na edição da pasta
     path('pasta/<int:pk>/drive/', views.pastas_detail_drive, name='pastas-detail-drive'),
+    # Drive filtrado pelos arquivos escolhidos - usado na tela de detalhes
+    path('pasta/<int:pk>/drive-filtrado/', views_drive.pastas_detail_drive_filtrado, name='pastas-detail-drive-filtrado'),
     path('drive/download/<str:file_id>/', views.download_drive_file, name='download_drive_file'),
     path('drive/export-google-file/<str:file_id>/', views.export_google_file, name='export_google_file'),
     path('drive/export/<str:file_id>/', views.export_drive_sheet, name='drive_export_sheet'),
@@ -18,7 +21,7 @@ urlpatterns = [
     path('drive/metadata/<str:file_id>/', views.get_drive_file_metadata, name='get_drive_file_metadata'),
     
     path('pasta/add/', views.pastas_add, name='add-pasta'),
-    path('pasta/<int:pk>/edit/', views.pasta_edit, name='edit-pasta'),
+    path('pasta/<int:pk>/edit/', views_drive.pasta_edit_drive, name='edit-pasta'),
     path('pasta/<int:pk>/delete/', views.pasta_delete, name='delete-pasta'),
     path('pasta/<int:pk>/frequencia/', views.gerar_ficha_frequencia, name='frequencia-pasta'),
     path('pasta/<int:pk>/participantes/', views.list_participantes, name='list-participantes'),

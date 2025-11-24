@@ -15,7 +15,14 @@
     padding: 0.5rem; /* Ajuste conforme necessário */
   }
 </style>
-
+<input type="hidden" id="pasta_id" value="{{pasta_id}}">
+<script>
+    // IDs de arquivos do Drive já vinculados à pasta
+    window.ARQUIVOS_DRIVE_SELECIONADOS = {{ arquivos_drive_selecionados|safe|default:"[]" }};
+    if (!Array.isArray(window.ARQUIVOS_DRIVE_SELECIONADOS)) {
+        window.ARQUIVOS_DRIVE_SELECIONADOS = [];
+    }
+</script>
 <div>
     <h1>Editar Trilha</h1>
     <form id="editar-trilha" method="post">
@@ -91,6 +98,26 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Campos ocultos para IDs de arquivos do Google Drive selecionados -->
+                    <div id="drive-selected-inputs"></div>
+
+                    <div id="drive-section" style="display: none;">
+                        <h4 class="text-success mb-3">
+                            <i class="fa-brands fa-google-drive me-2"></i>
+                            Arquivos do Google Drive
+                        </h4>
+                        
+                        <div id="drive-content">
+                            <div id="drive-loading" class="text-center py-4">
+                                <div class="spinner-border text-success" role="status">
+                                    <span class="visually-hidden">Carregando...</span>
+                                </div>
+                                <p class="mt-2 text-muted">Carregando arquivos do Drive...</p>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="d-flex justify-content-end">
                         <div class="d-flex justify-content-end">
                             <button id="submit-edit" class="btn btn-primary mt-4" type="submit">
@@ -99,6 +126,8 @@
                             </button>
                         </div>
                     </div>
+
+
                 </div>
             </div>
         </div>
@@ -112,6 +141,7 @@
 <script src="/static/js/adicionar_trilha/checkbox/toggle.js"></script>
 <script src="/static/js/editar_trilha/filtro.js"></script>
 <script src="/static/js/adicionar_trilha/checkbox/setores.js"></script>
+<script src="/static/js/drive/buscar-arquivos-drive.js" type="module"></script>
 
 <script>
     document.getElementById('editar-trilha').addEventListener('submit', function() {
@@ -119,6 +149,34 @@
         submitButton.disabled = true; // Desabilita o botão
         submitButton.querySelector('.spinner-border').classList.remove('d-none'); // Exibe o spinner
         document.getElementById('button-text').textContent = 'Salvando...'; // Altera o texto
+    });
+</script>
+
+<script>
+    // Antes de enviar o formulário, copia os IDs dos arquivos do Drive selecionados
+    document.addEventListener('DOMContentLoaded', function() {
+        var form = document.getElementById('editar-trilha');
+        if (!form) {
+            return;
+        }
+
+        form.addEventListener('submit', function() {
+            var container = document.getElementById('drive-selected-inputs');
+            if (!container) {
+                return;
+            }
+
+            container.innerHTML = '';
+
+            var selecionados = document.querySelectorAll('.drive-file-checkbox:checked');
+            selecionados.forEach(function(checkbox) {
+                var hiddenInput = document.createElement('input');
+                hiddenInput.type = 'hidden';
+                hiddenInput.name = 'arquivos_drive_ids';
+                hiddenInput.value = checkbox.getAttribute('data-file-id');
+                container.appendChild(hiddenInput);
+            });
+        });
     });
 </script>
 

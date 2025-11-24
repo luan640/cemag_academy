@@ -24,6 +24,7 @@ class Pasta(models.Model):
     created_by = models.ForeignKey(CustomUser, related_name='pasta_user', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     modified_at = models.DateTimeField(auto_now=True)
+    visualizar_todos_arquivos_drive = models.BooleanField(default=True)
 
     def __str__(self):
         return self.nome
@@ -85,3 +86,11 @@ class Certificado(models.Model):
 
     def __str__(self):
         return f"Certificado da {self.usuario.first_name} referente a {self.pasta.nome} - {self.identificador_finalizado}"
+
+class ArquivosDrive(models.Model):
+
+    pasta = models.ForeignKey(Pasta, on_delete=models.CASCADE)
+    id_arquivo = models.CharField(max_length=255, null=True, blank=True)
+
+    def __str__(self):
+        return f"Arquivo {self.id_arquivo} da pasta {self.pasta.nome}"

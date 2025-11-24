@@ -10,7 +10,7 @@ from django.core.mail import send_mail, EmailMultiAlternatives
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.urls import reverse
 
-from .models import Pasta,Material,Visualizacao,AvaliacaoEficacia, RespostaAvaliacaoEficacia,Certificado
+from .models import Pasta,Material,Visualizacao,AvaliacaoEficacia, RespostaAvaliacaoEficacia,Certificado, ArquivosDrive
 from .utils import Drive
 from avaliacoes.views import calcular_nota,validacao_certificado
 from .forms import AddPasta,AddMaterial,VisualizacaoForm
@@ -60,7 +60,7 @@ def pastas_add(request):
             pasta.save()
             form.save_m2m()  # Salva os campos ManyToMany após salvar o objeto principal
             messages.success(request, 'Pasta adicionada com sucesso.')
-            return redirect('list-pasta')
+            return redirect('detail-pasta', pk=pasta.id)
         
     return redirect('list-pasta')
 
@@ -533,7 +533,6 @@ def limpar_cache_pasta_drive(request, pk):
             'error': f'Erro interno do servidor: {str(e)}'
         }, status=500)
     
-
 @login_required
 def pasta_edit(request, pk):
     pasta = get_object_or_404(Pasta, pk=pk)
@@ -547,7 +546,21 @@ def pasta_edit(request, pk):
             return redirect('detail-pasta',pk=pk)
     else:
         form = AddPasta(instance=pasta)
-    return render(request, 'pastas/pasta_edit.html', {'form': form})
+
+    arquivos_drive_selecionados = list(
+        ArquivosDrive.objects.filter(pasta=pasta).values_list('id_arquivo', flat=True)
+    )
+
+    return render(
+        request,
+        'pastas/pasta_edit.html',
+        {
+            'form': form,
+            'pasta_id': pasta.id,
+            'todos_arquivos_drive': pasta.visualizar_todos_arquivos_drive,
+            'arquivos_drive_selecionados': arquivos_drive_selecionados,
+        },
+    )
 
 @login_required
 def pasta_delete(request, pk):

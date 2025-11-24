@@ -1,5 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     const listaMateriais = document.getElementById('lista-materiais');
+    
+    if (!listaMateriais) {
+        return;
+    }
+    
     const hasDrive = listaMateriais.getAttribute('data-has-drive') === 'true';
     const pastaId = listaMateriais.getAttribute('data-pasta-id');
     
@@ -7,14 +12,18 @@ document.addEventListener('DOMContentLoaded', function() {
         carregarArquivosDrive(pastaId);
     }
 });
+
 function carregarArquivosDrive(pastaId) {
     const loadingElement = document.getElementById('drive-loading');
     const driveContent = document.getElementById('drive-content');
     
-    fetch(`/materiais/pasta/${pastaId}/drive/`)
+    // Na tela de detalhes, usamos o endpoint filtrado
+    fetch(`/materiais/pasta/${pastaId}/drive-filtrado/`)
         .then(response => response.json())
         .then(data => {
             if (data.success && data.arquivos.length > 0) {
+                console.log(data);
+
                 driveContent.innerHTML = renderizarArquivosDrive(
                     data.arquivos, 
                     data.pasta_id
@@ -97,7 +106,7 @@ function renderizarArquivosDrive(arquivos, pastaId) {
     return html;
 }
 
-function renderizarMensagemVaziaDrive(mensagem) {
+export function renderizarMensagemVaziaDrive(mensagem) {
     return `
     <div class="alert alert-info">
         <i class="fa-solid fa-info-circle"></i>
@@ -105,7 +114,7 @@ function renderizarMensagemVaziaDrive(mensagem) {
     </div>`;
 }
 
-function renderizarErroDrive(mensagem) {
+export function renderizarErroDrive(mensagem) {
     return `
     <div class="alert alert-danger">
         <i class="fa-solid fa-triangle-exclamation"></i>
@@ -114,6 +123,24 @@ function renderizarErroDrive(mensagem) {
 }
 
 function visualizarArquivoDrive(fileId, mimeType, fileName) {
+    // Se o tipo não foi informado, busca a metadata primeiro
+    if (!mimeType) {
+        fetch(`/materiais/drive/metadata/${fileId}/`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.metadata) {
+                    const meta = data.metadata;
+                    visualizarArquivoDrive(fileId, meta.mimeType, meta.name || fileName);
+                } else {
+                    alert('Erro ao obter informações do arquivo do Drive.');
+                }
+            })
+            .catch(() => {
+                alert('Erro ao obter informações do arquivo do Drive.');
+            });
+        return;
+    }
+
     const modalElement = document.getElementById('driveModal');
     const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
     const modalTitle = document.getElementById('driveModalTitle');
@@ -253,7 +280,7 @@ function visualizarArquivoDrive(fileId, mimeType, fileName) {
     }
 }
 
-function escapeHtml(text) {
+export function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
@@ -388,3 +415,8 @@ document.addEventListener('DOMContentLoaded', function() {
         return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 });
+
+// Disponibiliza funções usadas em atributos onclick no escopo global
+window.visualizarArquivoDrive = visualizarArquivoDrive;
+window.handleDownloadClick = handleDownloadClick;
+window.limparCachePasta = limparCachePasta;
