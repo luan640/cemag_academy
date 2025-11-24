@@ -1,4 +1,4 @@
-import { renderizarMensagemVaziaDrive, renderizarErroDrive, escapeHtml } from './carregar_arquivos_drive.js';
+import { renderizarMensagemVaziaDrive, renderizarErroDrive } from './carregar_arquivos_drive.js';
 
 // Essa função será chamada toda vez que o usuário digitar no input
 function handlePastaDriveInput(event) {
@@ -7,6 +7,12 @@ function handlePastaDriveInput(event) {
 
     carregarArquivosDrive(pastaId)
 
+}
+
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 function carregarArquivosDrive(pastaId) {
