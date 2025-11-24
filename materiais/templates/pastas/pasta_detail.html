@@ -384,7 +384,7 @@
 
 {% block scripts %}
 <script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
-<script src="{% static 'js/drive/carregar_arquivos_drive.js' %}" type="module"></script>
+<script src="{% static 'js/drive/carregar_arquivos_drive.js' %}"></script>
 <script src="{% static 'js/drive/drive_sistema.js' %}"></script>
 {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id or not materiais and pasta.pasta_drive %}
 {% else %}

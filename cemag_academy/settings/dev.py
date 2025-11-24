@@ -3,9 +3,9 @@ from .base import *
 # Configurações específicas de desenvolvimento
 DEBUG = env.bool('DEBUG', default=True)
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '8e96-177-19-132-134.ngrok-free.app']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'obligations-donation-practices-problems.trycloudflare.com']
 CSRF_TRUSTED_ORIGINS = [
-    'https://8e96-177-19-132-134.ngrok-free.app',
+    'https://obligations-donation-practices-problems.trycloudflare.com',
 ]
 
 # Banco de dados para desenvolvimento
