@@ -222,8 +222,6 @@ def pastas_detail(request, pk):
     
     materiais = Material.objects.filter(pasta=pasta).order_by("id")
 
-    print(materiais)
-
     visualizacoes = Visualizacao.objects.filter(
         funcionario__matricula=request.user.matricula,
         material__in=materiais
@@ -300,6 +298,58 @@ def pastas_detail_drive(request, pk):
         'total_arquivos': len(arquivos_processados),
         'arquivos': arquivos_processados
     })
+
+def buscar_arquivos_drive_url(request):
+
+    url_pasta_drive = request.GET.get("url_pasta_drive", "").strip()
+
+    drive = Drive()
+    
+    drive_id = drive.extrair_id_drive(url_pasta_drive)
+    
+    if not drive_id:
+        return JsonResponse({
+            'success': False,
+            'error': f'ID do Drive inválido: {url_pasta_drive}',
+            'arquivos': []
+        })
+    
+    # Obtém arquivos do Drive usando o ID extraído
+    arquivos_drive = drive.listar_arquivos_pasta(drive_id)
+    
+    # Processa os arquivos...
+    arquivos_processados = []
+    for arquivo in arquivos_drive:
+        # O 'id' do arquivo é essencial
+        file_id = arquivo.get('id')
+        if not file_id:
+            continue # Pula arquivos sem ID
+
+        arquivo_data = {
+            'id': file_id,
+            'nome': arquivo.get('name'),
+            'tipo': arquivo.get('mimeType'),
+            'extensao': arquivo.get('fileExtension'),
+            'link_visualizacao': reverse('download_drive_file', args=[file_id]),
+            'link_download': reverse('download_drive_file', args=[file_id]),
+            'thumbnail': arquivo.get('thumbnailLink'),
+            'modificado': arquivo.get('modifiedTime'),
+            'tamanho_bytes': arquivo.get('size'),
+            'tamanho': drive.formatar_tamanho_arquivo(arquivo.get('size')),
+            'icone': drive.obter_icone_por_tipo(arquivo.get('mimeType')),
+
+        }
+        
+        arquivos_processados.append(arquivo_data)
+        
+    arquivos_processados.sort(key=lambda x: x['nome'].lower())
+    
+    return JsonResponse({
+        'success': True,
+        'total_arquivos': len(arquivos_processados),
+        'arquivos': arquivos_processados
+    })
+
 
 @xframe_options_sameorigin 
 @login_required

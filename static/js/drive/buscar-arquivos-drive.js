@@ -58,7 +58,66 @@ function carregarArquivosDrive(pastaId) {
         });
 }
 
-function renderizarArquivosDrive(arquivos, pastaId) {
+function carregarArquivosDriveEdit() {
+    const driveContent = document.getElementById('drive-content');
+    const driveSectionElement = document.getElementById('drive-section');
+    const inputPastaDrive = document.getElementById('id_pasta_drive');
+
+    if (!inputPastaDrive) {
+        console.warn('Campo id_pasta_drive não encontrado.');
+        return;
+    }
+
+    const urlPastaDrive = inputPastaDrive.value.trim();
+
+    // Se o campo estiver vazio, você pode esconder a seção ou só limpar
+    if (!urlPastaDrive) {
+        if (driveSectionElement) {
+            driveSectionElement.style.display = 'none';
+        }
+        driveContent.innerHTML = '';
+        console.log("vazio")
+        return;
+    }
+
+    const params = new URLSearchParams({
+        url_pasta_drive: urlPastaDrive,
+    });
+
+    fetch(`/materiais/buscar-arquivos-drive-url/?${params.toString()}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.arquivos && data.arquivos.length > 0) {
+                console.log(data);
+
+                // sua API buscar_arquivos_drive_url NÃO retorna pasta_id,
+                // então aqui passamos só os arquivos
+                driveContent.innerHTML = renderizarArquivosDrive(
+                    data.arquivos
+                );
+
+                if (driveSectionElement) {
+                    driveSectionElement.style.display = 'block';
+                }
+            } else {
+                driveContent.innerHTML = renderizarMensagemVaziaDrive(
+                    data.error || 'Nenhum arquivo encontrado no Drive'
+                );
+                if (driveSectionElement) {
+                    driveSectionElement.style.display = 'block';
+                }
+            }
+        })
+        .catch(error => {
+            driveContent.innerHTML = renderizarErroDrive('Erro ao carregar arquivos do Drive');
+            console.error('Erro:', error);
+            if (driveSectionElement) {
+                driveSectionElement.style.display = 'block';
+            }
+        });
+}
+
+function renderizarArquivosDrive(arquivos) {
     let html = '<div class="list-group">';
     
     // Botão para limpar cache da pasta (no topo da lista)
@@ -104,37 +163,7 @@ function renderizarArquivosDrive(arquivos, pastaId) {
                     <i class="fa-regular ${arquivo.icone} fa-2x text-success"></i>
                     <div class="flex-grow-1">
                         <h6 class="mb-1">${arquivo.nome}</h6>
-                        <small class="text-muted">
-                            ${arquivo.tamanho} • 
-                            ${arquivo.modificado ? 'Modificado recentemente' : ''}
-                        </small>
                     </div>
-                </div>
-                
-                <div class="btn-group">
-                    ${arquivo.link_visualizacao ? `
-                    <button class="btn btn-outline-success btn-sm" 
-                            onclick="visualizarArquivoDrive('${arquivo.id}', '${arquivo.tipo}', '${escapeHtml(arquivo.nome)}')"
-                            title="Visualizar">
-                        <i class="fa-solid fa-eye"></i>
-                    </button>
-                    ` : ''}
-
-                    <a href="${arquivo.link_download}" 
-                       class="btn btn-outline-primary btn-sm btn-download-drive"
-                       title="Download"
-                       download="${escapeHtml(arquivo.nome)}"
-                       data-file-id="${arquivo.id}"
-                       data-mime-type="${arquivo.tipo}"
-                       onclick="handleDownloadClick(this, event)">
-                        <span class="download-text">
-                            <i class="fa-solid fa-download"></i>
-                        </span>
-                        <span class="download-loading d-none">
-                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            Carregando...
-                        </span>
-                    </a>
                 </div>
             </div>
         </div>`;
@@ -182,23 +211,31 @@ function atualizarInputsArquivosDriveSelecionados() {
 
 // Quando o DOM carregar, conecta o evento ao input
 document.addEventListener("DOMContentLoaded", function () {
-    // Se o Django estiver usando o id padrão, será algo como id_pasta_drive.
-    // Ajuste o seletor se for diferente.
-    const pastaId = document.getElementById('pasta_id').value;
-
-    const inputPastaDriveElement = document.getElementById('id_pasta_drive').value;
-
-    if (inputPastaDriveElement){
-        carregarArquivosDrive(pastaId);
-    }
-
+    const pastaIdInput = document.getElementById('pasta_id');
     const inputPastaDrive =
         document.getElementById("id_pasta_drive") || 
         document.querySelector('input[name="pasta_drive"]');
 
-    if (inputPastaDrive) {
-        inputPastaDrive.addEventListener("input", handlePastaDriveInput);
-    } else {
-        console.warn("Input pasta_drive não encontrado na página.");
+    if (!pastaIdInput || !inputPastaDrive) {
+        console.warn("pasta_id ou pasta_drive não encontrados na página.");
+        return;
     }
+
+    const pastaId = pastaIdInput.value;
+
+    // Se já vier preenchido ao carregar a página
+    if (inputPastaDrive.value.trim() !== "") {
+        carregarArquivosDrive(pastaId);
+    }
+
+    // Também chamar quando o usuário DIGITAR algo
+    inputPastaDrive.addEventListener("input", function (event) {
+        const valor = event.target.value.trim();
+        console.log(valor);
+
+        // Só chama se tiver algo digitado (não vazio)
+        if (valor !== "") {
+            carregarArquivosDriveEdit(pastaId);
+        }
+    });
 });

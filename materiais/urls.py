@@ -46,6 +46,6 @@ urlpatterns = [
     path('jornada/detail/', views.jornada_detail, name='jornada_detail'),
     path('jornada/detail/<int:matricula>', views.jornada_detail_unique, name='jornada_detail_unique'),
 
-    
+    path('buscar-arquivos-drive-url/', views.buscar_arquivos_drive_url, name='buscar_arquivos_drive_url')
     
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
