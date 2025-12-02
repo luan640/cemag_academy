@@ -89,23 +89,23 @@ AWS_S3_REGION_NAME = env('AWS_S3_REGION_NAME')
 
 AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
 
-# STORAGES = {
-#     "default": {
-#         "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
-#     },
-#     "staticfiles": {
-#         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
-#     },
-# }
-
 STORAGES = {
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "storages.backends.s3boto3.S3Boto3Storage",
     },
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+
+# STORAGES = {
+#     "default": {
+#         "BACKEND": "django.core.files.storage.FileSystemStorage",
+#     },
+#     "staticfiles": {
+#         "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+#     },
+# }
 
 
 LANGUAGE_CODE = 'pt-br'
