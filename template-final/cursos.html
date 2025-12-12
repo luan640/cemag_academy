@@ -54,62 +54,82 @@
 
     <!-- Page header -->
     <header class="page-header">
-      <div class="container">
-        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
-          <div>
-            <h1 class="h3 mb-2">Catálogo de Cursos</h1>
-            <p class="text-muted mb-0">
-              Explore cursos por área e encontre trilhas alinhadas à operação.
-            </p>
-          </div>
+        <div class="container">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+                <div>
+                    <h1 class="h3 mb-2">Catálogo de Cursos</h1>
+                    <p class="text-muted mb-0">
+                    Explore cursos por área e encontre trilhas alinhadas à operação.
+                    </p>
+                </div>
 
-          <form class="w-100 w-lg-auto" role="search">
-            <div class="input-group input-group-sm">
-              <input
-                id="courseSearch"
-                type="search"
-                class="form-control"
-                placeholder="Buscar cursos..."
-                aria-label="Buscar cursos"
-              />
-              <button class="btn btn-outline-secondary" type="button" id="btnClearSearch">
-                Limpar
-              </button>
+                <form class="w-100 w-lg-auto" role="search">
+                    <div class="input-group input-group-sm">
+                    <input
+                        id="courseSearch"
+                        type="search"
+                        class="form-control"
+                        placeholder="Buscar cursos..."
+                        aria-label="Buscar cursos"
+                    />
+                    <button class="btn btn-outline-secondary" type="button" id="btnClearSearch">
+                        Limpar
+                    </button>
+                    </div>
+                </form>
             </div>
-          </form>
-        </div>
 
-        <div class="filters mt-4">
-          <div class="row g-2">
-            <div class="col-12 col-md-4">
-              <select class="form-select form-select-sm" id="filterCategory">
-                <option value="">Todas as categorias</option>
-                <option value="producao">Produção</option>
-                <option value="qualidade">Qualidade</option>
-                <option value="manutencao">Manutenção</option>
-                <option value="comercial">Comercial</option>
-              </select>
+            <div class="filters mt-4">
+                <div class="row g-2">
+                    <div class="col-12 col-md-4">
+                        <select class="form-select form-select-sm" id="filterCategory">
+                            <option value="">Todas as categorias</option>
+                            <option value="producao">Produção</option>
+                            <option value="qualidade">Qualidade</option>
+                            <option value="manutencao">Manutenção</option>
+                            <option value="comercial">Comercial</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <select class="form-select form-select-sm" id="filterDuration">
+                            <option value="">Qualquer carga horária</option>
+                            <option value="ate3">Até 3h</option>
+                            <option value="4a6">4–6h</option>
+                            <option value="7mais">7h+</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <select class="form-select form-select-sm" id="filterInstructor">
+                            <option value="">Qualquer instrutor</option>
+                            <option value="cemag">CEMAG</option>
+                            <option value="cq">Equipe CQ</option>
+                            <option value="manut">Manutenção</option>
+                            <option value="sesmt">SESMT</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div class="col-12 col-md-4">
-              <select class="form-select form-select-sm" id="filterDuration">
-                <option value="">Qualquer carga horária</option>
-                <option value="ate3">Até 3h</option>
-                <option value="4a6">4–6h</option>
-                <option value="7mais">7h+</option>
-              </select>
+            
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+                <div>
+                    <h1 class="h3 mb-2">Catálogo de Cursos</h1>
+                    <p class="text-muted mb-0">
+                    Explore cursos por área e encontre trilhas alinhadas à operação.
+                    </p>
+                </div>
+
+                <div class="d-flex gap-2">
+                    <button
+                    class="btn btn-outline-secondary btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalCurso"
+                    >
+                    Cadastrar curso
+                    </button>
+                </div>
             </div>
-            <div class="col-12 col-md-4">
-              <select class="form-select form-select-sm" id="filterInstructor">
-                <option value="">Qualquer instrutor</option>
-                <option value="cemag">CEMAG</option>
-                <option value="cq">Equipe CQ</option>
-                <option value="manut">Manutenção</option>
-                <option value="sesmt">SESMT</option>
-              </select>
-            </div>
-          </div>
+
         </div>
-      </div>
     </header>
 
     <main class="py-5">
@@ -232,6 +252,112 @@
         <div class="text-muted small">Catálogo corporativo de cursos</div>
       </div>
     </footer>
+
+    <!-- Modal: Cadastro de Curso -->
+    <div class="modal fade" id="modalCurso" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content">
+
+        <div class="modal-header">
+            <h5 class="modal-title">Cadastrar curso</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+            <form id="formCurso">
+
+            <!-- Dados do curso -->
+            <div class="content-panel mb-3">
+                <h6 class="mb-3">Informações do curso</h6>
+
+                <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Título do curso</label>
+                    <input type="text" class="form-control" required>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Categoria</label>
+                    <select class="form-select" required>
+                    <option value="">Selecione</option>
+                    <option>Produção</option>
+                    <option>Qualidade</option>
+                    <option>Manutenção</option>
+                    <option>Comercial</option>
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <label class="form-label">Carga horária (h)</label>
+                    <input type="number" class="form-control" min="1">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Instrutor</label>
+                    <input type="text" class="form-control">
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Descrição</label>
+                    <textarea class="form-control" rows="3"></textarea>
+                </div>
+                </div>
+            </div>
+
+            <!-- Materiais -->
+            <div class="content-panel">
+                <h6 class="mb-3">Materiais do curso</h6>
+
+                <div class="row g-3">
+
+                <div class="col-md-6">
+                    <label class="form-label">Arquivo (PDF, imagem, vídeo, CSV, Excel)</label>
+                    <input
+                    type="file"
+                    class="form-control"
+                    multiple
+                    accept=".pdf,.jpg,.jpeg,.png,.mp4,.csv,.xls,.xlsx"
+                    >
+                    <div class="form-text">
+                    Formatos aceitos: PDF, imagem, vídeo, CSV, Excel
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Link do YouTube</label>
+                    <input
+                    type="url"
+                    class="form-control"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    >
+                </div>
+
+                </div>
+
+                <!-- Lista visual dos materiais (placeholder) -->
+                <div class="materials-preview mt-3">
+                <div class="text-muted small">
+                    Os materiais adicionados aparecerão listados aqui.
+                </div>
+                </div>
+
+            </div>
+
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+            Cancelar
+            </button>
+            <button class="btn btn-cemag btn-sm">
+            Salvar curso
+            </button>
+        </div>
+
+        </div>
+    </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/scripts.js"></script>

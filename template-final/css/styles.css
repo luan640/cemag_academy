@@ -437,3 +437,201 @@ body {
     height: 76px;
   }
 }
+
+/* =========================================================
+   VISUALIZAÇÃO DE CURSO (PLAYER)
+========================================================= */
+
+.course-player-body {
+  background: #ffffff;
+}
+
+.course-player {
+  padding-top: 64px;
+  min-height: 100vh;
+}
+
+.lesson-area {
+  padding: 20px;
+  max-width: 1100px;
+}
+
+.lesson-player {
+  background: #000;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.lesson-placeholder {
+  aspect-ratio: 16 / 9;
+  background: linear-gradient(
+    135deg,
+    #0f1115,
+    #1a1f2b
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  padding: 24px;
+  text-align: center;
+}
+
+.lesson-content {
+  background: #ffffff;
+  border: 1px solid rgba(17, 24, 39, 0.10);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+.lesson-sidebar {
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+  padding: 16px;
+  background: #fafafa;
+}
+
+.sidebar-header {
+  margin-bottom: 12px;
+}
+
+.lesson-list.clickable li {
+  cursor: pointer;
+  padding: 10px 12px;
+  transition: background 0.2s ease;
+}
+
+.lesson-list.clickable li:hover {
+  background: rgba(239, 108, 0, 0.08);
+}
+
+.lesson-list.clickable li.active {
+  background: rgba(239, 108, 0, 0.15);
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   AÇÕES DO CURSO (PROVA / PESQUISA)
+========================================================= */
+
+.course-actions {
+  background: #ffffff;
+  border: 1px dashed rgba(17, 24, 39, 0.18);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+.action-card {
+  height: 100%;
+  border: 1px solid rgba(17, 24, 39, 0.10);
+  border-radius: var(--radius-md);
+  padding: 14px;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.action-card:hover {
+  border-color: rgba(239, 108, 0, 0.35);
+  transform: translateY(-2px);
+}
+
+
+/* =========================================================
+   DASHBOARD
+========================================================= */
+
+.kpi-card {
+  background: #ffffff;
+  border: 1px solid rgba(17,24,39,0.10);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  text-align: center;
+  box-shadow: var(--shadow-card);
+}
+
+.kpi-card.highlight {
+  border-color: rgba(239,108,0,0.4);
+}
+
+.kpi-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--cemag-orange);
+}
+
+.kpi-label {
+  font-size: 0.9rem;
+  color: var(--cemag-gray-500);
+}
+
+.progress-course-card {
+  background: #ffffff;
+  border: 1px solid rgba(17,24,39,0.10);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-card);
+}
+
+.status-card {
+  background: #fafafa;
+  border: 1px dashed rgba(17,24,39,0.2);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+/* =========================================================
+   BIBLIOTECA
+========================================================= */
+
+.book-card {
+  background: #ffffff;
+  border: 1px solid rgba(17,24,39,0.10);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.book-cover {
+  height: 120px;
+  background: linear-gradient(
+    135deg,
+    rgba(239,108,0,0.25),
+    rgba(17,24,39,0.05)
+  );
+}
+
+.book-cover.alt {
+  background: linear-gradient(
+    135deg,
+    rgba(255,255,255,0.15),
+    rgba(239,108,0,0.20)
+  );
+}
+
+.book-info {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  justify-content: space-between;
+}
+
+
+/* =========================================================
+   CADASTRO DE CURSO – MATERIAIS
+========================================================= */
+
+.materials-preview {
+  border: 1px dashed rgba(17,24,39,0.25);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background: #fafafa;
+}

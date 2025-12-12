@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <title>CEMAG Academy – Biblioteca</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark cemag-navbar fixed-top">
+  <div class="container">
+    <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+      <span class="brand-mark"></span>
+      <span class="brand-text">CEMAG Academy</span>
+    </a>
+
+    <div class="d-flex gap-2">
+      <a href="dashboard.html" class="btn btn-outline-light btn-sm btn-ghost">Dashboard</a>
+      <a href="login.html" class="btn btn-cemag btn-sm">Sair</a>
+    </div>
+  </div>
+</nav>
+
+<!-- Header -->
+<header class="page-header">
+  <div class="container d-flex justify-content-between align-items-end">
+    <div>
+      <h1 class="h3 mb-1">Biblioteca</h1>
+      <p class="text-muted mb-0">
+        Livros, manuais e materiais de apoio disponíveis
+      </p>
+    </div>
+
+    <button
+      class="btn btn-cemag btn-sm"
+      data-bs-toggle="modal"
+      data-bs-target="#modalLivro"
+    >
+      Cadastrar livro
+    </button>
+  </div>
+</header>
+
+<!-- Main -->
+<main class="py-5">
+  <div class="container">
+
+    <!-- Grid de livros -->
+    <div class="row g-3">
+
+      <!-- Livro -->
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="book-card reveal">
+          <div class="book-cover"></div>
+          <div class="book-info">
+            <div class="fw-semibold">Manual de Qualidade</div>
+            <div class="text-muted small mb-1">Autor: CEMAG</div>
+            <div class="text-muted small">Categoria: Qualidade</div>
+
+            <a href="#" class="btn btn-outline-secondary btn-sm w-100 mt-2">
+              Visualizar
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Livro -->
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="book-card reveal">
+          <div class="book-cover alt"></div>
+          <div class="book-info">
+            <div class="fw-semibold">Segurança no Trabalho</div>
+            <div class="text-muted small mb-1">Autor: SESMT</div>
+            <div class="text-muted small">Categoria: Produção</div>
+
+            <a href="#" class="btn btn-outline-secondary btn-sm w-100 mt-2">
+              Visualizar
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Livro -->
+      <div class="col-sm-6 col-md-4 col-lg-3">
+        <div class="book-card reveal">
+          <div class="book-cover"></div>
+          <div class="book-info">
+            <div class="fw-semibold">Guia de Manutenção</div>
+            <div class="text-muted small mb-1">Autor: Manutenção</div>
+            <div class="text-muted small">Categoria: Manutenção</div>
+
+            <a href="#" class="btn btn-outline-secondary btn-sm w-100 mt-2">
+              Visualizar
+            </a>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</main>
+
+<!-- Modal: Cadastro de Livro -->
+<div
+  class="modal fade"
+  id="modalLivro"
+  tabindex="-1"
+  aria-hidden="true"
+>
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Cadastrar livro</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <form id="formLivro">
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Título</label>
+              <input type="text" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Autor</label>
+              <input type="text" class="form-control" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Categoria</label>
+              <select class="form-select" required>
+                <option value="">Selecione</option>
+                <option>Produção</option>
+                <option>Qualidade</option>
+                <option>Manutenção</option>
+                <option>Comercial</option>
+              </select>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Arquivo (PDF)</label>
+              <input type="file" class="form-control" accept=".pdf">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label">Descrição</label>
+              <textarea class="form-control" rows="3"></textarea>
+            </div>
+          </div>
+
+        </form>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">
+          Cancelar
+        </button>
+        <button class="btn btn-cemag btn-sm">
+          Salvar livro
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Footer -->
+<footer class="cemag-footer py-4">
+  <div class="container d-flex justify-content-between">
+    <span class="text-muted small">
+      © <span id="year"></span> CEMAG Academy
+    </span>
+    <span class="text-muted small">Biblioteca</span>
+  </div>
+</footer>
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="js/scripts.js"></script>
+
+</body>
+</html>
