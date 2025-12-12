@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Componentes - CEMAG Academy</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html">CEMAG <span class="accent">Academy</span></a>
+                </div>
+                <nav class="nav" id="mainNav">
+                    <a href="index.html" class="nav-link">Home</a>
+                    <a href="cursos.html" class="nav-link">Cursos</a>
+                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="componentes.html" class="nav-link active">Componentes</a>
+                    <a href="login.html" class="nav-link">Login</a>
+                </nav>
+                <button class="menu-toggle" id="menuToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Title -->
+    <section class="page-header">
+        <div class="container">
+            <h1 class="page-title">Biblioteca de Componentes</h1>
+            <p class="page-subtitle">Elementos reutilizáveis para a plataforma CEMAG Academy</p>
+        </div>
+    </section>
+
+    <!-- Components Content -->
+    <section class="section">
+        <div class="container">
+            
+            <!-- Buttons Section -->
+            <div class="component-section">
+                <h2 class="component-title">Botões</h2>
+                <div class="component-demo">
+                    <button class="btn btn-primary">Botão Primário</button>
+                    <button class="btn btn-secondary">Botão Secundário</button>
+                    <button class="btn btn-primary btn-large">Botão Grande</button>
+                    <button class="btn btn-outline">Botão Outline</button>
+                    <button class="btn btn-danger">Botão Danger</button>
+                    <button class="btn btn-success">Botão Success</button>
+                    <button class="btn btn-primary" disabled>Botão Desabilitado</button>
+                </div>
+                <div class="component-demo">
+                    <button class="btn btn-primary btn-block">Botão Block (100% width)</button>
+                </div>
+            </div>
+
+            <!-- Loading Spinners -->
+            <div class="component-section">
+                <h2 class="component-title">Spinners de Loading</h2>
+                <div class="component-demo">
+                    <div class="spinner"></div>
+                    <div class="spinner spinner-small"></div>
+                    <div class="spinner spinner-large"></div>
+                </div>
+                <div class="component-demo" style="background-color: #212121; padding: 30px; border-radius: 8px;">
+                    <div class="spinner spinner-light"></div>
+                    <div class="spinner spinner-light spinner-small"></div>
+                    <div class="spinner spinner-light spinner-large"></div>
+                </div>
+            </div>
+
+            <!-- Cards Section -->
+            <div class="component-section">
+                <h2 class="component-title">Cards</h2>
+                <div class="component-demo-grid">
+                    <!-- Basic Card -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Card Básico</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Este é um card básico com header e body. Ideal para exibir informações estruturadas.</p>
+                        </div>
+                    </div>
+
+                    <!-- Card with Footer -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Card Completo</h3>
+                        </div>
+                        <div class="card-body">
+                            <p>Card com header, body e footer para informações mais completas.</p>
+                        </div>
+                        <div class="card-footer">
+                            <button class="btn btn-primary">Ação</button>
+                        </div>
+                    </div>
+
+                    <!-- Stat Card -->
+                    <div class="stat-card">
+                        <div class="stat-icon">📊</div>
+                        <div class="stat-info">
+                            <h4 class="stat-label">Total de Cursos</h4>
+                            <p class="stat-value">125</p>
+                        </div>
+                    </div>
+
+                    <!-- Stat Card 2 -->
+                    <div class="stat-card stat-card-primary">
+                        <div class="stat-icon">👥</div>
+                        <div class="stat-info">
+                            <h4 class="stat-label">Usuários Ativos</h4>
+                            <p class="stat-value">1,234</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Forms Section -->
+            <div class="component-section">
+                <h2 class="component-title">Formulários</h2>
+                <div class="component-demo-form">
+                    <div class="form-group">
+                        <label class="form-label">Input Padrão</label>
+                        <input type="text" class="form-input" placeholder="Digite aqui...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Input com Erro</label>
+                        <input type="text" class="form-input form-input-error" placeholder="Digite aqui...">
+                        <span class="form-error">Este campo é obrigatório</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Input com Sucesso</label>
+                        <input type="text" class="form-input form-input-success" placeholder="Digite aqui..." value="Valor válido">
+                        <span class="form-success">Campo válido</span>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Select</label>
+                        <select class="form-input">
+                            <option>Selecione uma opção</option>
+                            <option>Opção 1</option>
+                            <option>Opção 2</option>
+                            <option>Opção 3</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Textarea</label>
+                        <textarea class="form-input" rows="4" placeholder="Digite sua mensagem..."></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox">
+                            Aceito os termos e condições
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Badges Section -->
+            <div class="component-section">
+                <h2 class="component-title">Badges e Tags</h2>
+                <div class="component-demo">
+                    <span class="badge">Default</span>
+                    <span class="badge badge-primary">Primary</span>
+                    <span class="badge badge-success">Success</span>
+                    <span class="badge badge-warning">Warning</span>
+                    <span class="badge badge-danger">Danger</span>
+                    <span class="badge badge-info">Info</span>
+                </div>
+            </div>
+
+            <!-- Alerts Section -->
+            <div class="component-section">
+                <h2 class="component-title">Alertas</h2>
+                <div class="component-demo-column">
+                    <div class="alert alert-info">
+                        <strong>Info:</strong> Esta é uma mensagem informativa.
+                    </div>
+                    <div class="alert alert-success">
+                        <strong>Sucesso!</strong> Operação concluída com sucesso.
+                    </div>
+                    <div class="alert alert-warning">
+                        <strong>Atenção:</strong> Verifique os dados antes de continuar.
+                    </div>
+                    <div class="alert alert-danger">
+                        <strong>Erro:</strong> Não foi possível completar a operação.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Bars -->
+            <div class="component-section">
+                <h2 class="component-title">Barras de Progresso</h2>
+                <div class="component-demo-column">
+                    <div class="progress-wrapper">
+                        <div class="progress-info">
+                            <span>Progresso Padrão</span>
+                            <span>25%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 25%"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-wrapper">
+                        <div class="progress-info">
+                            <span>Progresso Médio</span>
+                            <span>50%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 50%"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-wrapper">
+                        <div class="progress-info">
+                            <span>Progresso Alto</span>
+                            <span>75%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: 75%"></div>
+                        </div>
+                    </div>
+
+                    <div class="progress-wrapper">
+                        <div class="progress-info">
+                            <span>Completo</span>
+                            <span>100%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill progress-fill-success" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tables -->
+            <div class="component-section">
+                <h2 class="component-title">Tabelas</h2>
+                <div class="table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Nome</th>
+                                <th>Cargo</th>
+                                <th>Progresso</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>João Silva</td>
+                                <td>Desenvolvedor</td>
+                                <td>85%</td>
+                                <td><span class="badge badge-success">Ativo</span></td>
+                            </tr>
+                            <tr>
+                                <td>Maria Santos</td>
+                                <td>Designer</td>
+                                <td>92%</td>
+                                <td><span class="badge badge-success">Ativo</span></td>
+                            </tr>
+                            <tr>
+                                <td>Carlos Mendes</td>
+                                <td>Gerente</td>
+                                <td>78%</td>
+                                <td><span class="badge badge-warning">Pendente</span></td>
+                            </tr>
+                            <tr>
+                                <td>Ana Costa</td>
+                                <td>Analista</td>
+                                <td>65%</td>
+                                <td><span class="badge badge-info">Em andamento</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Breadcrumbs -->
+            <div class="component-section">
+                <h2 class="component-title">Breadcrumbs</h2>
+                <nav class="breadcrumb">
+                    <a href="#" class="breadcrumb-item">Home</a>
+                    <a href="#" class="breadcrumb-item">Cursos</a>
+                    <span class="breadcrumb-item active">Gestão de Projetos</span>
+                </nav>
+            </div>
+
+            <!-- Pagination -->
+            <div class="component-section">
+                <h2 class="component-title">Paginação</h2>
+                <div class="pagination">
+                    <button class="pagination-btn" disabled>Anterior</button>
+                    <button class="pagination-btn pagination-btn-active">1</button>
+                    <button class="pagination-btn">2</button>
+                    <button class="pagination-btn">3</button>
+                    <button class="pagination-btn">4</button>
+                    <button class="pagination-btn">5</button>
+                    <button class="pagination-btn">Próximo</button>
+                </div>
+            </div>
+
+            <!-- Loading States -->
+            <div class="component-section">
+                <h2 class="component-title">Estados de Carregamento</h2>
+                <div class="component-demo-column">
+                    <button class="btn btn-primary btn-loading">
+                        <span class="btn-spinner"></span>
+                        Carregando...
+                    </button>
+                    <button class="btn btn-secondary btn-loading">
+                        <span class="btn-spinner"></span>
+                        Processando
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4 class="footer-title">CEMAG Academy</h4>
+                    <p class="footer-text">Capacitação profissional de excelência</p>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-title">Links Rápidos</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="cursos.html">Cursos</a></li>
+                        <li><a href="dashboard.html">Dashboard</a></li>
+                        <li><a href="componentes.html">Componentes</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-title">Contato</h4>
+                    <p class="footer-text">www.cemag.com.br</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 CEMAG. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/scripts.js"></script>
+</body>
+</html>

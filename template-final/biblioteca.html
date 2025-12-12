@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Biblioteca - CEMAG Academy</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="index.html">CEMAG <span class="accent">Academy</span></a>
+                </div>
+                <nav class="nav" id="mainNav">
+                    <a href="index.html" class="nav-link">Home</a>
+                    <a href="cursos.html" class="nav-link">Cursos</a>
+                    <a href="biblioteca.html" class="nav-link active">Biblioteca</a>
+                    <a href="dashboard.html" class="nav-link">Dashboard</a>
+                    <a href="componentes.html" class="nav-link">Componentes</a>
+                    <a href="login.html" class="nav-link">Login</a>
+                    <a href="index.html#sobre" class="nav-link">Sobre</a>
+                </nav>
+                <button class="menu-toggle" id="menuToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <h1 class="page-title">Biblioteca Digital</h1>
+            <p class="page-subtitle">Explore nossa coleção completa de livros e materiais de estudo</p>
+        </div>
+    </section>
+
+    <!-- Filters -->
+    <section class="section" style="padding-top: 40px; padding-bottom: 20px;">
+        <div class="container">
+            <div class="library-filters">
+                <div class="filter-group">
+                    <input type="text" class="form-input" placeholder="Buscar livros..." id="searchBooks">
+                </div>
+                <div class="filter-group">
+                    <select class="form-input" id="categoryFilter">
+                        <option value="">Todas as categorias</option>
+                        <option value="gestao">Gestão</option>
+                        <option value="tecnologia">Tecnologia</option>
+                        <option value="marketing">Marketing</option>
+                        <option value="financas">Finanças</option>
+                        <option value="rh">Recursos Humanos</option>
+                        <option value="lideranca">Liderança</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <select class="form-input" id="statusFilter">
+                        <option value="">Todos os status</option>
+                        <option value="disponivel">Disponível</option>
+                        <option value="lido">Já lido</option>
+                        <option value="lendo">Lendo agora</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Books Grid -->
+    <section class="section" style="padding-top: 20px;">
+        <div class="container">
+            <div class="books-grid">
+                <!-- Book 1 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <div class="book-placeholder"></div>
+                        <div class="book-status disponivel">Disponível</div>
+                    </div>
+                    <div class="book-content">
+                        <h3 class="book-title">Gestão de Projetos: Metodologias Ágeis</h3>
+                        <p class="book-author">Por Maria Silva</p>
+                        <p class="book-category">Gestão</p>
+                        <div class="book-meta">
+                            <span class="book-pages">320 páginas</span>
+                            <span class="book-year">2024</span>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn btn-primary btn-sm">Ler agora</button>
+                            <button class="btn btn-outline btn-sm">Adicionar à lista</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Book 2 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <div class="book-placeholder"></div>
+                        <div class="book-status disponivel">Disponível</div>
+                    </div>
+                    <div class="book-content">
+                        <h3 class="book-title">Liderança Transformacional</h3>
+                        <p class="book-author">Por João Santos</p>
+                        <p class="book-category">Liderança</p>
+                        <div class="book-meta">
+                            <span class="book-pages">280 páginas</span>
+                            <span class="book-year">2024</span>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn btn-primary btn-sm">Ler agora</button>
+                            <button class="btn btn-outline btn-sm">Adicionar à lista</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Book 3 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <div class="book-placeholder"></div>
+                        <div class="book-status lendo">Lendo</div>
+                    </div>
+                    <div class="book-content">
+                        <h3 class="book-title">Marketing Digital: Estratégias Práticas</h3>
+                        <p class="book-author">Por Carlos Mendes</p>
+                        <p class="book-category">Marketing</p>
+                        <div class="book-meta">
+                            <span class="book-pages">350 páginas</span>
+                            <span class="book-year">2023</span>
+                        </div>
+                        <div class="book-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 65%"></div>
+                            </div>
+                            <span class="progress-text">65% concluído</span>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn btn-primary btn-sm">Continuar lendo</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Book 4 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <div class="book-placeholder"></div>
+                        <div class="book-status disponivel">Disponível</div>
+                    </div>
+                    <div class="book-content">
+                        <h3 class="book-title">Análise de Dados para Negócios</h3>
+                        <p class="book-author">Por Ana Costa</p>
+                        <p class="book-category">Tecnologia</p>
+                        <div class="book-meta">
+                            <span class="book-pages">420 páginas</span>
+                            <span class="book-year">2024</span>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn btn-primary btn-sm">Ler agora</button>
+                            <button class="btn btn-outline btn-sm">Adicionar à lista</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Book 5 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <div class="book-placeholder"></div>
+                        <div class="book-status lido">Concluído</div>
+                    </div>
+                    <div class="book-content">
+                        <h3 class="book-title">Finanças Corporativas Essenciais</h3>
+                        <p class="book-author">Por Fernando Alves</p>
+                        <p class="book-category">Finanças</p>
+                        <div class="book-meta">
+                            <span class="book-pages">290 páginas</span>
+                            <span class="book-year">2023</span>
+                        </div>
+                        <div class="book-rating">
+                            <span class="star filled">★</span>
+                            <span class="star filled">★</span>
+                            <span class="star filled">★</span>
+                            <span class="star filled">★</span>
+                            <span class="star">★</span>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn btn-secondary btn-sm">Ler novamente</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Book 6 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <div class="book-placeholder"></div>
+                        <div class="book-status disponivel">Disponível</div>
+                    </div>
+                    <div class="book-content">
+                        <h3 class="book-title">Gestão de Pessoas na Era Digital</h3>
+                        <p class="book-author">Por Paula Oliveira</p>
+                        <p class="book-category">Recursos Humanos</p>
+                        <div class="book-meta">
+                            <span class="book-pages">310 páginas</span>
+                            <span class="book-year">2024</span>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn btn-primary btn-sm">Ler agora</button>
+                            <button class="btn btn-outline btn-sm">Adicionar à lista</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Book 7 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <div class="book-placeholder"></div>
+                        <div class="book-status disponivel">Disponível</div>
+                    </div>
+                    <div class="book-content">
+                        <h3 class="book-title">Inovação e Empreendedorismo</h3>
+                        <p class="book-author">Por Roberto Lima</p>
+                        <p class="book-category">Gestão</p>
+                        <div class="book-meta">
+                            <span class="book-pages">380 páginas</span>
+                            <span class="book-year">2024</span>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn btn-primary btn-sm">Ler agora</button>
+                            <button class="btn btn-outline btn-sm">Adicionar à lista</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Book 8 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <div class="book-placeholder"></div>
+                        <div class="book-status disponivel">Disponível</div>
+                    </div>
+                    <div class="book-content">
+                        <h3 class="book-title">Comunicação Empresarial Eficaz</h3>
+                        <p class="book-author">Por Juliana Rocha</p>
+                        <p class="book-category">Liderança</p>
+                        <div class="book-meta">
+                            <span class="book-pages">260 páginas</span>
+                            <span class="book-year">2023</span>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn btn-primary btn-sm">Ler agora</button>
+                            <button class="btn btn-outline btn-sm">Adicionar à lista</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Book 9 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <div class="book-placeholder"></div>
+                        <div class="book-status lendo">Lendo</div>
+                    </div>
+                    <div class="book-content">
+                        <h3 class="book-title">Planejamento Estratégico</h3>
+                        <p class="book-author">Por André Martins</p>
+                        <p class="book-category">Gestão</p>
+                        <div class="book-meta">
+                            <span class="book-pages">340 páginas</span>
+                            <span class="book-year">2024</span>
+                        </div>
+                        <div class="book-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 30%"></div>
+                            </div>
+                            <span class="progress-text">30% concluído</span>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn btn-primary btn-sm">Continuar lendo</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Book 10 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <div class="book-placeholder"></div>
+                        <div class="book-status disponivel">Disponível</div>
+                    </div>
+                    <div class="book-content">
+                        <h3 class="book-title">Inteligência Artificial nos Negócios</h3>
+                        <p class="book-author">Por Lucas Ferreira</p>
+                        <p class="book-category">Tecnologia</p>
+                        <div class="book-meta">
+                            <span class="book-pages">400 páginas</span>
+                            <span class="book-year">2024</span>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn btn-primary btn-sm">Ler agora</button>
+                            <button class="btn btn-outline btn-sm">Adicionar à lista</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Book 11 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <div class="book-placeholder"></div>
+                        <div class="book-status disponivel">Disponível</div>
+                    </div>
+                    <div class="book-content">
+                        <h3 class="book-title">Vendas Consultivas</h3>
+                        <p class="book-author">Por Patrícia Souza</p>
+                        <p class="book-category">Marketing</p>
+                        <div class="book-meta">
+                            <span class="book-pages">275 páginas</span>
+                            <span class="book-year">2023</span>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn btn-primary btn-sm">Ler agora</button>
+                            <button class="btn btn-outline btn-sm">Adicionar à lista</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Book 12 -->
+                <div class="book-card">
+                    <div class="book-cover">
+                        <div class="book-placeholder"></div>
+                        <div class="book-status lido">Concluído</div>
+                    </div>
+                    <div class="book-content">
+                        <h3 class="book-title">Cultura Organizacional</h3>
+                        <p class="book-author">Por Marcos Ribeiro</p>
+                        <p class="book-category">Recursos Humanos</p>
+                        <div class="book-meta">
+                            <span class="book-pages">295 páginas</span>
+                            <span class="book-year">2023</span>
+                        </div>
+                        <div class="book-rating">
+                            <span class="star filled">★</span>
+                            <span class="star filled">★</span>
+                            <span class="star filled">★</span>
+                            <span class="star filled">★</span>
+                            <span class="star filled">★</span>
+                        </div>
+                        <div class="book-actions">
+                            <button class="btn btn-secondary btn-sm">Ler novamente</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4 class="footer-title">CEMAG Academy</h4>
+                    <p class="footer-text">Capacitação profissional de excelência</p>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-title">Links Rápidos</h4>
+                    <ul class="footer-links">
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="cursos.html">Cursos</a></li>
+                        <li><a href="biblioteca.html">Biblioteca</a></li>
+                        <li><a href="dashboard.html">Dashboard</a></li>
+                        <li><a href="componentes.html">Componentes</a></li>
+                        <li><a href="login.html">Login</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4 class="footer-title">Contato</h4>
+                    <p class="footer-text">www.cemag.com.br</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2025 CEMAG. Todos os direitos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/scripts.js"></script>
+</body>
+</html>
