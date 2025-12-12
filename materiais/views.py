@@ -1154,42 +1154,29 @@ def gerar_ficha_frequencia(request, pk):
 @login_required
 def list_participantes(request, pk):
     
-    # Obtém a prova e a pasta relacionada
+    # Obtem a prova e a pasta relacionada
     prova = get_object_or_404(Prova, pk=pk)
     pasta = prova.pasta
     
-    # Obtém os setores e funcionários relacionados à pasta
-    setores = pasta.setores.all()
-    funcionarios = pasta.funcionarios.all()
+    # Participantes sÇ?o apenas os funcionÇ?rios explicitamente vinculados Ã? pasta.
+    list_participantes = pasta.funcionarios.all()
     
-    # Listar participantes usando o setor
-    # participantes_setor = Funcionario.objects.filter(setor__in=setores)
-
-    # Combinar os participantes e remover duplicados
-    list_participantes = set()
-    
-    for participante in funcionarios:
-        list_participantes.add(participante)
-    
-    # Convertendo o conjunto de volta para uma lista
-    list_participantes = list(list_participantes)
-    
-    # Obter as matrículas dos participantes
+    # Obter as matriculas dos participantes
     matriculas = [participante.matricula for participante in list_participantes]
     
-    # Obter os usuários correspondentes no CustomUser
+    # Obter os usuarios correspondentes no CustomUser
     usuarios = CustomUser.objects.filter(matricula__in=matriculas)
 
-    # Criar um dicionário para mapear funcionários a usuários
+    # Criar um dicionario para mapear funcionarios a usuarios
     funcionarios_para_usuarios = {user.matricula: user for user in usuarios}
     
-    # Filtrar ProvaRealizada usando os usuários e a prova
+    # Filtrar ProvaRealizada usando os usuarios e a prova
     prova_realizada = ProvaRealizada.objects.filter(usuario__in=usuarios, prova=prova)
     
-    # Criar um dicionário para armazenar se cada participante realizou a prova
+    # Criar um dicionario para armazenar se cada participante realizou a prova
     participantes_status = {participante.matricula: False for participante in list_participantes}
     
-    # Atualizar o dicionário com os participantes que realizaram a prova
+    # Atualizar o dicionario com os participantes que realizaram a prova
     for realizacao in prova_realizada:
         participantes_status[realizacao.usuario.matricula] = True
     
@@ -1198,23 +1185,23 @@ def list_participantes(request, pk):
     for participante in list_participantes:
         usuario = funcionarios_para_usuarios.get(participante.matricula)
         
-        # Calcular a nota e o número total de questões para o participante usando o usuário correspondente
+        # Calcular a nota e o numero total de questoes para o participante usando o usuario correspondente
         if usuario:
             total_respostas, total_questoes = calcular_nota(prova, usuario)
         else:
             total_respostas, total_questoes = 0, 0
 
-        # Calcular a porcentagem de acertos (se não houver questões, definir como 0%)
+        # Calcular a porcentagem de acertos (se nao houver questoes, definir como 0%)
         porcentagem_acertos = (total_respostas / total_questoes * 100) if total_questoes > 0 else 0
 
-        # Adicionar o participante e os detalhes à lista final
+        # Adicionar o participante e os detalhes a lista final
         lista_final_participantes.append({
             'matricula': participante.matricula,
             'nome': participante.nome,
             'realizou_prova': participantes_status[participante.matricula],
             'nota': total_respostas,  # Nota total obtida pelo participante
-            'total_questoes': total_questoes,  # Total de questões na prova
-            'porcentagem_acertos': f'{porcentagem_acertos:.2f}%'  # Porcentagem de acertos formatada
+            'total_questoes': total_questoes,  # Total de questoes na prova
+            'porcentagem_acertos': f'{porcentagem_acertos:.2f}%'
         })
     
     return render(request, 'pastas/participantes_list.html', {

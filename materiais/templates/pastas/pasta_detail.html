@@ -179,6 +179,7 @@
                                                     <div class="video-overlay">
                                                         <button class="btn btn-secondary" onclick="openVideoInNewTab('{{ material.video.url }}')">
                                                             <i class="fa-solid fa-circle-play"></i>
+                                                            <span class="ms-2">Clique aqui para abrir o v&iacute;deo</span>
                                                         </button>
                                                     </div>
                                                     {% endif %}
@@ -187,12 +188,14 @@
                                                                 data-file-id="{{ material.arquivo_drive }}"
                                                                 title="Drive">
                                                             <i class="fa-brands fa-google-drive"></i>
+                                                            <span class="ms-2">Clique aqui para acessar o arquivo</span>
                                                         </button>
                                                     {% endif %}
                                                     {% if material.fotos %}
                                                     <p>
                                                         <button class="btn btn-secondary img-overlay" data-img-url="{{ material.fotos.url }}">
                                                             <i class="fa-solid fa-image" title="Imagem"></i>
+                                                            <span class="ms-2">Clique aqui para visualizar a imagem</span>
                                                         </button>
                                                     </p>
                                                     {% endif %}
@@ -201,6 +204,7 @@
                                                     <p>
                                                         <button class="btn btn-secondary" data-file-url="{{ material.arquivo.url }}" onclick="window.open(this.getAttribute('data-file-url'), '_blank')">
                                                             <i class="fa-solid fa-file" title="Arquivo"></i>
+                                                            <span class="ms-2">Clique aqui para abrir o arquivo</span>
                                                         </button>
                                                     </p>
                                                     {% endif %}
