@@ -77,40 +77,40 @@ import json
 @login_required
 def painel_home(request):
 
-    if request.user.type in ['ADM','LID','DIR']:
-        return redirect('painel_home_superuser')
-    else:
-        # funcionario = Funcionario.objects.filter(matricula=request.user.matricula)
-        funcionario, created = Funcionario.objects.get_or_create(matricula=request.user.matricula)
+    # if request.user.type in ['ADM','LID','DIR']:
+    #     return redirect('painel_home_superuser')
+    # else:
+    # funcionario = Funcionario.objects.filter(matricula=request.user.matricula)
+    funcionario, created = Funcionario.objects.get_or_create(matricula=request.user.matricula)
 
-        #Andamento de trilhas
-        #pastas que o usuario tem acesso
-        setor_do_usuario_object = Funcionario.objects.get(matricula=request.user.matricula)
-        setor_do_usuario = setor_do_usuario_object.setor
-        pastas = Pasta.objects.filter(Q(setores=setor_do_usuario) | Q(funcionarios__matricula=request.user.matricula)).distinct()
+    #Andamento de trilhas
+    #pastas que o usuario tem acesso
+    setor_do_usuario_object = Funcionario.objects.get(matricula=request.user.matricula)
+    setor_do_usuario = setor_do_usuario_object.setor
+    pastas = Pasta.objects.filter(Q(setores=setor_do_usuario) | Q(funcionarios__matricula=request.user.matricula)).distinct()
 
-        
-        progresso_trilha = ProgressoTrilha(funcionario, pastas)
-        progresso_pasta = progresso_trilha.calcular_progresso_trilhas()
+    
+    progresso_trilha = ProgressoTrilha(funcionario, pastas)
+    progresso_pasta = progresso_trilha.calcular_progresso_trilhas()
 
-        progresso_trilhas = {
-            'pastas': pastas,
-            'progresso_pasta': progresso_pasta,
-        }
+    progresso_trilhas = {
+        'pastas': pastas,
+        'progresso_pasta': progresso_pasta,
+    }
 
-        #Progresso geral
-        progresso_geral=np.array(list(progresso_pasta.values())).mean()
+    #Progresso geral
+    progresso_geral=np.array(list(progresso_pasta.values())).mean()
 
-        #Trilhas finalizadas
-        trilhas_finalizadas=[]
-        for pasta in pastas:
-            if progresso_pasta[pasta.nome] == 100:
-                trilhas_finalizadas.append(pasta.nome)
+    #Trilhas finalizadas
+    trilhas_finalizadas=[]
+    for pasta in pastas:
+        if progresso_pasta[pasta.nome] == 100:
+            trilhas_finalizadas.append(pasta.nome)
 
-        trilhas_finalizadas=str(len(trilhas_finalizadas))+"/"+str(len(pastas))
+    trilhas_finalizadas=str(len(trilhas_finalizadas))+"/"+str(len(pastas))
 
-        #Andamento por área
-        media_progresso_area_trilha = progresso_trilha.calcular_media_progresso_area_trilha(progresso_pasta, pastas)
+    #Andamento por área
+    media_progresso_area_trilha = progresso_trilha.calcular_media_progresso_area_trilha(progresso_pasta, pastas)
 
     return render(request,
                 'home.html', {
@@ -139,7 +139,7 @@ def painel_home_superuser(request):
         if created:
             print(f"Funcionário de matricula {funcionario.matricula} foi adicionado com sucesso")
 
-    return render(request, 'home-superuser.html')
+    return render(request, 'home.html')
 
 def ultimas_trilhas(request):
     ultimas_trilhas = Pasta.objects.all().order_by('-created_at')[:5]

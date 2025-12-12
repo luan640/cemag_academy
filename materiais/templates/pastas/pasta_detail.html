@@ -6,469 +6,114 @@
 
 {% block content %}
 
-<style>
-      /* Estilo para a sobreposição da imagem */
-      .img-overlay {
-        position: relative;
-        display: inline-block;
-    }
-
-    .img-overlay img {
-        cursor: pointer;
-        transition: transform 0.3s ease;
-    }
-
-    /* Fundo da sobreposição que aparece quando a imagem é clicada */
-    .overlay-bg {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        justify-content: center;
-        align-items: center;
-        z-index: 1050; /* Coloque um z-index maior para garantir que fique à frente */
-    }
-
-    .overlay-bg img {
-        max-width: 80%; /* Ajuste o tamanho da imagem ampliada */
-        max-height: 80%;
-        border: 3px solid white; /* Adicione uma borda branca para contraste */
-        border-radius: 10px; /* Adicione bordas arredondadas */
-    }
-    .checked {
-        color: orange;
-    }
-
-    .drive-item {
-        transition: all 0.2s ease;
-        border-left: 4px solid #28a745 !important;
-    }
-    .drive-item:hover {
-        background-color: #f8fff9;
-        transform: translateX(2px);
-    }
-    #drive-section {
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 2px dashed #dee2e6;
-    }
-
-    /* Estilos para o spinner no modal */
-    #driveModal .modal-body {
-        min-height: 400px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Estilos para o iframe do PDF */
-    #driveModal .ratio-16x9 {
-        min-height: 400px;
-    }
-
-    #driveModal iframe {
-        border-radius: 0.375rem;
-    }
-</style>
-
-<div class="row">
-    <div class="col-md-7 order-2 order-md-1" style="margin-bottom: 80px;">
-        <h1 class="mb-4 mt-4">Materiais</h1>
-        <div class="card">
-            <div class="card-body">
-                <div class="list-group" id="lista-materiais" 
-                    data-pasta-id="{% if pasta and pasta.pasta_drive %}{{ pasta.id }}{% endif %}"
-                    data-has-drive="{% if pasta and pasta.pasta_drive %}true{% else %}false{% endif %}">
-                    {% if materiais %}
-                    <div class="mb-4">
-                        <h4 class="text-primary mb-3">
-                            <i class="fa-solid fa-database me-2"></i>
-                            Materiais do Sistema
-                        </h4>
-                        {% for material in materiais %}
-                        <div class="list-group-item flex-column align-items-start system-item mb-3 p-3">
-                            
-                            <div class="d-flex w-100 justify-content-between align-items-center">
-                                <div class="d-flex align-items-center" style="gap: 15px;">
-                                    <i class="fa-solid fa-layer-group fa-2x text-primary"></i>
-                                    
-                                    <div>
-                                        <h6 class="mb-1 fw-bold">{{ material.nome }}</h6>
-                                        <small class="text-muted d-block">{{ material.descricao|truncatechars:80 }}</small>
-                                        
-                                        <div class="mt-2">
-                                            {% if material.video_youtube or material.video %}
-                                                <span class="badge rounded-pill bg-danger me-1">
-                                                    <i class="fa-solid fa-film me-1"></i> Vídeo
-                                                </span>
-                                            {% endif %}
-                                            {% if material.arquivo %}
-                                                <span class="badge rounded-pill bg-info me-1">
-                                                    <i class="fa-solid fa-file-pdf me-1"></i> Arquivo
-                                                </span>
-                                            {% endif %}
-                                            {% if material.arquivo_drive %}
-                                                <span class="badge rounded-pill bg-success me-1">
-                                                    <i class="fa-brands fa-google-drive me-1"></i> Arquivo Drive
-                                                </span>
-                                            {% endif %}
-                                            {% if material.fotos.exists %}
-                                                <span class="badge rounded-pill bg-primary me-1">
-                                                    <i class="fa-solid fa-images me-1"></i> Foto(s)
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="btn-group">
-                                    <button class="btn btn-outline-primary btn-sm" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#modal{{ material.pk }}" 
-                                            title="Visualizar Material">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-                                    {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
-                                    <a href="{% url 'edit-material' material.pk pasta.pk %}" class="btn btn-outline-secondary btn-sm" title="Editar">
-                                        <i class="fa-solid fa-pencil"></i>
-                                    </a>
-                                    <a href="{% url 'delete-material' material.pk pasta.pk %}" class="btn btn-outline-danger btn-sm delete-link" title="Excluir">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            {% if request.user.type != "ADM" and request.user.id != pasta.created_by.id %}
-                            <div class="d-flex justify-content-end mt-3">
-                                <div class="form-check form-switch bg-light p-2 ps-3 pe-3 rounded-pill border">
-                                    <input
-                                        class="form-check-input material-visualizado ms-2"
-                                        type="checkbox"
-                                        role="switch"
-                                        id="visualizado-{{ material.id }}"
-                                        data-material-id="{{ material.id }}"
-                                        data-pasta-id="{{ material.pasta.id }}"
-                                        data-url="{% url 'registrar_visualizacao' %}"
-                                        {% if material.id in visualizacoes %}checked{% endif %}>
-                                    <label class="form-check-label small" for="visualizado-{{ material.id }}">
-                                        Marcar como concluído
-                                    </label>
-                                </div>
-                            </div>
-                            {% endif %}
+    <!-- Course Details -->
+    <section class="section">
+        <div class="container">
+            <div class="course-details">
+                <div class="course-details-header">
+                    <div class="course-details-info">
+                        <h1 class="course-details-title">{{ pasta.nome }}</h1>
+                        <div class="course-details-meta">
+                            <span class="meta-item"><strong>Criada por:</strong> {{ pasta.created_by.first_name }} {{ pasta.created_by.last_name }}</span>
+                            <span class="meta-item"><strong>Carga Horaria:</strong> {{ pasta.carga_horaria|default:"Nao informada" }} horas</span>
+                            <span class="meta-item"><strong>Setores:</strong> {% if pasta.setores.all %}{{ pasta.setores.all|join:", " }}{% else %}Todos{% endif %}</span>
+                            <!-- Verificar se possui prova disponível ou não -->
+                            <span class="badge">Clique aqui para realizar a prova</span>
+                            <!-- Verificar se possui pesquisa de satisfação para fazer ou não -->
+                            <span class="badge">Clique aqui para responder a pesquisa</span>
                         </div>
+                    </div>
+                </div>
 
-                        <div class="modal fade" id="modal{{ material.pk }}" tabindex="-1" aria-labelledby="modalLabel{{ material.pk }}" aria-hidden="true" data-bs-backdrop="static">
-                            <div class="modal-dialog" style="margin-top: 60px;">
-                                <div class="modal-content">
-                                    <div class="modal-body" style="padding: 0;">
+                <div class="course-details-content">
+                    <div class="course-description">
+                        <h2 class="section-subtitle">Sobre a Trilha</h2>
+                        <p>{{ pasta.descricao|default:"Nenhuma descricao disponivel para esta trilha." }}</p>
+                    </div>
+
+                    <div class="course-curriculum">
+                        <h2 class="section-subtitle">Arquivos anexados</h2>
                         
-                                        {% if material.video_youtube %}
-                                            <iframe class="w-100" style="height: 400px; border-radius: 7px;" src="https://www.youtube.com/embed/{{ material.video_youtube }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                                        {% endif %}
-                                        
-                                        <div style="padding: 20px; overflow-y: auto; height: 300px;">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <h5 class="mb-4">{{ material.nome }}</h5>
-                                                <div class="d-flex justify-content-end align-items-start" style="gap: 20px;">
-                                                    {% if material.video %}
-                                                    <div class="video-overlay">
-                                                        <button class="btn btn-secondary" onclick="openVideoInNewTab('{{ material.video.url }}')">
-                                                            <i class="fa-solid fa-circle-play"></i>
-                                                            <span class="ms-2">Clique aqui para abrir o v&iacute;deo</span>
-                                                        </button>
-                                                    </div>
-                                                    {% endif %}
-                                                    {% if material.arquivo_drive %}
-                                                        <button class="btn btn-secondary drive-download-btn" 
-                                                                data-file-id="{{ material.arquivo_drive }}"
-                                                                title="Drive">
-                                                            <i class="fa-brands fa-google-drive"></i>
-                                                            <span class="ms-2">Clique aqui para acessar o arquivo</span>
-                                                        </button>
-                                                    {% endif %}
-                                                    {% if material.fotos %}
-                                                    <p>
-                                                        <button class="btn btn-secondary img-overlay" data-img-url="{{ material.fotos.url }}">
-                                                            <i class="fa-solid fa-image" title="Imagem"></i>
-                                                            <span class="ms-2">Clique aqui para visualizar a imagem</span>
-                                                        </button>
-                                                    </p>
-                                                    {% endif %}
-                                
-                                                    {% if material.arquivo %}
-                                                    <p>
-                                                        <button class="btn btn-secondary" data-file-url="{{ material.arquivo.url }}" onclick="window.open(this.getAttribute('data-file-url'), '_blank')">
-                                                            <i class="fa-solid fa-file" title="Arquivo"></i>
-                                                            <span class="ms-2">Clique aqui para abrir o arquivo</span>
-                                                        </button>
-                                                    </p>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                            <p>{{ material.descricao }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                                    </div>
+                        <div class="accordion">
+                            {% for material in materiais %}
+                            <div class="accordion-item">
+                                <button class="accordion-header">
+                                    <span>{{ material.nome }}</span>
+                                    <span class="accordion-icon">+</span>
+                                </button>
+                                <div class="accordion-content">
+                                    <ul class="lesson-list">
+                                        <li><a class="btn btn-sm btn-primary" href="{% url 'detail-material' material.id %}">Acessar</a></li>
+                                    </ul>
                                 </div>
                             </div>
+                            {% empty %}
+                            <p>O criador da trilha ainda não adicionou material.</p>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
 
-                <!-- SEÇÃO 2: ARQUIVOS DO GOOGLE DRIVE -->
-                {% if pasta and pasta.pasta_drive %}
-                    <div id="drive-section">
-                        <h4 class="text-success mb-3">
-                            <i class="fa-brands fa-google-drive me-2"></i>
-                            Arquivos do Google Drive
-                        </h4>
-                        
-                        <div id="drive-content">
-                            <div id="drive-loading" class="text-center py-4">
-                                <div class="spinner-border text-success" role="status">
-                                    <span class="visually-hidden">Carregando...</span>
+                        <h2 class="section-subtitle mt-4">Arquivos do Drive</h2>
+                        <section class="section section-gray">
+                            <div class="container">
+                                <div class="courses-grid" id="drive-files">
                                 </div>
-                                <p class="mt-2 text-muted">Carregando arquivos do Drive...</p>
                             </div>
-                        </div>
-                    </div>
-                {% endif %}
-
-                <!-- SEÇÃO 3: NENHUM MATERIAL DISPONÍVEL -->
-                {% if not materiais and not pasta.pasta_drive %}
-                <a class="list-group-item list-group-item-action flex-column align-items-start" style="cursor: pointer;">
-                    <div class="d-flex w-100 justify-content-between">
-                        <div class="d-flex align-items-center" style="gap: 20px;">
-                            <i class="fa-regular fa-face-sad-tear" style="color: #000000; width: 50px; height: auto;"></i>
-                            <h5 class="mb-1">Nenhum material disponível</h5>
-                        </div>
-                    </div>
-                    <p class="mb-1 mt-4">Não há materiais para exibir no momento.</p>
-                </a>
-                {% endif %}
-        </div>
-        </div>
-    </div>
-    </div>
-    <div class="col-md-5 order-1 order-md-2">
-        <h1 class="mb-4 mt-4">Detalhes da Trilha</h1>
-        <div class="card">
-            <div class="card-body" style="height: 100%;">
-                <p class="d-none" id="andamentoVisualizacoes"></p>
-                {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id or not materiais and pasta.pasta_drive %}
-                {% else %}
-                <div class="d-flex align-items-baseline" style="gap: 15px;">
-                    <p>Progresso: </p>
-                    <div class="progress w-100" style="height: 2rem;font-size: 17px;font-weight: 700;">
-                        <div id="progressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                        </section>
                     </div>
                 </div>
-                {% endif %}
-                <div class="card p-3">
-                    <div>
-                        <div class="d-flex align-items-baseline" style="gap: 10px;">
-                            <i class="fa-solid fa-file-signature"></i><strong><p>Nome: </p></strong><p style="font-weight: 600;">{{ pasta.nome }}</p>
-                        </div>
-                        <div class="d-flex align-items-baseline" style="gap: 10px;">
-                            <div>
-                                <i class="fa-regular fa-comments"></i>
-                            </div>
-                            <div>
-                                <strong><p style="margin: 0;">Descrição: </p></strong>
-                                <p style="margin: 0; font-weight: 600;"> {{ pasta.descricao }}</p>
-                            </div>
-                        </div>
-                    </div>    
-                </div>
-
-                <div class="card p-3" id="card_provaDisponivel">
-                    {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id or not materiais and pasta.pasta_drive %}
-                    <strong><a id="provaDisponivel" href="{% url 'list-prova' pasta.pk %}" style="text-decoration: none; width: 150px;">Visualizar Provas</a></strong>
-                    {% else %}
-                    <div class="d-flex justify-content-between">
-                        <strong><a id="provaDisponivel" href="{% url 'list-prova' pasta.pk %}" style="width: 150px;">Provas disponíveis</a></strong>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px; height: 30px;">
-                            <path id="statusIconCheck" fill="#008000" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/>
-                            <path id="statusIconXmark" fill="#ff0000" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/>
-                        </svg>
-                    </div>
-                    {% endif %}
-                </div>                              
-
-                {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
-                <div class="d-flex justify-content-between mt-2">
-                    <div>
-                        <a href="{% url 'delete-pasta' pasta.pk %}" class="btn btn-dark delete-link" style="margin: 5px; margin-left: 0;">Excluir</a>
-                        <a href="{% url 'edit-pasta' pasta.pk %}" class="btn btn-light" >Editar</a>
-                    </div>
-                    <div style="text-align: end;">
-                        <a href="{% url 'add-material' pasta.pk %}" class="btn btn-dark" style="margin: 5px; margin-right: 0;">Add material</a>
-                        <a href="{% url 'criar-prova' pasta.pk %}" class="btn btn-dark">Add Prova</a>
-                    </div>
-                </div>
-                    {% include 'pastas/modal/pasta_details_excluir_pasta.html' %}
-                {% endif %}
             </div>
         </div>
-        {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
-        {% else %}
-        <div class="flex-column flex-sm-row justify-content-between col-lg-8 mt-4" id="avaliacao_eficacia" style="display: flex;">
-            <div class="d-flex mb-4">
-                <button 
-                    class="btn {% if existe_avaliacao_eficacia %}btn-secondary{% else %}btn-primary{% endif %}" 
-                    style="border-radius: 0.375rem 0px 0px 0.375rem" 
-                    data-bs-toggle="modal" 
-                    data-bs-target="#staticBackdrop"
-                    {% if existe_avaliacao_eficacia %}disabled{% endif %}>
-                    Avaliação de Eficácia da Trilha
-                </button>
-                <span class="btn {% if existe_avaliacao_eficacia %}btn-success{% else %}btn-secondary{% endif %}" style="border-radius: 0px 0.375rem 0.375rem 0px">
-                    {% if existe_avaliacao_eficacia %}Concluída <i class="fa-solid fa-check"></i>{% else %}Pendente <i class="fa-regular fa-clock"></i>{% endif %}
-                </span>
-            </div>
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog" style="margin-top: 60px;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="staticBackdropLabel">Avaliação pelo Colaborador</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{% url 'avaliacao' pasta.id %}" method="POST" id="avaliacao-form">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="border p-3">
-                        <p>Você considera que a qualificação agregará valor para o seu trabalho?</p>
-                        <label for="sim_colaborador">Sim</label>
-                        <input type="radio" name="valor_trabalho" id="sim_colaborador" value="true" required>
-                        <label for="nao_colaborador">Não</label>
-                        <input type="radio" name="valor_trabalho" id="nao_colaborador" value="false" required>
-                    </div>
-                    <div class="mt-4">
-                        <label for="justificativa">Justifique</label>
-                        <input class="form-control" type="text" name="justificativa" id="justificativa" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" id="submit-button" class="btn btn-primary">Enviar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="driveModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="driveModalTitle" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="driveModalTitle">Carregando arquivo...</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body" id="driveModalBody">
-        </div>
-      <div class="modal-footer" id="driveModalFooter">
-        </div>
-    </div>
-  </div>
-</div>
+    </section>
 
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
+
 <script src="{% static 'js/drive/carregar_arquivos_drive.js' %}"></script>
-<script src="{% static 'js/drive/drive_sistema.js' %}"></script>
-{% if request.user.type == "ADM" or request.user.id == pasta.created_by.id or not materiais and pasta.pasta_drive %}
-{% else %}
-<script src="{% static 'js/contador_andamento.js' %}"></script>
-{% endif %}
-<script src="{% static 'js/visualizador.js' %}"></script>
-
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const overlayBg = document.getElementById('overlayBg');
-    const overlayImg = document.getElementById('overlayImg');
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('drive-files');
+    const placeholder = document.getElementById('drive-placeholder');
+    if (!container) return;
 
-    document.querySelectorAll('.img-overlay').forEach(button => {
-        button.addEventListener('click', function () {
-            const imgUrl = this.getAttribute('data-img-url');
-            window.open(imgUrl, '_blank');
-        });
-    });
-    if(overlayBg){
-        overlayBg.addEventListener('click', function () {
-            overlayBg.style.display = 'none';
-        });
-    }
-});
-
-function openVideoInNewTab(url) {
-    // Verifica se o URL termina com .mp4
-    if (url.endsWith('.mp4')) {
-        // Abre o vídeo em uma nova aba
-        window.open(url, '_blank');
-    } else {
-        alert('O vídeo não está no formato MP4.');
-    }
-}
-</script>
-
-<script>
-    document.getElementById('avaliacao-form').addEventListener('submit', function(event) {
-        // Obtém o botão de envio
-        const submitButton = document.getElementById('submit-button');
-
-        // Substitui o conteúdo do botão pelo spinner de carregamento
-        submitButton.innerHTML = `
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            Carregando...
-        `;
-        
-        // Desativa o botão para evitar múltiplos cliques
-        submitButton.disabled = true;
-    });
-
-</script>
-
-{% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
-{% else %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Função para verificar se todos os checkboxes estão marcados
-        function checkAllCheckboxes() {
-            const checkboxes = document.querySelectorAll('.material-visualizado');
-            const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-            const avaliacaoEficaciaDiv = document.getElementById('avaliacao_eficacia');
-
-            // Exibe ou oculta o div baseado no estado dos checkboxes
-            if (allChecked && checkboxes.length > 0) {
-                avaliacaoEficaciaDiv.style.display = 'flex';
-            } else {
-                avaliacaoEficaciaDiv.style.display = 'none';
+    fetch("{% url 'pastas-detail-drive' pasta.pk %}")
+        .then(response => response.json())
+        .then(data => {
+            if (placeholder) placeholder.remove();
+            if (!data.success || !data.arquivos || !data.arquivos.length) {
+                container.innerHTML = '<div class="col-12 text-muted">Nenhum arquivo do Drive disponivel.</div>';
+                return;
             }
-        }
 
-        // Adiciona event listeners aos checkboxes
-        document.querySelectorAll('.material-visualizado').forEach(checkbox => {
-            checkbox.addEventListener('change', checkAllCheckboxes);
+            const fragment = document.createDocumentFragment();
+            data.arquivos.forEach(file => {
+                const col = document.createElement('div');
+                col.innerHTML = `
+                    <div class="course-card drive-card">
+                        <div class="course-content">
+                            <h3 class="course-title">${file.nome || 'Arquivo sem nome'}</h3>
+                            <p class="course-instructor">${file.tipo || 'Tipo desconhecido'}</p>
+                            <div class="course-meta">
+                                <span class="course-duration">${file.tamanho || ''}</span>
+                                <span class="course-level">${file.extensao || ''}</span>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-success btn-sm" onclick="visualizarArquivoDrive('${file.id}', '${file.tipo}', '${file.nome || 'Arquivo'}')" title="Visualizar">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                                <a class="btn btn-sm btn-primary" href="${file.link_download}" target="_blank" rel="noopener">Download</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                fragment.appendChild(col);
+            });
+            container.appendChild(fragment);
+        })
+        .catch(() => {
+            if (placeholder) placeholder.remove();
+            container.innerHTML = '<div class="col-12 text-danger">Erro ao carregar arquivos do Drive.</div>';
         });
-
-        // Verifica o estado dos checkboxes na carga inicial
-        checkAllCheckboxes();
-    });
+});
 </script>
-{% endif %}
-
 {% endblock %}

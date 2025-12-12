@@ -132,7 +132,7 @@ def pastas_list(request):
     return render(request, 'pastas/pasta_list.html', {
         'pastas_com_criadores': pastas_com_funcionarios,
         'form': form,
-        'setores':setores
+        'setores': setores
     })
 
 @login_required

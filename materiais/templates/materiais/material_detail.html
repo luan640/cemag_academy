@@ -7,27 +7,45 @@
 {% block content %}
 
 <div>
+    <section class="section">
+        <div class="container">
+            <div class="course-details">
+                <div class="course-details-header">
+                    <div class="course-details-info">
+                        <h1 class="course-details-title">{{ material.nome }}</h1>
+                    </div>
+                </div>
+            
+                <div class="material-details-content">
+                    <div class="material-description">
+                        <h2 class="section-subtitle">Sobre o Material</h2>
+                        <p>{{ material.descricao|default:"Nenhuma descricao disponivel para este material." }}</p>
+                        
+                        {% if material.video %}
+                        <h2 class="section-subtitle">Vídeo</h2>
+                        <p> 
+                            <video width="560" height="315" controls>
+                                <source src="{{ material.video.url }}" type="video/mp4">
+                            </video>
+                        </p>
+                        {% endif %}
 
-    <h1>Detalhes do Material</h1>
-    <p>Nome: {{ material.nome }}</p>
-    <p>Descrição: {{ material.descricao }}</p>
-    
-    {% if material.video %}
-    <p>Vídeo: 
-        <video width="560" height="315" controls>
-            <source src="{{ material.video.url }}" type="video/mp4">
-        </video>
-    </p>
-    {% endif %}
-    
-    {% if material.arquivo %}
-    <p>Arquivo: <a href="{{ material.arquivo.url }}">Download</a></p>
-    {% endif %}
-    
-    {% if material.fotos %}
-    <p>Foto: <img src="{{ material.fotos.url }}" alt="Foto do Material"></p>
-    {% endif %}
-    
+                        {% if material.arquivo %}
+                        <h2 class="section-subtitle">Arquivo</h2>
+                        <p> <a href="{{ material.arquivo.url }}">Download</a></p>
+                        {% endif %}
+
+                        {% if material.fotos %}
+                        <h2 class="section-subtitle">Foto</h2>
+                        <p><img src="{{ material.fotos.url }}" alt="Foto do Material"></p>
+                        {% endif %}
+
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </section>
 </div>
 
 {% endblock %}

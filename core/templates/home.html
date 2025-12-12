@@ -7,198 +7,124 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-
-<style>
-    /* Container que define a disposição dos gráficos */
-    .chart-container {
-        display: flex; /* Alinha lado a lado */
-        flex-wrap: wrap; /* Permite que os gráficos se ajustem para baixo em telas menores */
-        justify-content: center; /* Centraliza os gráficos */
-        gap: 20px; /* Espaço entre os gráficos */
-        padding: 20px;
-    }
-
-    /* Responsividade individual dos gráficos */
-    .chart-wrapper {
-        flex: 1 1 45%; /* Os gráficos ocupam 45% do container */
-        max-width: 1000px; /* Define um limite de largura */
-        min-width: 300px; /* Define um limite mínimo de largura */
-    }
-
-    canvas {
-        width: 100%; /* Largura total do container */
-        height: auto; /* Altura ajustada automaticamente */
-    }
-</style>
-
-<h1 class="mt-4 mb-4">Dashboard</h1>
-
-<!-- <div class="chart-container">
-
-    <div class="chart-wrapper">
-        <canvas id="myChart1"></canvas>
-    </div>
-
-    <div class="chart-wrapper">
-        <canvas id="myChart2"></canvas>
-    </div>
-
-</div> -->
-
-<div class="card mb-3">
-    <div class="card-header">Andamento individual</div>
-    <div class="card-body">
-        <div class="row mb-3">
-            <div class="col-lg-4 col-md-12 mb-3">
-                <div class="card bg-light text-black mb-4">
-                    <div class="card-body">Progresso geral de trilhas</div>
-                    <div
-                        class="card-footer d-flex align-items-center justify-content-between">
-                        <a class="small text-black stretched-link"></a>
-                        <div class="small text-black">{{ progresso_geral|floatformat:2 }}%</div>
-                    </div>
-                </div>
-                <div class="card bg-light text-black mb-4">
-                    <div class="card-body">Trilhas finalizadas</div>
-                    <div
-                        class="card-footer d-flex align-items-center justify-content-between">
-                        <a class="small text-black stretched-link"></a>
-                        <div class="small text-black">{{ trilhas_finalizadas }}</div>
-                    </div>
-                </div>
+    
+    <!-- Hero Section -->
+    <!-- Carrossel mostrando algumas imagens da cemag -->
+    <!-- Estilo folheto -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">CEMAG Academy</h1>
+                <p class="hero-subtitle">Capacitação Profissional de Excelência</p>
+                <p class="hero-description">Desenvolva suas habilidades com cursos online de alta qualidade, ministrados por especialistas do mercado.</p>
+                <a href="cursos.html" class="btn btn-primary">Explorar Cursos</a>
             </div>
-            <div class="col-lg-4 col-md-12">
-                <div class="card mb-4">
-                    <div class="card-header">Andamento por área de
-                        aprendizado:</div>
-                    <div class="card-body"
-                        style="height: 173px; max-height: 173px; overflow-y: auto;">
-                        <ul class="list-group">
-                            {% for area_trilha_nome, media_progresso in media_progresso_area_trilha.items %}
-                            <li
-                                class="list-group-item d-flex justify-content-between align-items-center">
-                                {{ area_trilha_nome }}
-                                <span class="badge badge-primary badge-pill"
-                                    style="color: black;">{{ media_progresso|floatformat:0 }}%</span>
-                            </li>
-                            {% endfor %}
-                        </ul>
+        </div>
+    </section>
+
+    <!-- Minha trilha -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Suas trilhas de aprendizado</h2>
+            <div class="courses-grid">
+                <div class="course-card">
+                    <div class="course-image">
+                        <div class="placeholder-image"></div>
+                    </div>
+                    <div class="course-content">
+                        <h3 class="course-title">Gestão de Projetos Avançada</h3>
+                        <p class="course-instructor">Por Prof. João Silva</p>
+                        <div class="course-meta">
+                            <span class="course-duration">40h</span>
+                            <span class="course-level">Avançado</span>
+                        </div>
+                        <a href="curso_detalhes.html" class="btn btn-secondary">Ver detalhes</a>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-4 col-md-12">
-                <div class="card mb-4">
-                    <div class="card-header">Andamento por trilhas:</div>
-                    <div class="card-body"
-                        style="height: 173px; max-height: 173px; overflow-y: auto;">
-                        <ul class="list-group">
-                            {% for pasta in progresso_trilha.pastas %}
-                            <li
-                                class="list-group-item d-flex justify-content-between align-items-center">
-                                <a href="{% url 'detail-pasta' pasta.pk %}">{{ pasta.nome }}</a>
-                                {% if progresso_trilha.progresso_pasta %}
-                                <span class="badge badge-primary badge-pill"
-                                    style="color: black;">{{ progresso_trilha.progresso_pasta|get_item:pasta.nome }}%</span>
-                                {% endif %}
-                            </li>
-                            {% empty %}
-                            <li
-                                class="list-group-item d-flex justify-content-between align-items-center">Você
-                                não tem acesso a nenhuma trilha.</li>
-                            {% endfor %}
-                        </ul>
+
+                <div class="course-card">
+                    <div class="course-image">
+                        <div class="placeholder-image"></div>
+                    </div>
+                    <div class="course-content">
+                        <h3 class="course-title">Liderança e Desenvolvimento de Equipes</h3>
+                        <p class="course-instructor">Por Prof. Maria Santos</p>
+                        <div class="course-meta">
+                            <span class="course-duration">30h</span>
+                            <span class="course-level">Intermediário</span>
+                        </div>
+                        <a href="curso_detalhes.html" class="btn btn-secondary">Ver detalhes</a>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <div class="course-image">
+                        <div class="placeholder-image"></div>
+                    </div>
+                    <div class="course-content">
+                        <h3 class="course-title">Estratégias de Marketing Digital</h3>
+                        <p class="course-instructor">Por Prof. Carlos Mendes</p>
+                        <div class="course-meta">
+                            <span class="course-duration">35h</span>
+                            <span class="course-level">Intermediário</span>
+                        </div>
+                        <a href="curso_detalhes.html" class="btn btn-secondary">Ver detalhes</a>
+                    </div>
+                </div>
+
+                <div class="course-card">
+                    <div class="course-image">
+                        <div class="placeholder-image"></div>
+                    </div>
+                    <div class="course-content">
+                        <h3 class="course-title">Análise de Dados para Negócios</h3>
+                        <p class="course-instructor">Por Prof. Ana Costa</p>
+                        <div class="course-meta">
+                            <span class="course-duration">45h</span>
+                            <span class="course-level">Avançado</span>
+                        </div>
+                        <a href="curso_detalhes.html" class="btn btn-secondary">Ver detalhes</a>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </section>
+
+    <!-- Livros -->
+    <section class="section section-gray">
+        <div class="container">
+            <h2 class="section-title">Livros recém adicionados</h2>
+            <div class="categories-grid">
+                <div class="category-card">
+                    <h3 class="category-title">Gestão</h3>
+                    <p class="category-count">24 cursos</p>
+                </div>
+                <div class="category-card">
+                    <h3 class="category-title">Tecnologia</h3>
+                    <p class="category-count">18 cursos</p>
+                </div>
+                <div class="category-card">
+                    <h3 class="category-title">Marketing</h3>
+                    <p class="category-count">16 cursos</p>
+                </div>
+                <div class="category-card">
+                    <h3 class="category-title">Finanças</h3>
+                    <p class="category-count">12 cursos</p>
+                </div>
+                <div class="category-card">
+                    <h3 class="category-title">Recursos Humanos</h3>
+                    <p class="category-count">15 cursos</p>
+                </div>
+                <div class="category-card">
+                    <h3 class="category-title">Vendas</h3>
+                    <p class="category-count">20 cursos</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
 {% endblock %}
 
 {% block scripts %}
-
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-
-<!-- <script>
-    const ctx1 = document.getElementById('myChart1');
-        new Chart(ctx1, {
-            type: 'bar',
-            data: {
-                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-                datasets: [{
-                    label: '# of Votes - Chart 1',
-                    data: [12, 19, 3, 5, 2, 3],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-
-        // Configuração para o segundo gráfico
-        const ctx2 = document.getElementById('myChart2');
-        new Chart(ctx2, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                datasets: [{
-                    label: '# of Sales - Chart 2',
-                    data: [30, 50, 20, 40, 60, 80],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-        const ctx3 = document.getElementById('myChart3');
-        new Chart(ctx3, {
-            type: 'pie',
-            data: {
-                labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-                datasets: [{
-                    label: '# of Colors - Chart 3',
-                    data: [12, 19, 3, 5, 2, 3],
-                    backgroundColor: [
-                        'rgba(255, 99, 132, 0.8)',
-                        'rgba(54, 162, 235, 0.8)',
-                        'rgba(255, 206, 86, 0.8)',
-                        'rgba(75, 192, 192, 0.8)',
-                        'rgba(153, 102, 255, 0.8)',
-                        'rgba(255, 159, 64, 0.8)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)',
-                        'rgba(255, 159, 64, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false
-            }
-        });
-</script>
-     -->
 
 {% endblock %}

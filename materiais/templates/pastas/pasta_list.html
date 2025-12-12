@@ -1,377 +1,77 @@
 {% extends 'base.html' %}
 
-{% block title %}Lista trilhas{% endblock %}
+{% block title %}Trilhas{% endblock %}
 
 {% block links %}
-<style>
-    .btn-pastel {
-        background-color: #5da57c; /* Cor verde pastel */
-        color: white; /* Cor do texto */
-        border: none; /* Remover borda */
-    }
 
-    .btn-pastel:hover {
-        background-color: #41d882; /* Cor mais escura no hover */
-    }
-
-    .btn-pastel i {
-        margin-right: 5px; /* Espaço entre o ícone e o texto */
-    }
-
-    .btn-secondary-light {
-        background-color: #bdbdbd;
-        color: white; /* Cor do texto */
-    }
-
-    .btn-secondary-light:hover {
-        background-color: #bdbdbd; /* Cor mais escura no hover */
-        color: white;
-        cursor: default;
-    }
-
-    .btn-secondary-light:active {
-        background-color: #bdbdbd !important;/* Cor mais escura no hover */
-        color: white !important;
-    }
-    .notification-icon {
-        position: relative;
-        display: inline-block;
-    }
-
-    .notification-count {
-        position: absolute;
-        top: -5px;
-        right: -10px;
-        background-color: red;
-        color: white;
-        border-radius: 50%;
-        padding: 3px 7px;
-        font-size: 12px;
-        font-weight: bold;
-    }
-
-    #notification-dot {
-        position: absolute;
-        top: 6px;
-        right:-4px;
-        width: 8px;
-        height: 8px;
-        background-color: red;
-        border-radius: 50%;
-        z-index: 888;
-    }
-    #filterSection {
-        position: absolute;
-        top: 90px; /* Define a posição a partir do topo */
-        right: 0px; /* Define a posição a partir da lateral direita */
-        z-index: 1050; /* Garante que fique acima de outros elementos */
-        width: 300px; /* Largura da seção */
-    }
-</style>
 {% endblock %}
 
 {% block content %}
 
-<h1>Trilhas de aprendizado</h1>
-
-{% if request.user.type == 'ADM' or request.user.type == 'LID' %}
-<div class="row mb-3">
-    <div class="col-lg-8 mx-auto text-end">
-        <button class="btn btn-pastel" type="button" data-bs-toggle="offcanvas"
-            data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
-            <i class="fas fa-plus"></i> Adicionar trilha
-        </button>
+<section class="page-header">
+    <div class="container">
+        <h1 class="page-title">Trilhas disponíveis</h1>
+        <p class="page-subtitle">Cursos aos quais você já tem acesso</p>
     </div>
-</div>
+</section>
 
-<div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight"
-    aria-labelledby="offcanvasRightLabel">
-    <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasRightLabel">Adicionar Trilha</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas"
-            aria-label="Close"></button>
-    </div>
-    <div class="offcanvas-body">
-        {% include 'pastas/forms/pasta_add.html' %}
-    </div>
-</div>
-{% endif %}
-
-<div class="row">
-    
-    <div class="col-lg-8 mx-auto mt-4 mb-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4>Trilhas</h4>
-                <div class="flex-column text-end">
-                    <div class="input-group" style="width: 200px;">
-                        <input class="form-control" id="inputSearch" type="text" placeholder="Pesquisar trilha..." aria-label="Pesquisar trilha..." aria-describedby="btnSearch" />
-                        <button class="btn btn-primary" id="btnSearch" type="button"><i class="fas fa-search"></i></button>
+<section class="section">
+    <div class="container">
+        <div class="courses-grid" id="courses-grid">
+            {% for item in pastas_com_criadores %}
+            <div class="course-card{% if forloop.counter > 10 %} d-none extra-course{% endif %}">
+                <div class="course-image">
+                    <div class="placeholder-image"></div>
+                </div>
+                <div class="course-content">
+                    <h3 class="course-title">
+                        <a href="{% url 'detail-pasta' item.pasta.pk %}">{{ item.pasta.nome }}</a>
+                    </h3>
+                    <p class="course-instructor">Criada por {{ item.criador_nome_completo }}</p>
+                    <div class="course-meta">
+                        <span class="course-duration">{{ item.pasta.carga_horaria|default:"Carga horária não informada" }}</span>
+                        <span class="course-level">
+                            {% if item.setores %}{{ item.setores|join:", " }}{% else %}Todos os setores{% endif %}
+                        </span>
                     </div>
-                    {% if request.user.type == 'ADM' %}
-                    <button class="btn btn-light mt-2" 
-                            id="filterButton" 
-                            style="background-color: rgb(235, 235, 235); border: 1px solid #cfcfcf; font-size: 14px; border-radius: 20px;" 
-                            data-bs-toggle="collapse" 
-                            data-bs-target="#filterSection" 
-                            aria-expanded="true" 
-                            aria-controls="filterSection">
-                        <i class="fa-solid fa-filter"></i> 
-                        <span id="filterButtonText">Filtros</span>
-                        <span id="clearFilter" style="cursor: pointer; margin-left: 10px; display: none;"><i class="fa-solid fa-xmark"></i></span>
-                    </button>
-                    {% endif %}
-
-                    <!-- Seção de Filtros -->
-                    <div class="collapse" id="filterSection">
-                        <div class="card card-body shadow">
-                            <div class="mb-3">
-                                <label for="filterCategory" class="form-label">Setores:</label>
-                                <select class="form-select" id="filterCategory">
-                                    <option value="" disabled hidden selected>Selecione um setor</option>
-                                    {% for setor in setores %}
-                                        <option value="{{setor}}">{{setor}}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="creators" class="form-label">Criadores:</label>
-                                <select class="form-select" id="creators">
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+                    <p class="course-description">{{ item.pasta.descricao|default:"Sem descrição disponível." }}</p>
+                    <a href="{% url 'detail-pasta' item.pasta.pk %}" class="btn btn-secondary">Ver detalhes</a>
                 </div>
             </div>
-            <div class="card-body" style="max-height:600px;overflow-y: auto;">
-                <div class="list-group">
-                    {% if pastas_com_criadores %}
-                    {% for item in pastas_com_criadores %}
-                    <div class="list-group-item flex-column align-items-start trilha-item" data-setores="{{ item.setores }}">
-                        <div class="w-100">
-                            <div>
-                                <div class="d-flex justify-content-between">
-                                    <h3 class="w-75"><a href="{% url 'detail-pasta' item.pasta.pk %}" class="trilha-nome">{{ item.pasta.nome }}</a></h3>
-                                    {% if request.user.type != 'LEI' %}
-                                    <h3 class="d-flex text-end" style="gap: 20px;">
-                                        <a style="cursor: pointer;" onclick="fetchPastaDetail('{{ item.pasta.pk }}')"
-                                         data-bs-toggle="modal"  data-bs-target="#staticBackdrop{{ item.pasta.pk }}">
-                                            <div class="notification-icon" style="position: relative; display: inline-block;">
-                                                <i class="fa-solid fa-bell" style="color: #0d6efd; font-size: 20px;"></i>
-                                                {% if item.possui_avaliacao_pendente %}
-                                                    <span id="notification-dot"></span>
-                                                {% endif %}
-                                            </div>
-                                        </a>
-                                        {% if request.user.type == 'ADM' %}
-                                            {% if item.possui_avaliacao %}
-                                            <a style="cursor: pointer;" title="Trilha Avaliada pelo Gestor" href="{% url 'frequencia-pasta' item.pasta.pk %}">
-                                                <i class="fa-solid fa-users" style="color: #198754;font-size: 20px;"></i>
-                                            </a>
-                                            {% else %}
-                                            <a style="cursor: pointer;" title="Trilha Não Avaliada pelo Gestor" href="{% url 'frequencia-pasta' item.pasta.pk %}">
-                                                <i class="fa-solid fa-users" style="color: #0d6efd;font-size: 20px;"></i>
-                                            </a>
-                                            {% endif %}
-                                        {% endif %}
-                                    </h3>
-                                    {% endif %}
-                                </div>
-                                <div class="creator-name" style="color: #333; font-size: 10pt; margin-bottom: 10px;">
-                                    {{ item.criador_nome_completo }}
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <div class="authors" style="font-style: italic; width: 70%;">
-                                        {{ item.pasta.descricao }}
-                                    </div>
-                                    {% if item.pasta.is_norma_regulamentadora %}
-                                    <div class="m-2 workload" style="color: rgb(126, 126, 126); font-size: 14px;">
-                                        Carga Horária: {{ item.pasta.carga_horaria }} horas
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% include 'pastas/modal/pasta_list_avaliar_trilha.html' %}
-                    {% endfor %}
-                    {% else %}
-                    <div class="list-group-item list-group-item-action flex-column align-items-start">
-                        <div class="d-flex w-100">
-                            <div>
-                                <h3>Sem trilhas</h3>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-                </div>
+            {% empty %}
+            <div class="text-center py-4">
+                <p>Você ainda não está inscrito em nenhuma trilha.</p>
             </div>
+            {% endfor %}
         </div>
+        {% if pastas_com_criadores|length > 10 %}
+        <div class="text-center mt-4 mb-3 w-100 d-flex justify-content-center">
+            <button id="load-more" class="btn btn-primary">Ver mais</button>
+        </div>
+        {% endif %}
     </div>
-</div>
-
+</section>
+    
 {% endblock %}
 
 {% block scripts %}
-
-<script src="/static/js/lista_trilha/trilha-list.js"></script>
-<script src="/static/js/adicionar_trilha/filtrar_setor_funcionario.js"></script>
-<script src="/static/js/adicionar_trilha/checkbox/setores.js"></script>
-<script src="/static/js/adicionar_trilha/checkbox/toggle.js"></script>
-
 <script>
-    document.getElementById('add-trilha').addEventListener('submit', function() {
-        var submitButton = document.getElementById('submit-edit');
-        submitButton.disabled = true; // Desabilita o botão
-        submitButton.querySelector('.spinner-border').classList.remove('d-none'); // Exibe o spinner
-        document.getElementById('button-text').textContent = 'Salvando...'; // Altera o texto
-    });
-</script>
+    (function() {
+        const batchSize = 10;
+        const courses = Array.from(document.querySelectorAll('.course-card'));
+        const loadMoreBtn = document.getElementById('load-more');
+        let visibleCount = batchSize;
 
-<script>
+        if (!loadMoreBtn) return;
 
-    document.querySelector('form').addEventListener('submit', function(event) {
-        const radios = document.querySelectorAll('input[name="valor_trabalho"]');
-        let selected = false;
-        
-        radios.forEach((radio) => {
-            if (radio.checked) {
-                selected = true;
+        loadMoreBtn.addEventListener('click', function() {
+            const hidden = courses.slice(visibleCount, visibleCount + batchSize);
+            hidden.forEach(card => card.classList.remove('d-none', 'extra-course'));
+            visibleCount += hidden.length;
+            if (visibleCount >= courses.length) {
+                loadMoreBtn.classList.add('d-none');
             }
         });
-        
-        if (!selected) {
-            alert('Por favor, selecione uma opção.');
-            event.preventDefault();
-        }
-    });
-
-    document.querySelectorAll('[id^=filter_collaborator]').forEach(function(selectElement) {
-        selectElement.addEventListener('change', function() {
-            const filter_collaborator = this.value;
-            const pastaPk = this.id.replace('filter_collaborator', '');
-            
-            const resposta_do_colaborador_selecionado = document.getElementById('resposta_do_colaborador_selecionado' + pastaPk);
-            const resposta_avaliacao_chefia = document.getElementById('resposta_avaliacao_chefia' + pastaPk);
-            const resposta_parecer_rh = document.getElementById('resposta_parecer_rh' + pastaPk);
-
-            // Exibe os campos apenas se um colaborador for selecionado
-            if (filter_collaborator) {
-                resposta_do_colaborador_selecionado.style.display = 'block';
-
-                if (resposta_avaliacao_chefia) {
-                    resposta_avaliacao_chefia.style.display = 'block';
-                }
-                if (resposta_parecer_rh) {
-                    resposta_parecer_rh.style.display = 'block';
-                }
-            } else {
-                resposta_do_colaborador_selecionado.style.display = 'none';
-                if (resposta_avaliacao_chefia) {
-                    resposta_avaliacao_chefia.style.display = 'none';
-                }
-                if (resposta_parecer_rh) {
-                    resposta_parecer_rh.style.display = 'none';
-                }
-            }
-        });
-    });
-
-    function fetchCollaboratorData(pastaId) {
-        // Pegue o colaborador selecionado
-        const collaborator = document.getElementById(`filter_collaborator${pastaId}`).value;
-        const textResposta = document.getElementById(`resposta_colaborador_text${pastaId}`);
-        const justificativa = document.getElementById(`justificativa_avaliacao${pastaId}`);
-        const checkboxSim = document.getElementById(`sim${pastaId}`); // Agregou valor
-        const checkboxNao = document.getElementById(`nao${pastaId}`); // Não agregou valor
-        textResposta.innerHTML = `<p class="placeholder-glow">
-                                    <span class="placeholder col-10 rounded-pill"></span>
-                                  </p>`;
-        justificativa.value = "";                               
-        checkboxSim.checked = false;
-        checkboxNao.checked = false;                           
-        // Verifique se um colaborador foi selecionado
-        if (collaborator) {
-            // Crie a URL para o GET request
-            const url = `/materiais/avaliacao/supervisor/${pastaId}/?matricula_collaborator=${collaborator}`;
-
-            // Envie o GET request usando fetch API
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    // Atualize a resposta na página com os dados retornados
-                    // Aqui você pode manipular a resposta e exibi-la na página
-                    textResposta.innerHTML = "Resposta - " + data.user_name
-                    document.getElementById(`resposta_do_colaborador_selecionado${pastaId}`).style.display = "block";
-                    justificativa.value = data.resposta
-                    if(data.qualificacao){
-                        checkboxSim.checked = true
-                        checkboxNao.checked = false
-                    } else {
-                        checkboxSim.checked = false
-                        checkboxNao.checked = true
-                    }
-                    
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
-                });
-        }
-    }
-
-</script>
-
-<script>
-    function fetchPastaDetail(pastaId) {
-        // URL da view no backend que vai lidar com o detalhe da pasta
-        const url = `${pastaId}/funcionarios-avaliaram`;
-        const select = document.getElementById(`filter_collaborator${pastaId}`);
-        select.innerHTML = '<option value="" selected>Carregando...</option>'; // Reseta as opções
-        const resposta_parecer_rh = document.getElementById(`resposta_parecer_rh${pastaId}`);
-        const resposta_avaliacao_chefia = document.getElementById(`resposta_avaliacao_chefia${pastaId}`);
-        const resposta_do_colaborador_selecionado = document.getElementById(`resposta_do_colaborador_selecionado${pastaId}`);
-        if(resposta_parecer_rh){
-            resposta_parecer_rh.style.display = "none";
-        }
-        if(resposta_do_colaborador_selecionado){
-            resposta_do_colaborador_selecionado.style.display = "none";
-        }
-        if(resposta_avaliacao_chefia){
-            resposta_avaliacao_chefia.style.display = "none";
-        }
-        // Fazer a requisição para a view no backend
-        fetch(url, {
-            method: 'GET',
-            headers: {
-                'X-Requested-With': 'XMLHttpRequest', // Identifica que é uma requisição AJAX
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken() // Função para obter o CSRF token
-            },
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Erro na requisição');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Lógica para lidar com a resposta do backend (ex.: redirecionar ou exibir detalhes)
-            select.innerHTML = '<option value="" selected>-------</option>'; // Reseta as opções
-            console.log(data.usuarios_avaliados)
-            data.usuarios_avaliados.forEach(collaborator => {
-                const option = document.createElement('option');
-                option.value = `${collaborator.usuario__matricula}`; // ID do colaborador
-                option.textContent = `${collaborator.usuario__first_name} ${collaborator.usuario__last_name}`; // Nome completo
-                select.appendChild(option);
-            });
-        })
-        .catch(error => console.error('Erro ao buscar detalhes da pasta:', error));
-    }
-
-// Função para obter o CSRF token do cookie
-function getCSRFToken() {
-    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-    return csrfToken;
-}
+    })();
 </script>
 {% endblock %}

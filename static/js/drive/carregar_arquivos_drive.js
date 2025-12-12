@@ -13,6 +13,18 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+// Tooltips para os bot?es (opcional, s? se bootstrap estiver carregado)
+document.addEventListener('DOMContentLoaded', function() {
+    if (window.bootstrap && bootstrap.Tooltip) {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    }
+});
+
+
+
 function carregarArquivosDrive(pastaId) {
     const loadingElement = document.getElementById('drive-loading');
     const driveContent = document.getElementById('drive-content');
@@ -82,21 +94,6 @@ function renderizarArquivosDrive(arquivos, pastaId) {
                     </button>
                     ` : ''}
                     
-                    <a href="${arquivo.link_download}" 
-                       class="btn btn-outline-primary btn-sm btn-download-drive"
-                       title="Download"
-                       download="${escapeHtml(arquivo.nome)}"
-                       data-file-id="${arquivo.id}"
-                       data-mime-type="${arquivo.tipo}"
-                       onclick="handleDownloadClick(this, event)">
-                        <span class="download-text">
-                            <i class="fa-solid fa-download"></i>
-                        </span>
-                        <span class="download-loading d-none">
-                            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-                            Carregando...
-                        </span>
-                    </a>
                 </div>
             </div>
         </div>`;
@@ -122,9 +119,22 @@ function renderizarErroDrive(mensagem) {
     </div>`;
 }
 
+
 function visualizarArquivoDrive(fileId, mimeType, fileName) {
-    // Se o tipo não foi informado, busca a metadata primeiro
+    const modal = ensureDriveModal();
+
+    const showLoading = () => {
+        modal.show();
+        modal.setContent({
+            title: fileName || 'Arquivo do Drive',
+            body: '<div class="drive-modal-loading">Carregando...</div>',
+            footer: ''
+        });
+    };
+
+    // Se o tipo n??o foi informado, busca a metadata primeiro
     if (!mimeType) {
+        showLoading();
         fetch(`/materiais/drive/metadata/${fileId}/`)
             .then(response => response.json())
             .then(data => {
@@ -132,154 +142,271 @@ function visualizarArquivoDrive(fileId, mimeType, fileName) {
                     const meta = data.metadata;
                     visualizarArquivoDrive(fileId, meta.mimeType, meta.name || fileName);
                 } else {
-                    alert('Erro ao obter informações do arquivo do Drive.');
+                    modal.setContent({
+                        title: fileName || 'Arquivo do Drive',
+                        body: '<div class="alert alert-danger">Erro ao obter informa??es do arquivo do Drive.</div>',
+                    });
                 }
             })
             .catch(() => {
-                alert('Erro ao obter informações do arquivo do Drive.');
+                modal.setContent({
+                    title: fileName || 'Arquivo do Drive',
+                    body: '<div class="alert alert-danger">Erro ao obter informa??es do arquivo do Drive.</div>',
+                });
             });
         return;
     }
 
-    const modalElement = document.getElementById('driveModal');
-    const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
-    const modalTitle = document.getElementById('driveModalTitle');
-    const modalBody = document.getElementById('driveModalBody');
-    const modalFooter = document.getElementById('driveModalFooter');
+    showLoading();
 
-    modalTitle.textContent = fileName;
-    
-    // URL para o novo endpoint de exportação que criaremos no backend
     const exportUrl = `/materiais/drive/export/${fileId}/`;
-    
-    // Limpa rodapé e mostra o loading
-    modalFooter.innerHTML = '';
-    modalBody.innerHTML = `
-        <div class="d-flex justify-content-center align-items-center" style="min-height: 250px;">
-            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Carregando...</span></div>
-        </div>`;
-    
-    modal.show();
 
-    // ** LÓGICA PRINCIPAL MODIFICADA **
-
-    // CASO 1: É UMA PLANILHA GOOGLE
     if (mimeType === 'application/vnd.google-apps.spreadsheet') {
-        modalBody.innerHTML = `
+        modal.setContent({
+            title: fileName,
+            body: `
             <div class="text-center py-4">
                 <i class="fa-solid fa-file-excel fa-4x text-success mb-3"></i>
                 <h5>Exportar como Planilha Excel</h5>
                 <p class="text-muted">Este arquivo é uma Planilha Google. A visualização direta não é possível, mas você pode exportá-la para o formato Excel (.xlsx).</p>
-            </div>`;
-        
-        // Adiciona o botão de exportar no rodapé
-        modalFooter.innerHTML = `
+            </div>`,
+            footer: `
             <a href="${exportUrl}" 
             class="btn btn-success btn-download-drive" 
             download="${escapeHtml(fileName)}"
             data-file-id="${fileId}"
             data-mime-type="${mimeType}"
-            onclick="handleDownloadClick(this, event)">
-                <span class="download-text">
-                    <i class="fa-solid fa-file-export me-2"></i>Exportar para XLSX
-                </span>
-                <span class="download-loading d-none">
-                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                    Exportando...
-                </span>
-            </a>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-        `;
-
-    // CASO 2: É OUTRO TIPO DE ARQUIVO GOOGLE (DOC, SLIDE, ETC.)
+        `
+        });
     } else if (mimeType.includes('application/vnd.google-apps')) {
-        modalBody.innerHTML = `
+        const downloadUrl = `/materiais/drive/download/${fileId}/`;
+        modal.setContent({
+            title: fileName,
+            body: `
             <div class="text-center py-4">
                 <i class="fa-brands fa-google-drive fa-4x text-muted mb-3"></i>
                 <h5>Visualização não disponível</h5>
                 <p class="text-muted">Este tipo de arquivo do Google precisa ser baixado.</p>
-            </div>`;
-        
-        // Adiciona apenas o botão de download genérico
-        const downloadUrl = `/materiais/drive/download/${fileId}/`;
-        modalFooter.innerHTML = `
+            </div>`,
+            footer: `
             <a href="${downloadUrl}" 
             class="btn btn-primary btn-download-drive" 
             download="${escapeHtml(fileName)}"
             data-file-id="${fileId}"
             data-mime-type="${mimeType}"
-            onclick="handleDownloadClick(this, event)">
-                <span class="download-text">
-                    <i class="fa-solid fa-download me-2"></i>Baixar Arquivo
-                </span>
-                <span class="download-loading d-none">
-                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                    Baixando...
-                </span>
-            </a>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-        `;
-
-    // CASO 3: ARQUIVOS VISUALIZÁVEIS (PDF, VÍDEO, IMAGEM, ETC.)
+        `
+        });
     } else {
         const viewUrl = `/materiais/drive/download/${fileId}/?view=true`;
         const downloadUrl = `/materiais/drive/download/${fileId}/`;
-        
-        // Adiciona o botão de download no rodapé
-        modalFooter.innerHTML = `
+
+        modal.setContent({
+            title: fileName,
+            body: '<div class="drive-modal-loading">Carregando...</div>',
+            footer: `
             <a href="${downloadUrl}" 
             class="btn btn-success btn-download-drive" 
             download="${escapeHtml(fileName)}"
             data-file-id="${fileId}"
             data-mime-type="${mimeType}"
-            onclick="handleDownloadClick(this, event)">
-                <span class="download-text">
-                    <i class="fa-solid fa-download me-2"></i>Baixar Arquivo
-                </span>
-                <span class="download-loading d-none">
-                    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
-                    Baixando...
-                </span>
-            </a>
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-        `;
+        `
+        });
 
         if (mimeType.startsWith('image/')) {
             const img = new Image();
             img.src = viewUrl;
             img.className = 'img-fluid';
-            img.onload = () => { modalBody.innerHTML = ''; modalBody.appendChild(img); };
-            img.onerror = () => { modalBody.innerHTML = '<div class="alert alert-danger">Erro ao carregar a imagem.</div>'; };
+            img.onload = () => modal.setBody(`<div style="text-align:center"><img src="${viewUrl}" alt="${escapeHtml(fileName)}" style="max-width:100%; max-height:70vh; border-radius:6px;" /></div>`);
+            img.onerror = () => modal.setBody('<div class="alert alert-danger">Erro ao carregar a imagem.</div>');
         } else if (mimeType === 'application/pdf' || mimeType.startsWith('video/')) {
             const mediaTag = (mimeType === 'application/pdf')
-                ? `<iframe src="${viewUrl}" frameborder="0" style="width: 100%; height: 100%;" onload="this.style.opacity = '1'"></iframe>`
-                : `<video controls src="${viewUrl}" style="width: 100%; height: 100%;" onloadeddata="this.style.opacity = '1'">Vídeo não suportado.</video>`;
-            
-            modalBody.innerHTML = `
-                <div class="ratio ratio-16x9">
-                    <div class="d-flex justify-content-center align-items-center" style="position: absolute; width: 100%; height: 100%;">
-                        <div class="spinner-border text-primary" role="status"></div>
-                    </div>
+                ? `<iframe src="${viewUrl}" frameborder="0"></iframe>`
+                : `<video controls src="${viewUrl}">Vídeo não suportado.</video>`;
+            modal.setBody(`
+                <div class="drive-media">
+                    <div class="drive-media-loading"><div class="drive-spinner"></div><span>Carregando...</span></div>
                     ${mediaTag}
-                </div>`;
-            
-            // Inicialmente esconder o conteúdo até carregar
-            const mediaElement = modalBody.querySelector('iframe, video');
+                </div>`);
+
+            const mediaElement = document.querySelector('#drive-modal-body iframe, #drive-modal-body video');
+            const loader = document.querySelector('#drive-modal-body .drive-media-loading');
+            const removeLoader = () => { if (loader) loader.remove(); if (mediaElement) mediaElement.style.opacity = '1'; };
             if (mediaElement) {
-                mediaElement.style.opacity = '0';
-                mediaElement.style.transition = 'opacity 0.3s ease';
+                mediaElement.addEventListener(mimeType === 'application/pdf' ? 'load' : 'loadeddata', removeLoader, { once: true });
+                mediaElement.addEventListener('error', () => {
+                    modal.setBody(`
+                        <div class="alert alert-danger">
+                            Não foi possível carregar o arquivo no modal.
+                            <div class="mt-2">
+                                <a class="btn btn-primary btn-sm" href="${downloadUrl}" target="_blank" rel="noopener">Abrir / baixar</a>
+                            </div>
+                        </div>`);
+                });
             }
         } else {
-            modalBody.innerHTML = `
+            modal.setBody(`
                 <div class="text-center py-4">
                     <i class="fa-regular fa-file fa-4x text-muted mb-3"></i>
-                    <h5>Visualização não disponível</h5>
+                    <h5>Visualiza??o n?o dispon?vel</h5>
                     <p class="text-muted">Este tipo de arquivo precisa ser baixado.</p>
-                </div>`;
+                </div>`);
         }
     }
 }
 
+function ensureDriveModal() {
+    let root = document.getElementById('drive-modal-root');
+    if (!root) {
+        root = document.createElement('div');
+        root.id = 'drive-modal-root';
+        root.innerHTML = `
+        <style>
+            #drive-modal-root {
+                position: fixed;
+                inset: 0;
+                display: none;
+                align-items: center;
+                justify-content: center;
+                background: rgba(0,0,0,0.55);
+                z-index: 1050;
+                padding: 20px;
+            }
+            .drive-modal {
+                background: #fff;
+                border-radius: 10px;
+                max-width: 1100px;
+                width: 95%;
+                max-height: 92vh;
+                display: flex;
+                flex-direction: column;
+                box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+                overflow: hidden;
+            }
+            .drive-modal-header, .drive-modal-footer {
+                padding: 16px;
+                border-bottom: 1px solid #e9ecef;
+                background: #f9fbfe;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 10px;
+            }
+            .drive-modal-footer { border-top: 1px solid #e9ecef; border-bottom: none; }
+            .drive-modal-body {
+                padding: 16px;
+                overflow: auto;
+                max-height: 75vh;
+                background: #f7f9fc;
+            }
+            .drive-modal-close {
+                background: none;
+                border: 1px solid transparent;
+                color: #0f4c75;
+                font-size: 1.2rem;
+                line-height: 1;
+                cursor: pointer;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+            }
+            .drive-modal-close:hover {
+                background: #e8f1fb;
+                border-color: #d5e4f5;
+                color: #0a3b5c;
+            }
+            .drive-modal-loading {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 40px 0;
+                gap: 10px;
+            }
+            .drive-media {
+                position: relative;
+                width: 100%;
+                height: 65vh;
+                background: #0e1724;
+                border-radius: 8px;
+                overflow: hidden;
+            }
+            .drive-media iframe,
+            .drive-media video {
+                width: 100%;
+                height: 100%;
+                border: 0;
+                opacity: 0;
+                transition: opacity 0.25s ease;
+                background: #0e1724;
+            }
+            .drive-media-loading {
+                position: absolute;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background: rgba(0,0,0,0.35);
+                color: #fff;
+                font-weight: 600;
+                z-index: 2;
+                gap: 10px;
+            }
+            .drive-spinner {
+                width: 36px;
+                height: 36px;
+                border: 4px solid rgba(255,255,255,0.35);
+                border-top-color: #0f4c75;
+                border-radius: 50%;
+                animation: drive-spin 0.9s linear infinite;
+            }
+            @keyframes drive-spin { to { transform: rotate(360deg); } }
+        </style>
+        <div class="drive-modal" role="dialog" aria-modal="true">
+            <div class="drive-modal-header">
+                <h5 class="mb-0 drive-modal-title">Arquivo</h5>
+                <button class="drive-modal-close" data-drive-modal-close aria-label="Fechar">&times;</button>
+            </div>
+            <div class="drive-modal-body" id="drive-modal-body"></div>
+            <div class="drive-modal-footer d-flex gap-2 flex-wrap justify-content-end" id="drive-modal-footer"></div>
+        </div>`;
+        document.body.appendChild(root);
+
+    }
+
+    const titleEl = root.querySelector('.drive-modal-title');
+    const bodyEl = root.querySelector('#drive-modal-body');
+    const footerEl = root.querySelector('#drive-modal-footer');
+    const closeEls = root.querySelectorAll('[data-drive-modal-close]');
+
+    function hide() {
+        root.style.display = 'none';
+        bodyEl.innerHTML = '';
+        footerEl.innerHTML = '';
+    }
+
+    function show() {
+        root.style.display = 'flex';
+    }
+
+    function setContent({ title = '', body = '', footer = '' }) {
+        if (titleEl) titleEl.textContent = title;
+        if (bodyEl) bodyEl.innerHTML = body;
+        if (footerEl) {
+            footerEl.innerHTML = footer;
+            footerEl.querySelectorAll('[data-drive-modal-close]').forEach(btn => btn.addEventListener('click', hide));
+        }
+        closeEls.forEach(btn => btn.addEventListener('click', hide));
+    }
+
+    function setBody(html) {
+        if (bodyEl) bodyEl.innerHTML = html;
+    }
+
+    return { show, hide, setContent, setBody };
+}
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
@@ -406,15 +533,6 @@ function limparCachePasta(pastaId) {
         button.disabled = false;
     });
 }
-
-// Tooltips para os botões
-document.addEventListener('DOMContentLoaded', function() {
-    // Tooltips para materiais do sistema (já existentes)
-    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
-    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-        return new bootstrap.Tooltip(tooltipTriggerEl);
-    });
-});
 
 // Disponibiliza funções usadas em atributos onclick no escopo global
 window.visualizarArquivoDrive = visualizarArquivoDrive;
