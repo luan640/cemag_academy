@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CEMAG Academy - Cursos</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark cemag-navbar fixed-top">
+      <div class="container">
+        <a class="navbar-brand d-flex align-items-center gap-2" href="index.html">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">CEMAG Academy</span>
+        </a>
+
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#cemagNav"
+          aria-controls="cemagNav"
+          aria-expanded="false"
+          aria-label="Abrir menu"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="cemagNav">
+          <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-2">
+            <li class="nav-item">
+              <a class="nav-link" href="index.html">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="cursos.html">Cursos</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="index.html#sobre">Sobre</a>
+            </li>
+            <li class="nav-item ms-lg-2">
+              <a class="btn btn-cemag btn-sm" href="login.html">Login</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Page header -->
+    <header class="page-header">
+      <div class="container">
+        <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-end gap-3">
+          <div>
+            <h1 class="h3 mb-2">Catálogo de Cursos</h1>
+            <p class="text-muted mb-0">
+              Explore cursos por área e encontre trilhas alinhadas à operação.
+            </p>
+          </div>
+
+          <form class="w-100 w-lg-auto" role="search">
+            <div class="input-group input-group-sm">
+              <input
+                id="courseSearch"
+                type="search"
+                class="form-control"
+                placeholder="Buscar cursos..."
+                aria-label="Buscar cursos"
+              />
+              <button class="btn btn-outline-secondary" type="button" id="btnClearSearch">
+                Limpar
+              </button>
+            </div>
+          </form>
+        </div>
+
+        <div class="filters mt-4">
+          <div class="row g-2">
+            <div class="col-12 col-md-4">
+              <select class="form-select form-select-sm" id="filterCategory">
+                <option value="">Todas as categorias</option>
+                <option value="producao">Produção</option>
+                <option value="qualidade">Qualidade</option>
+                <option value="manutencao">Manutenção</option>
+                <option value="comercial">Comercial</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-4">
+              <select class="form-select form-select-sm" id="filterDuration">
+                <option value="">Qualquer carga horária</option>
+                <option value="ate3">Até 3h</option>
+                <option value="4a6">4–6h</option>
+                <option value="7mais">7h+</option>
+              </select>
+            </div>
+            <div class="col-12 col-md-4">
+              <select class="form-select form-select-sm" id="filterInstructor">
+                <option value="">Qualquer instrutor</option>
+                <option value="cemag">CEMAG</option>
+                <option value="cq">Equipe CQ</option>
+                <option value="manut">Manutenção</option>
+                <option value="sesmt">SESMT</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="py-5">
+      <div class="container">
+        <div class="row g-3" id="coursesGrid">
+          <!-- Card template examples (JS filtra por data-*) -->
+          <div class="col-sm-6 col-lg-3 course-item" data-title="Leitura e interpretação de desenho" data-category="producao" data-duration="4a6" data-instructor="cemag">
+            <article class="card cemag-card h-100 reveal">
+              <div class="card-thumb"></div>
+              <div class="card-body">
+                <h2 class="h6 mb-1">Leitura e interpretação de desenho</h2>
+                <div class="small text-muted mb-2">Carga horária: 4h</div>
+                <div class="small text-muted mb-3">Instrutor: CEMAG</div>
+                <a href="curso_detalhes.html" class="btn btn-cemag btn-sm w-100">Ver detalhes</a>
+              </div>
+            </article>
+          </div>
+
+          <div class="col-sm-6 col-lg-3 course-item" data-title="Qualidade: inspeção e rastreabilidade" data-category="qualidade" data-duration="4a6" data-instructor="cq">
+            <article class="card cemag-card h-100 reveal">
+              <div class="card-thumb alt"></div>
+              <div class="card-body">
+                <h2 class="h6 mb-1">Qualidade: inspeção e rastreabilidade</h2>
+                <div class="small text-muted mb-2">Carga horária: 6h</div>
+                <div class="small text-muted mb-3">Instrutor: Equipe CQ</div>
+                <a href="curso_detalhes.html" class="btn btn-cemag btn-sm w-100">Ver detalhes</a>
+              </div>
+            </article>
+          </div>
+
+          <div class="col-sm-6 col-lg-3 course-item" data-title="Manutenção preventiva" data-category="manutencao" data-duration="ate3" data-instructor="manut">
+            <article class="card cemag-card h-100 reveal">
+              <div class="card-thumb"></div>
+              <div class="card-body">
+                <h2 class="h6 mb-1">Manutenção preventiva</h2>
+                <div class="small text-muted mb-2">Carga horária: 3h</div>
+                <div class="small text-muted mb-3">Instrutor: Manutenção</div>
+                <a href="curso_detalhes.html" class="btn btn-cemag btn-sm w-100">Ver detalhes</a>
+              </div>
+            </article>
+          </div>
+
+          <div class="col-sm-6 col-lg-3 course-item" data-title="Segurança no trabalho" data-category="producao" data-duration="ate3" data-instructor="sesmt">
+            <article class="card cemag-card h-100 reveal">
+              <div class="card-thumb alt"></div>
+              <div class="card-body">
+                <h2 class="h6 mb-1">Segurança no trabalho</h2>
+                <div class="small text-muted mb-2">Carga horária: 2h</div>
+                <div class="small text-muted mb-3">Instrutor: SESMT</div>
+                <a href="curso_detalhes.html" class="btn btn-cemag btn-sm w-100">Ver detalhes</a>
+              </div>
+            </article>
+          </div>
+
+          <div class="col-sm-6 col-lg-3 course-item" data-title="Atendimento ao cliente e pós-vendas" data-category="comercial" data-duration="7mais" data-instructor="cemag">
+            <article class="card cemag-card h-100 reveal">
+              <div class="card-thumb"></div>
+              <div class="card-body">
+                <h2 class="h6 mb-1">Atendimento ao cliente e pós-vendas</h2>
+                <div class="small text-muted mb-2">Carga horária: 8h</div>
+                <div class="small text-muted mb-3">Instrutor: CEMAG</div>
+                <a href="curso_detalhes.html" class="btn btn-cemag btn-sm w-100">Ver detalhes</a>
+              </div>
+            </article>
+          </div>
+
+          <div class="col-sm-6 col-lg-3 course-item" data-title="Padronização de processos" data-category="producao" data-duration="4a6" data-instructor="cemag">
+            <article class="card cemag-card h-100 reveal">
+              <div class="card-thumb alt"></div>
+              <div class="card-body">
+                <h2 class="h6 mb-1">Padronização de processos</h2>
+                <div class="small text-muted mb-2">Carga horária: 5h</div>
+                <div class="small text-muted mb-3">Instrutor: CEMAG</div>
+                <a href="curso_detalhes.html" class="btn btn-cemag btn-sm w-100">Ver detalhes</a>
+              </div>
+            </article>
+          </div>
+
+          <div class="col-sm-6 col-lg-3 course-item" data-title="Boas práticas de inspeção final" data-category="qualidade" data-duration="ate3" data-instructor="cq">
+            <article class="card cemag-card h-100 reveal">
+              <div class="card-thumb"></div>
+              <div class="card-body">
+                <h2 class="h6 mb-1">Boas práticas de inspeção final</h2>
+                <div class="small text-muted mb-2">Carga horária: 3h</div>
+                <div class="small text-muted mb-3">Instrutor: Equipe CQ</div>
+                <a href="curso_detalhes.html" class="btn btn-cemag btn-sm w-100">Ver detalhes</a>
+              </div>
+            </article>
+          </div>
+
+          <div class="col-sm-6 col-lg-3 course-item" data-title="Gestão de manutenção e indicadores" data-category="manutencao" data-duration="7mais" data-instructor="manut">
+            <article class="card cemag-card h-100 reveal">
+              <div class="card-thumb alt"></div>
+              <div class="card-body">
+                <h2 class="h6 mb-1">Gestão de manutenção e indicadores</h2>
+                <div class="small text-muted mb-2">Carga horária: 7h</div>
+                <div class="small text-muted mb-3">Instrutor: Manutenção</div>
+                <a href="curso_detalhes.html" class="btn btn-cemag btn-sm w-100">Ver detalhes</a>
+              </div>
+            </article>
+          </div>
+        </div>
+
+        <div id="emptyState" class="empty-state mt-4 d-none">
+          <div class="empty-state-card">
+            <div class="fw-semibold mb-1">Nenhum curso encontrado</div>
+            <div class="text-muted small">
+              Ajuste os filtros ou tente outra palavra-chave.
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <footer class="cemag-footer py-4">
+      <div class="container d-flex flex-column flex-md-row justify-content-between gap-2">
+        <div class="text-muted small">
+          © <span id="year"></span> CEMAG Academy. Todos os direitos reservados.
+        </div>
+        <div class="text-muted small">Catálogo corporativo de cursos</div>
+      </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/scripts.js"></script>
+  </body>
+</html>
