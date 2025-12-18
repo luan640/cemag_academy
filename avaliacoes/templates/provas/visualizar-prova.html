@@ -2,55 +2,163 @@
 
 {% load custom_filters %}
 
-{% block title %}Lista trilhas{% endblock %}
+{% block title %}Visualizar prova{% endblock %}
 
 {% block content %}
 
-<h1>{{ prova.titulo }}</h1>
-<p>{{ prova.descricao }}</p>
-
-<form id="visualizar-prova-form" method="post">
-    {% csrf_token %}
-    {% for questao in questoes %}
-        <hr>
-        <div class="questao mb-4">
-            <p><strong class="mb-4">{{ questao.enunciado|linebreaksbr }}</strong></p>
-            {% if questao.tipo == 'objetiva' %}
-                {% with questao.pk as questao_pk %}
-                    {% for alternativa in alternativas|get_item:questao_pk %}
-                        <div class="alternativa">
-                            <input type="radio" id="alternativa_{{ alternativa.id }}" name="questao_{{ questao.id }}" value="{{ alternativa.id }}" 
-                            {% if alternativa.id == alternativa_selecionada|get_item:questao_pk %}checked {% endif %} disabled>
-                            <label for="alternativa_{{ alternativa.id }}">
-                                {{ alternativa.texto }}
-                                {% if alternativas_certas %}
-                                    {% if alternativa.id == alternativas_certas|get_item:questao_pk %}
-                                        <strong class="text-success"><i class="fa-solid fa-circle-check"></i></strong>
-                                    {% elif alternativa.id == alternativa_selecionada|get_item:questao_pk %}
-                                        <strong class="text-danger"><i class="fa-solid fa-circle-xmark"></i></strong>
-                                {% endif %}
-                                {% endif %}
-                            </label>
-                        </div>
-                    {% endfor %}
-                {% endwith %}
-            {% elif questao.tipo == 'dissertativa' %}
-                <div style="width: 320px;">
-                    <textarea class="form-control" name="questao_{{ questao.id }}" rows="2" cols="10" disabled>{{ alternativa_selecionada|get_item:questao.pk }}</textarea>
-                    {% if nota_dissertativa %}
-                    <label class="mt-3">
-                        <strong>Nota : {{ nota_dissertativa|get_item:questao.pk }}</strong>
-                    </label>
-                    {% endif %}
-                </div>
-            {% endif %}
+<section class="page-header">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <div>
+                <p class="text-muted mb-1 small">Prova</p>
+                <h1 class="page-title mb-1">{{ prova.titulo }}</h1>
+                <p class="page-subtitle">Visualize suas respostas e gabaritos.</p>
+            </div>
+            <a class="btn btn-ghost btn-sm d-flex align-items-center gap-2" href="{% url 'list-prova' prova.pasta.id %}">
+                <i class="fa-solid fa-arrow-left"></i>
+                Voltar para provas
+            </a>
         </div>
-    {% endfor %}
-    <hr>
-</form>
+    </div>
+</section>
+
+<section class="py-4 py-lg-5">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-lg-8">
+                <div class="content-panel">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                        <div>
+                            <p class="text-muted small mb-0">Total de questões</p>
+                            <h2 class="h6 mb-0">{{ questoes|length }}</h2>
+                        </div>
+                        {% if alternativas_certas %}
+                        <span class="badge bg-light text-dark">Visualização com gabarito</span>
+                        {% else %}
+                        <span class="badge bg-light text-dark">Visualização do aluno</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="exam-question-list">
+                        {% for questao in questoes %}
+                        <article class="exam-question-card">
+                            <div class="question-header">
+                                <span class="question-number">Questão {{ forloop.counter }}</span>
+                                <span class="badge {% if questao.tipo == 'objetiva' %}bg-light text-dark{% else %}bg-dark text-white{% endif %}">
+                                    {{ questao.get_tipo_display }}
+                                </span>
+                            </div>
+                            <p class="question-text mb-3">{{ questao.enunciado|linebreaksbr }}</p>
+
+                            {% if questao.tipo == 'objetiva' %}
+                                {% with questao.pk as questao_pk %}
+                                <div class="option-list">
+                                    {% for alternativa in alternativas|get_item:questao_pk %}
+                                    {% with selecionada=alternativa_selecionada|get_item:questao_pk %}
+                                    {% with correta=alternativas_certas|get_item:questao_pk %}
+                                    <label class="option-item
+                                        {% if alternativa.id == selecionada %} is-selected{% endif %}
+                                        {% if correta and alternativa.id == correta %} is-correct{% endif %}
+                                        {% if correta and selecionada and alternativa.id == selecionada and selecionada != correta %} is-wrong{% endif %}
+                                    ">
+                                        <div class="option-marker">
+                                            <input type="radio" disabled {% if alternativa.id == selecionada %}checked{% endif %}>
+                                        </div>
+                                        <div class="option-body">
+                                            <div class="option-text">{{ alternativa.texto }}</div>
+                                            <div class="option-status small text-muted">
+                                                {% if correta %}
+                                                    {% if alternativa.id == correta %}
+                                                        Resposta correta
+                                                    {% elif alternativa.id == selecionada %}
+                                                        Resposta marcada
+                                                    {% else %}
+                                                        Alternativa
+                                                    {% endif %}
+                                                {% else %}
+                                                    {% if alternativa.id == selecionada %}Resposta marcada{% else %}Alternativa{% endif %}
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% if correta %}
+                                        <div class="option-icon">
+                                            {% if alternativa.id == correta %}
+                                                <i class="fa-solid fa-circle-check text-success"></i>
+                                            {% elif alternativa.id == selecionada %}
+                                                <i class="fa-solid fa-circle-xmark text-danger"></i>
+                                            {% endif %}
+                                        </div>
+                                        {% endif %}
+                                    </label>
+                                    {% endwith %}
+                                    {% endwith %}
+                                    {% endfor %}
+                                </div>
+                                {% endwith %}
+                            {% elif questao.tipo == 'dissertativa' %}
+                                <div class="dissertativa-box">
+                                    <div class="dissertativa-label">Sua resposta</div>
+                                    <div class="dissertativa-text">{{ alternativa_selecionada|get_item:questao.pk }}</div>
+                                    {% with nota=nota_dissertativa|get_item:questao.pk %}
+                                    {% with status=dissertativa_status|get_item:questao.pk %}
+                                    {% if nota != None %}
+                                    <div class="dissertativa-score">
+                                        Nota: <strong>{{ nota }}</strong>
+                                        {% if status == 'correta' %}
+                                            <span class="badge bg-success">Correta</span>
+                                        {% elif status == 'errada' %}
+                                            <span class="badge bg-danger">Errada</span>
+                                        {% elif status == 'parcial' %}
+                                            <span class="badge bg-warning text-dark">Parcial</span>
+                                        {% endif %}
+                                    </div>
+                                    {% endif %}
+                                    {% endwith %}
+                                    {% endwith %}
+                                </div>
+                            {% endif %}
+                        </article>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="content-panel">
+                    <h2 class="h6 mb-3">Detalhes da prova</h2>
+                    <ul class="list-unstyled mb-3 text-muted small">
+                        <li class="d-flex justify-content-between pb-2 border-bottom">
+                            <span>Título</span>
+                            <span class="fw-semibold text-dark">{{ prova.titulo }}</span>
+                        </li>
+                        <li class="d-flex justify-content-between pb-2 border-bottom">
+                            <span>Questões</span>
+                            <span class="fw-semibold text-dark">{{ questoes|length }}</span>
+                        </li>
+                        {% if alternativas_certas %}
+                        <li class="d-flex justify-content-between pb-2">
+                            <span>Modo</span>
+                            <span class="fw-semibold text-dark">Correção</span>
+                        </li>
+                        {% else %}
+                        <li class="d-flex justify-content-between pb-2">
+                            <span>Modo</span>
+                            <span class="fw-semibold text-dark">Aluno</span>
+                        </li>
+                        {% endif %}
+                    </ul>
+                    <div class="d-grid gap-2">
+                        <a href="{% url 'list-prova' prova.pasta.id %}" class="btn btn-outline-secondary btn-sm">
+                            Voltar para provas
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
 
 {% endblock %}
 
 {% block scripts %}
-
 {% endblock %}

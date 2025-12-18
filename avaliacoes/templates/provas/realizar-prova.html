@@ -2,51 +2,96 @@
 
 {% load custom_filters %}
 
-{% block title %}Lista trilhas{% endblock %}
+{% block title %}Realizar prova{% endblock %}
 
 {% block content %}
 
-<h1>{{ prova.titulo }}</h1>
-<p>{{ prova.descricao }}</p>
+<section class="page-header">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <div>
+                <p class="text-muted mb-1 small">Prova</p>
+                <h1 class="page-title mb-1">{{ prova.titulo }}</h1>
+                <p class="page-subtitle">Responda às questões para concluir a avaliação.</p>
+            </div>
+            <a class="btn btn-ghost btn-sm d-flex align-items-center gap-2" href="{% url 'list-prova' prova.pasta.id %}">
+                <i class="fa-solid fa-arrow-left"></i>
+                Voltar para provas
+            </a>
+        </div>
+    </div>
+</section>
 
-<form id="form-realizar-prova" method="post">
-    {% csrf_token %}
-        {% for questao in questoes %}
-        <hr>
-            <div class="questao mb-4">
-                <p><strong class="mb-4">{{ questao.enunciado|linebreaksbr }}</strong></p>
-                {% if questao.tipo == 'objetiva' %}
-                    {% with questao.pk as questao_pk %}
-                        {% for alternativa in alternativas|get_item:questao_pk %}
-                            <div class="alternativa">
-                                <input type="radio" id="alternativa_{{ alternativa.id }}" name="questao_{{ questao.id }}" value="{{ alternativa.id }}" 
-                                        {% if forloop.first %}required{% endif %}
-                                        {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}disabled{% endif %}>
-                                <label for="alternativa_{{ alternativa.id }}">{{ alternativa.texto }}</label>
-                            </div>
-                        {% endfor %}
-                    {% endwith %}
-                {% elif questao.tipo == 'dissertativa' %}
-                <div style="width: 320px;">
-                    <textarea class="form-control" name="questao_{{ questao.id }}" rows="2" cols="10" 
-                                {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}disabled{% endif %} 
-                                required></textarea>
+<section class="py-4 py-lg-5">
+    <div class="container">
+        <div class="content-panel">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div>
+                    <p class="text-muted small mb-0">Total de questões</p>
+                    <h2 class="h6 mb-0">{{ questoes|length }}</h2>
                 </div>
-                {% endif %}
-            </div>        
-        {% endfor %}
-        {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
-        {% else %}
-            <div class="d-flex justify-content-start">
-                <div class="d-flex justify-content-end">
-                    <button id="submit-edit" class="btn btn-success mt-4" type="submit">
+                <span class="badge bg-light text-dark">Envie ao final para registrar suas respostas</span>
+            </div>
+
+            <form id="form-realizar-prova" method="post" class="exam-question-list">
+                {% csrf_token %}
+                {% for questao in questoes %}
+                <article class="exam-question-card">
+                    <div class="question-header">
+                        <span class="question-number">Questão {{ forloop.counter }}</span>
+                        <span class="badge {% if questao.tipo == 'objetiva' %}bg-light text-dark{% else %}bg-dark text-white{% endif %}">
+                            {{ questao.get_tipo_display }}
+                        </span>
+                    </div>
+                    <p class="question-text mb-3">{{ questao.enunciado|linebreaksbr }}</p>
+
+                    {% if questao.tipo == 'objetiva' %}
+                        {% with questao.pk as questao_pk %}
+                        <div class="option-list">
+                            {% for alternativa in alternativas|get_item:questao_pk %}
+                            <label class="option-item">
+                                <div class="option-marker">
+                                    <input type="radio"
+                                           id="alternativa_{{ alternativa.id }}"
+                                           name="questao_{{ questao.id }}"
+                                           value="{{ alternativa.id }}"
+                                           {% if forloop.first %}required{% endif %}
+                                           {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}disabled{% endif %}>
+                                </div>
+                                <div class="option-body">
+                                    <div class="option-text">{{ alternativa.texto }}</div>
+                                    <div class="small text-muted">Selecione para marcar sua resposta.</div>
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% endwith %}
+                    {% elif questao.tipo == 'dissertativa' %}
+                        <div class="dissertativa-box">
+                            <div class="dissertativa-label">Digite sua resposta</div>
+                            <textarea class="form-control"
+                                      name="questao_{{ questao.id }}"
+                                      rows="3"
+                                      {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}disabled{% endif %}
+                                      required></textarea>
+                        </div>
+                    {% endif %}
+                </article>
+                {% endfor %}
+
+                {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
+                {% else %}
+                <div class="d-flex justify-content-end mt-3">
+                    <button id="submit-edit" class="btn btn-cemag" type="submit">
                         <span class="spinner-border spinner-border-sm d-none" role="status"></span>
-                        <span id="button-text">Enviar Prova</span>
+                        <span id="button-text">Enviar prova</span>
                     </button>
                 </div>
-            </div>
-        {% endif %}
-</form>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</section>
 
 {% endblock %}
 

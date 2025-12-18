@@ -2,31 +2,63 @@
 
 {% load custom_filters %}
 
-{% block title %}Correção de Questões Dissertativas{% endblock %}
+{% block title %}Correção de questões dissertativas{% endblock %}
 
 {% block content %}
-<div>
-    <h2 class="mb-4">Corrigir Questões Dissertativas - {{ prova.titulo }}</h2>
-    <h6 class="mb-4">Funcionário: {{ funcionario.matricula }} - {{ funcionario.first_name }} {{ funcionario.last_name }}</h6>
 
-    <form method="post">
+<section class="page-header">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+      <div>
+        <p class="text-muted mb-1 small">Correção</p>
+        <h1 class="page-title mb-1">{{ prova.titulo }}</h1>
+        <p class="page-subtitle">Dissertativas do colaborador {{ funcionario.matricula }} - {{ funcionario.first_name }} {{ funcionario.last_name }}</p>
+      </div>
+      <a class="btn btn-ghost btn-sm d-flex align-items-center gap-2" href="{% url 'list-participantes' prova.pk %}">
+        <i class="fa-solid fa-arrow-left"></i>
+        Voltar para participantes
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="py-4 py-lg-5">
+  <div class="container">
+    <div class="content-panel">
+      <form method="post" class="exam-question-list">
         {% csrf_token %}
         {{ formset.management_form }}
         {% if questoes_e_respostas %}
-            {% for form, enunciado, resposta in questoes_e_respostas %}
-                <div class="questao col-12 col-sm-12 col-md-6 col-lg-5 col-xl-5 mb-4">
-                    <h4>{{ enunciado }}</h4>
-                    <p>Resposta do usuário: {{ resposta }}</p>
-                    {{ form.as_table }}
-                </div>
-            {% endfor %}
-                <button class="btn btn-primary" type="submit">Salvar Correções</button>
-            {% else %}
-            <div class="alert alert-danger" role="alert">
-                Não possui questões dissertativas
+          {% for form, enunciado, resposta in questoes_e_respostas %}
+          <article class="exam-question-card">
+            <div class="question-header">
+              <span class="question-number">Questão {{ forloop.counter }}</span>
+              <span class="badge bg-dark text-white">Dissertativa</span>
             </div>
+            <p class="question-text mb-2">{{ enunciado }}</p>
+            <div class="dissertativa-box mb-3">
+              <div class="dissertativa-label">Resposta do usuário</div>
+              <div class="dissertativa-text">{{ resposta }}</div>
+            </div>
+            <div class="content-panel">
+              {{ form.as_p }}
+            </div>
+          </article>
+          {% endfor %}
+          <div class="d-flex justify-content-end">
+            <button class="btn btn-cemag" type="submit">Salvar correções</button>
+          </div>
+        {% else %}
+          <div class="alert alert-danger" role="alert">
+            Não possui questões dissertativas.
+          </div>
         {% endif %}
-    </form>
-    
-</div>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
 {% endblock %}

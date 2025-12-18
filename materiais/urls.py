@@ -8,12 +8,14 @@ from . import views, views_drive
 
 urlpatterns = [
     path('pasta/', views.pastas_list, name='list-pasta'),
+    path('pasta/async/', views.pastas_list_async, name='list-pasta-async'),
     path('pasta/creators/', views.pastas_creators, name='pastas-creators'),
     path('pasta/<int:pk>/detail/', views.pastas_detail, name='detail-pasta'),
     # Drive (lista completa) - usado na edição da pasta
     path('pasta/<int:pk>/drive/', views.pastas_detail_drive, name='pastas-detail-drive'),
     # Drive filtrado pelos arquivos escolhidos - usado na tela de detalhes
     path('pasta/<int:pk>/drive-filtrado/', views_drive.pastas_detail_drive_filtrado, name='pastas-detail-drive-filtrado'),
+    path('pasta/<int:pk>/drive-escolher/', views_drive.selecionar_arquivos_drive, name='pasta-drive-escolher'),
     path('drive/download/<str:file_id>/', views.download_drive_file, name='download_drive_file'),
     path('drive/export-google-file/<str:file_id>/', views.export_google_file, name='export_google_file'),
     path('drive/export/<str:file_id>/', views.export_drive_sheet, name='drive_export_sheet'),
@@ -38,6 +40,7 @@ urlpatterns = [
     path('material/<int:pk_material>/edit/<int:pk_pasta>/', views.material_edit, name='edit-material'),
     path('material/<int:pk_material>/delete/<int:pk_pasta>/', views.material_delete, name='delete-material'),
     path('material/registrar-visualizacao/', views.registrar_visualizacao, name='registrar_visualizacao'),
+    path('pasta/<int:pk>/inscritos/', views.inscritos_pasta, name='inscritos-pasta'),
     
     path('avaliacao/colaborador/<int:pk>', views.avaliacao, name='avaliacao'),
     path('avaliacao/supervisor/<int:pk>/', views.avaliacao_chefia, name='avaliacao_chefia'),

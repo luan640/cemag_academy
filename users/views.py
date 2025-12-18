@@ -1,6 +1,6 @@
 from django.http.response import HttpResponse as HttpResponse
-from django.shortcuts import render,redirect
-from .forms import CustomUserCreationForm
+from django.shortcuts import render,redirect,get_object_or_404
+from .forms import CustomUserCreationForm, CustomUserFromFuncionarioCreationForm, CustomUserAdminEditForm
 from .models import CustomUser
 from cadastros.models import Funcionario
 from django.urls import reverse_lazy
@@ -14,41 +14,73 @@ from .forms import CustomAuthenticationForm
 def add_user(request):
     if request.user.type == 'ADM':
         if request.method == 'POST':
-            form = CustomUserCreationForm(request.POST)
+            form = CustomUserFromFuncionarioCreationForm(request.POST)
             if form.is_valid():
-                # Recuperar a matrícula do formulário
-                matricula = form.cleaned_data.get('matricula')
-
-                # Verificar se já existe um funcionário com essa matrícula
-                try:
-                    funcionario = Funcionario.objects.get(matricula=matricula)
-                except Funcionario.DoesNotExist:
-                    messages.error(request, f"Nenhum funcionário encontrado com a matrícula: {matricula}. Cadastre um Funcionário com essa mesma matrícula em 'Cadastros>>Funcionário'", extra_tags="matricula")
-                    return render(request, 'user/create_user.html', {'form': form})
-
-                # Criar e associar o CustomUser ao funcionário
+                funcionario = form.cleaned_data.get('funcionario')
                 user = form.save(commit=False)
+                user.matricula = funcionario.matricula
+                nome_completo = (funcionario.nome or '').strip()
+                partes = [p for p in nome_completo.split(' ') if p]
+                if partes:
+                    user.first_name = partes[0]
+                    user.last_name = ' '.join(partes[1:])
                 user.save()
 
-                # Associar o usuário ao funcionário encontrado
                 funcionario.user = user
                 funcionario.save()
 
-                # Exibir uma mensagem de sucesso
                 return render(request, 'user/create_user.html', {
-                    'form': CustomUserCreationForm(),
-                    'success_message': 'Usuário associado ao funcionário com sucesso.'
+                    'form': CustomUserFromFuncionarioCreationForm(),
+                    'success_message': 'Usuario associado ao funcionario com sucesso.'
                 })
             else:
-                # Exibir erros do formulário para ajudar a identificar o problema
-                messages.error(request, f"Formulário inválido. Verifique os campos e tente novamente. Matrículas já associadas a outros funcionários não poderão ser preenchidas novamente.", extra_tags="matricula")
+                messages.error(request, 'Formulario invalido. Verifique os campos e tente novamente.', extra_tags='matricula')
 
-        form = CustomUserCreationForm()
+        form = CustomUserFromFuncionarioCreationForm()
         users = CustomUser.objects.all()
-        
-        return render(request, 'user/create_user.html', {'form': form, 'users': users})
+        edit_forms = {usuario.id: CustomUserAdminEditForm(instance=usuario) for usuario in users}
+        return render(request, 'user/create_user.html', {
+            'form': form,
+            'users': users,
+            'edit_forms': edit_forms,
+        })
     else:
         return redirect('home')
+
+@login_required
+def edit_user(request, pk):
+    if request.user.type != 'ADM':
+        return redirect('home')
+
+    usuario = get_object_or_404(CustomUser, pk=pk)
+    if request.method != 'POST':
+        return redirect('create-user')
+
+    form = CustomUserAdminEditForm(request.POST, instance=usuario)
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Usuario atualizado com sucesso.')
+    else:
+        messages.error(request, 'Formulario invalido. Verifique os campos e tente novamente.')
+    return redirect('create-user')
+
+@login_required
+def toggle_user_active(request, pk):
+    if request.user.type != 'ADM':
+        return redirect('home')
+    if request.method != 'POST':
+        return redirect('create-user')
+
+    usuario = get_object_or_404(CustomUser, pk=pk)
+    if usuario.id == request.user.id:
+        messages.error(request, 'Nao e possivel desabilitar o proprio usuario.')
+        return redirect('create-user')
+
+    usuario.is_active = not usuario.is_active
+    usuario.save(update_fields=['is_active'])
+    status = 'habilitado' if usuario.is_active else 'desabilitado'
+    messages.success(request, f'Usuario {status} com sucesso.')
+    return redirect('create-user')
 def custom_404(request, exception):
     return render(request, '404.html', status=404)
     

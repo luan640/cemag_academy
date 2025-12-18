@@ -3,6 +3,7 @@ from google.oauth2 import service_account
 from django.conf import settings
 from django.core.cache import cache
 from materiais.models import Pasta,Material,Visualizacao
+from django.db.models import Count
 import logging
 import re
 import json
@@ -27,9 +28,27 @@ class ProgressoTrilha:
         return progresso
 
     def calcular_progresso_trilhas(self):
-        progresso_pasta = {
-            pasta.nome: self.calcular_progresso_pasta(pasta) for pasta in self.pastas
-        }
+        pastas = list(self.pastas)
+        if not pastas:
+            return {}
+
+        pasta_ids = [pasta.id for pasta in pastas]
+        materiais_totais = Material.objects.filter(pasta_id__in=pasta_ids).values('pasta_id').annotate(total=Count('id'))
+        visualizacoes_totais = Visualizacao.objects.filter(
+            funcionario=self.funcionario,
+            material__pasta_id__in=pasta_ids
+        ).values('material__pasta_id').annotate(total=Count('id'))
+
+        materiais_map = {item['pasta_id']: item['total'] for item in materiais_totais}
+        visualizacoes_map = {item['material__pasta_id']: item['total'] for item in visualizacoes_totais}
+
+        progresso_pasta = {}
+        for pasta in pastas:
+            materiais_count = materiais_map.get(pasta.id, 0)
+            visualizacoes_count = visualizacoes_map.get(pasta.id, 0)
+            progresso = (visualizacoes_count / materiais_count) * 100 if materiais_count > 0 else 0
+            progresso_pasta[pasta.nome] = progresso
+
         return progresso_pasta
 
     def calcular_media_progresso_area_trilha(self, progresso_pasta, pastas):

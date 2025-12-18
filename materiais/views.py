@@ -2,13 +2,14 @@ from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse, HttpResponse
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Exists, OuterRef
 from django.db import connection
-from django.template.loader import get_template
+from django.template.loader import get_template, render_to_string
 from django.conf import settings  # Importe o módulo settings
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.views.decorators.clickjacking import xframe_options_sameorigin
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 
 from .models import Pasta,Material,Visualizacao,AvaliacaoEficacia, RespostaAvaliacaoEficacia,Certificado, ArquivosDrive
 from .utils import Drive
@@ -67,8 +68,8 @@ def pastas_add(request):
 @login_required
 def pastas_list(request):
     form = AddPasta()
-    setor_do_usuario_object = Funcionario.objects.select_related('setor').get(matricula=request.user.matricula)
-    setor_do_usuario = setor_do_usuario_object.setor
+    funcionario_logado = Funcionario.objects.select_related('setor').get(matricula=request.user.matricula)
+    setor_do_usuario = funcionario_logado.setor
 
     # Filtrando as pastas com base no tipo de usuário logado
     if request.user.type in ['ADM', 'DIR']:
@@ -122,6 +123,21 @@ def pastas_list(request):
             'criador_nome_completo': f"{pasta.created_by.first_name} {pasta.created_by.last_name}",
             'possui_avaliacao_pendente': pasta.id in pastas_com_avaliacao_pendente,
             'possui_avaliacao': pasta.id in pastas_com_avaliacao,  # Verifica se a pasta possui AvaliacaoEficacia
+            'destinada_ao_usuario': (
+                pasta.created_by_id == request.user.id
+                or any(func.matricula == request.user.matricula for func in pasta.funcionarios.all())
+                or any(setor.id == setor_do_usuario.id for setor in pasta.setores.all())
+            ),
+            'progresso': int(
+                (
+                    Visualizacao.objects.filter(pasta=pasta, funcionario=funcionario_logado)
+                    .values('material_id')
+                    .distinct()
+                    .count()
+                    / Material.objects.filter(pasta=pasta).count()
+                ) * 100
+            ) if Material.objects.filter(pasta=pasta).count() > 0 else 0,
+            'has_material': Material.objects.filter(pasta=pasta).exists() or ArquivosDrive.objects.filter(pasta=pasta).exists(),
         }
         for pasta in pastas
     ]
@@ -134,6 +150,108 @@ def pastas_list(request):
         'form': form,
         'setores':setores
     })
+
+@login_required
+def pastas_list_async(request):
+    funcionario_logado = Funcionario.objects.select_related('setor').get(matricula=request.user.matricula)
+    setor_do_usuario = funcionario_logado.setor
+    page = int(request.GET.get('page', 1))
+    limit = 6
+    offset = (page - 1) * limit
+    search = request.GET.get('q', '').strip()
+    setor_filter = request.GET.get('setor')
+    creator_filter = request.GET.get('creator')
+    mine_filter = request.GET.get('mine') == 'true'
+
+    if request.user.type in ['ADM', 'DIR']:
+        pastas = Pasta.objects.all().select_related('created_by').prefetch_related('setores', 'funcionarios').order_by("id")
+    elif request.user.type == 'LID':
+        pastas = Pasta.objects.filter(
+            Q(created_by=request.user) |
+            Q(setores=setor_do_usuario) |
+            Q(funcionarios__matricula=request.user.matricula)
+        ).distinct().select_related('created_by').prefetch_related('setores', 'funcionarios').order_by("id")
+    else:
+        pastas = Pasta.objects.filter(
+            Q(setores=setor_do_usuario) |
+            Q(funcionarios__matricula=request.user.matricula)
+        ).distinct().select_related('created_by').prefetch_related('setores', 'funcionarios').order_by("id")
+
+    if search:
+        pastas = pastas.filter(
+            Q(nome__icontains=search) |
+            Q(descricao__icontains=search) |
+            Q(created_by__first_name__icontains=search) |
+            Q(created_by__last_name__icontains=search)
+        )
+    if setor_filter:
+        pastas = pastas.filter(setores__nome=setor_filter)
+    if creator_filter:
+        pastas = pastas.filter(created_by_id=creator_filter)
+    if mine_filter:
+        pastas = pastas.filter(
+            Q(created_by=request.user) |
+            Q(funcionarios__matricula=request.user.matricula) |
+            Q(setores=setor_do_usuario)
+        )
+
+    total = pastas.count()
+    pastas_page = pastas[offset:offset+limit]
+
+    pastas_com_funcionarios = [
+        {
+            'pasta': pasta,
+            'setores': [setor.nome for setor in pasta.setores.all()],
+            'criador_nome_completo': f"{pasta.created_by.first_name} {pasta.created_by.last_name}",
+            'possui_avaliacao_pendente': AvaliacaoEficacia.objects.filter(pasta=pasta, avaliado_rh=False).exists() if request.user.type == 'ADM' else False,
+            'possui_avaliacao': AvaliacaoEficacia.objects.filter(usuario_id=request.user.id, pasta=pasta).exists(),
+            'destinada_ao_usuario': (
+                pasta.created_by_id == request.user.id
+                or any(func.matricula == request.user.matricula for func in pasta.funcionarios.all())
+                or any(setor.id == setor_do_usuario.id for setor in pasta.setores.all())
+            ),
+            'progresso': int(
+                (
+                    Visualizacao.objects.filter(pasta=pasta, funcionario=funcionario_logado)
+                    .values('material_id')
+                    .distinct()
+                    .count()
+                    / Material.objects.filter(pasta=pasta).count()
+                ) * 100
+            ) if Material.objects.filter(pasta=pasta).count() > 0 else 0,
+            'has_material': Material.objects.filter(pasta=pasta).exists() or ArquivosDrive.objects.filter(pasta=pasta).exists(),
+        }
+        for pasta in pastas_page
+    ]
+
+    html_content = render_to_string('pastas/partials/pasta_cards.html', {'pastas_com_criadores': pastas_com_funcionarios, 'request': request})
+
+    return JsonResponse({
+        'html': html_content,
+        'has_more': offset + limit < total,
+    })
+
+@login_required
+def inscritos_pasta(request, pk):
+    pasta = get_object_or_404(Pasta, pk=pk)
+    if request.user.type not in ['ADM', 'LID', 'DIR'] and pasta.created_by_id != request.user.id:
+        return JsonResponse({'success': False, 'error': 'Não autorizado'}, status=403)
+
+    funcionarios_explicit = pasta.funcionarios.select_related('setor').all()
+    funcionarios_setores = Funcionario.objects.select_related('setor').filter(setor__in=pasta.setores.all())
+
+    vistos = {}
+    for func in funcionarios_explicit.union(funcionarios_setores):
+        vistos[func.matricula] = {
+            'matricula': func.matricula,
+            'nome': func.nome,
+            'setor': func.setor.nome
+        }
+
+    inscritos = list(vistos.values())
+    inscritos.sort(key=lambda x: x['nome'].lower())
+
+    return JsonResponse({'success': True, 'inscritos': inscritos})
 
 @login_required
 def pastas_creators(request):
@@ -192,16 +310,18 @@ def funcionarios_avaliaram(request, pk):
         # Filtra as avaliações de eficácia relacionadas a essa pasta
         avaliacoes = AvaliacaoEficacia.objects.filter(pasta=pasta)
 
+        valores = ['usuario__matricula', 'usuario__first_name', 'usuario__last_name', 'usuario__funcionario__setor__nome']
+
         if request.user.type == "ADM":
-            usuarios_avaliados = list(avaliacoes.filter(avaliado_rh=False).values('usuario__matricula', 'usuario__first_name', 'usuario__last_name'))
+            usuarios_avaliados = list(avaliacoes.filter(avaliado_rh=False).values(*valores))
         elif request.user.type == "LID":
             usuarios_avaliados = list(avaliacoes.filter(
                 avaliado_chefia=False,
                 usuario__type='LEI',
                 usuario__funcionario__setor=request.user.funcionario.setor
-            ).values('usuario__matricula','usuario__first_name', 'usuario__last_name'))
+            ).values(*valores))
         else:
-            usuarios_avaliados = list(avaliacoes.filter(avaliado_chefia=False, usuario__type='LID').values('usuario__matricula', 'usuario__first_name', 'usuario__last_name'))
+            usuarios_avaliados = list(avaliacoes.filter(avaliado_chefia=False, usuario__type='LID').values(*valores))
 
         print(usuarios_avaliados)
         # Retorna uma JsonResponse com as informações
@@ -215,23 +335,94 @@ def funcionarios_avaliaram(request, pk):
 @login_required
 def pastas_detail(request, pk):
     pasta = get_object_or_404(Pasta, pk=pk)
+    add_material_form = AddMaterial(initial={'pasta': pasta})
+    open_add_material_modal = False
+    edit_pasta_form = AddPasta(instance=pasta)
+    open_edit_pasta_modal = False
+    drive_materiais = []
+
+    if request.method == 'POST' and request.POST.get('form_type') == 'add_material':
+        if request.user.id != pasta.created_by.id:
+            messages.error(request, 'Você não tem permissão para adicionar materiais nesta pasta.')
+            return redirect('detail-pasta', pk=pasta.pk)
+
+        add_material_form = AddMaterial(request.POST, request.FILES)
+        if add_material_form.is_valid():
+            material = add_material_form.save(commit=False)
+            material.pasta = pasta
+            material.created_by = request.user
+
+            video_youtube_url = add_material_form.cleaned_data['video_youtube']
+            if video_youtube_url and not is_id_youtube_valido(video_youtube_url):
+                material.video_youtube = extrair_id_youtube(video_youtube_url)
+
+            material.save()
+            add_material_form.save_m2m()
+            messages.success(request, 'Material adicionado com sucesso.')
+            return redirect('detail-pasta', pk=pasta.pk)
+        else:
+            open_add_material_modal = True
+    elif request.method == 'POST' and request.POST.get('form_type') == 'edit_pasta':
+        if request.user.id != pasta.created_by.id and request.user.type != 'ADM':
+            messages.error(request, 'Você não tem permissão para editar esta trilha.')
+            return redirect('detail-pasta', pk=pasta.pk)
+
+        edit_pasta_form = AddPasta(request.POST, instance=pasta)
+        if edit_pasta_form.is_valid():
+            edit_pasta_form.save()
+            messages.success(request, 'Trilha atualizada com sucesso.')
+            return redirect('detail-pasta', pk=pasta.pk)
+        else:
+            open_edit_pasta_modal = True
     avaliacao_eficacia = AvaliacaoEficacia.objects.filter(pasta=pasta, usuario=request.user)
     resposta_avaliacao_eficacia = RespostaAvaliacaoEficacia.objects.filter(avaliacao_eficacia__in=avaliacao_eficacia)
 
     existe_avaliacao_eficacia = resposta_avaliacao_eficacia.exists()
     
-    materiais = Material.objects.filter(pasta=pasta).order_by("id")
-
-    visualizacoes = Visualizacao.objects.filter(
+    visualizado_sub = Visualizacao.objects.filter(
         funcionario__matricula=request.user.matricula,
-        material__in=materiais
-    ).values_list('material_id', flat=True)
+        material=OuterRef('pk')
+    )
+    materiais = Material.objects.filter(pasta=pasta).annotate(
+        foi_visualizado=Exists(visualizado_sub)
+    ).order_by("id")
+    total_materiais = materiais.count()
+
+    # Arquivos do Drive selecionados para esta pasta
+    if pasta.pasta_drive:
+        drive = Drive()
+        drive_id = drive.extrair_id_drive(pasta.pasta_drive)
+        selecionados_ids = list(
+            ArquivosDrive.objects.filter(pasta=pasta).values_list('id_arquivo', flat=True)
+        )
+        if drive_id and selecionados_ids:
+            arquivos_drive = drive.listar_arquivos_pasta(drive_id)
+            for arquivo in arquivos_drive:
+                file_id = arquivo.get('id')
+                if not file_id or file_id not in selecionados_ids:
+                    continue
+                drive_materiais.append({
+                    'id': file_id,
+                    'nome': arquivo.get('name') or 'Arquivo do Drive',
+                    'tipo': arquivo.get('mimeType'),
+                    'extensao': arquivo.get('fileExtension'),
+                    'mime': arquivo.get('mimeType'),
+                    'link_download': reverse('download_drive_file', args=[file_id]),
+                    'preview': f'https://drive.google.com/file/d/{file_id}/preview',
+                })
+            total_materiais += 1
 
     return render(request, 'pastas/pasta_detail.html', {
         'pasta': pasta,
         'materiais': materiais,
-        'visualizacoes': visualizacoes,
-        'existe_avaliacao_eficacia': existe_avaliacao_eficacia
+        'materiais_count': total_materiais,
+        'carga_horaria': pasta.carga_horaria,
+        'drive_materiais': drive_materiais,
+        'existe_avaliacao_eficacia': existe_avaliacao_eficacia,
+        'add_material_form': add_material_form,
+        'open_add_material_modal': open_add_material_modal,
+        'edit_pasta_form': edit_pasta_form,
+        'open_edit_pasta_modal': open_edit_pasta_modal
     })
 
 @login_required
@@ -251,6 +442,9 @@ def pastas_detail_drive(request, pk):
 
     can_clear_cache = (request.user.type == "ADM" or 
                        request.user.id == pasta.created_by.id)
+    selecionados_ids = list(
+        ArquivosDrive.objects.filter(pasta=pasta).values_list('id_arquivo', flat=True)
+    )
     
     if not drive_id:
         return JsonResponse({
@@ -284,6 +478,7 @@ def pastas_detail_drive(request, pk):
             'icone': drive.obter_icone_por_tipo(arquivo.get('mimeType')),
 
             'can_clear_cache': can_clear_cache,
+            'selecionado': file_id in selecionados_ids,
         }
         
         arquivos_processados.append(arquivo_data)
@@ -729,6 +924,7 @@ def material_delete(request, pk_material, pk_pasta):
 
 @login_required
 def avaliacao(request, pk):
+
     if request.method == 'POST':
         # Capturando os valores do formulário
         valor_trabalho = request.POST.get('valor_trabalho')
@@ -736,8 +932,6 @@ def avaliacao(request, pk):
 
         # Convertendo para booleano
         eficacia_qualificacao = True if valor_trabalho == 'true' else False
-
-        print(eficacia_qualificacao)
 
         # Obter a instância da pasta correspondente
         pasta = get_object_or_404(Pasta, id=pk)
@@ -792,7 +986,6 @@ def avaliacao(request, pk):
         """
         if lid and user.type != 'LID':
             if lid.email:
-                print("ENTROU AQUI")
                 # Cria um objeto EmailMultiAlternatives para o LID
                 email_lid = EmailMultiAlternatives(
                     subject,
@@ -845,7 +1038,7 @@ def avaliacao(request, pk):
         )
 
         # Redirecionar após o processamento
-        return redirect('detail-pasta', pk=pk)
+        return redirect('detail-pasta', pk=pk, )
 
     return redirect('detail-pasta', pk=pk)
 
@@ -936,6 +1129,8 @@ def jornada_detail(request):
 
 @login_required
 def jornada_detail_unique(request,matricula):
+
+    print(matricula)
 
     try:
         funcionario = Funcionario.objects.get(matricula=matricula)
@@ -1049,6 +1244,7 @@ def respostas_avaliacao(request, pk_avaliacao):
         'resposta_adm':resposta_adm
     })
 
+@csrf_exempt
 @login_required
 def registrar_visualizacao(request):
     if request.method == 'POST':
@@ -1183,6 +1379,10 @@ def list_participantes(request, pk):
     # Criar uma lista final com os dados dos participantes, o status da prova e a nota
     lista_final_participantes = []
     for participante in list_participantes:
+        # Ignora o criador da pasta na lista de participantes
+        if participante.matricula == prova.pasta.created_by.matricula:
+            continue
+
         usuario = funcionarios_para_usuarios.get(participante.matricula)
         
         # Calcular a nota e o numero total de questoes para o participante usando o usuario correspondente
@@ -1193,6 +1393,7 @@ def list_participantes(request, pk):
 
         # Calcular a porcentagem de acertos (se nao houver questoes, definir como 0%)
         porcentagem_acertos = (total_respostas / total_questoes * 100) if total_questoes > 0 else 0
+        contem_dissertativa = prova.questao_prova.filter(tipo="dissertativa").exists()
 
         # Adicionar o participante e os detalhes a lista final
         lista_final_participantes.append({
@@ -1201,7 +1402,8 @@ def list_participantes(request, pk):
             'realizou_prova': participantes_status[participante.matricula],
             'nota': total_respostas,  # Nota total obtida pelo participante
             'total_questoes': total_questoes,  # Total de questoes na prova
-            'porcentagem_acertos': f'{porcentagem_acertos:.2f}%'
+            'porcentagem_acertos': f'{porcentagem_acertos:.2f}%',
+            'contem_dissertativa': contem_dissertativa,
         })
     
     return render(request, 'pastas/participantes_list.html', {

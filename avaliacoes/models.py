@@ -81,3 +81,23 @@ class ProvaRealizada(models.Model):
     
     def __str__(self) -> str:
         return f"Prova {self.prova.titulo} realizada pelo {self.usuario.first_name} {self.usuario.last_name}"
+
+class AprovacaoTrilha(models.Model):
+    STATUS = (
+        ('pendente', 'Pendente'),
+        ('aprovado', 'Aprovado'),
+        ('reprovado', 'Reprovado'),
+    )
+    usuario = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='aprovacoes_trilha')
+    pasta = models.ForeignKey(Pasta, on_delete=models.CASCADE, related_name='aprovacoes_trilha')
+    status = models.CharField(max_length=10, choices=STATUS, default='pendente')
+    criado_em = models.DateTimeField(auto_now_add=True)
+    decidido_em = models.DateTimeField(null=True, blank=True)
+    aprovado_por = models.ForeignKey(CustomUser, on_delete=models.SET_NULL, null=True, blank=True, related_name='aprovacoes_realizadas')
+    observacao = models.TextField(blank=True, null=True)
+
+    class Meta:
+        unique_together = ('usuario', 'pasta')
+
+    def __str__(self):
+        return f"Aprovação {self.pasta.nome} - {self.usuario.first_name}"

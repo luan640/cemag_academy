@@ -8,6 +8,9 @@ from django.contrib.auth.hashers import make_password
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.template.loader import render_to_string
+from django.db.models import Q
 
 from .forms import AddArea,AddFuncionario,AddSetor
 from .models import Funcionario,Setor,Area,AreaTrilha
@@ -17,54 +20,88 @@ import logging
 
 logger = logging.getLogger('cadastros')
 
-SETOR_AREA_MAP = {
-    'USINAGEM': 'Produção',
-    'PINTURA': 'Produção',
-    'PCP': 'Administrativo',
-    'EXPEDICAO': 'Produção',
-    'MANUTENÇÃO': 'Produção', # Corrigido para 'Manutenção' se necessário
-    'SOLDA': 'Produção',
-    'SESMT': 'Administrativo',
-    'COMPRAS': 'Administrativo',
-    'CORTE/ESTAMP.': 'Produção',
-    'PROTOTIPOS': 'Produção',
-    'PROJETOS': 'Administrativo',
-    'QUALIDADE': 'Produção',
-    'MARKETING': 'Administrativo',
-    'PORTARIA': 'Produção',
-    'FORJARIA/TRAT. TERMI': 'Produção',
-    'GESTAO INDUSTRIAL': 'Administrativo',
-    'COMERCIAL': 'Administrativo',
-    'FINANCEIRO': 'Administrativo',
-    'GESTAO DE PESSOAS': 'Administrativo',
-    'ALMOXARIFADO': 'Produção',
-    'CONTABILIDADE': 'Administrativo',
-    'CARPINTARIA': 'Produção',
-    'TI - DESENVOLVIMENTO': 'Administrativo',
-    'TI - MANUNTECAO - REDE': 'Produção'
-}
-
 @login_required
 def funcionario_cadastro(request):
     if request.user.type == "ADM":
+        def build_page_window(current, total):
+            base_pages = {1, 2, total - 1, total, current - 1, current, current + 1}
+            pages = sorted(p for p in base_pages if 1 <= p <= total)
+            display = []
+            prev = None
+            for p in pages:
+                if prev and p - prev > 1:
+                    display.append("...")
+                display.append(p)
+                prev = p
+            return display
+
         if request.method == 'POST':
             form = AddFuncionario(request.POST)
             if form.is_valid():
                 funcionario = form.save(commit=False)
                 funcionario.created_by = request.user
                 funcionario.save()
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    search_term = request.GET.get('q', '').strip()
+                    funcionarios_qs = Funcionario.objects.all().order_by('nome')
+                    if search_term:
+                        funcionarios_qs = funcionarios_qs.filter(
+                            Q(nome__icontains=search_term) |
+                            Q(matricula__icontains=search_term) |
+                            Q(setor__nome__icontains=search_term)
+                        )
+                    paginator = Paginator(funcionarios_qs, 10)
+                    funcionarios_page = paginator.page(1)
+                    page_window = build_page_window(funcionarios_page.number, paginator.num_pages) if paginator.num_pages else []
+                    html = render_to_string('funcionario/partials/funcionarios_table.html', {
+                        'funcionarios': funcionarios_page,
+                        'search_term': search_term,
+                        'page_window': page_window,
+                    }, request=request)
+                    return JsonResponse({'status': 'ok', 'html': html})
+
                 messages.success(request, 'Funcionário adicionado com sucesso.')
-                # Redireciona após o POST bem-sucedido
                 return redirect('funcionarios')
             else:
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'status': 'error', 'errors': form.errors}, status=400)
                 messages.error(request, 'Erro ao adicionar o funcionário. Verifique os dados e tente novamente.')
         
         # Se não for um POST ou o formulário não for válido, exibe o formulário
         form = AddFuncionario()
-        funcionarios = Funcionario.objects.all()
+        search_term = request.GET.get('q', '').strip()
+        funcionarios_qs = Funcionario.objects.all().order_by('nome')
+        if search_term:
+            funcionarios_qs = funcionarios_qs.filter(
+                Q(nome__icontains=search_term) |
+                Q(matricula__icontains=search_term) |
+                Q(setor__nome__icontains=search_term)
+            )
+        paginator = Paginator(funcionarios_qs, 10)
+        page_number = request.GET.get('page')
+        try:
+            funcionarios_page = paginator.page(page_number)
+        except PageNotAnInteger:
+            funcionarios_page = paginator.page(1)
+        except EmptyPage:
+            funcionarios_page = paginator.page(paginator.num_pages)
+
+        page_window = build_page_window(funcionarios_page.number, paginator.num_pages) if paginator.num_pages else []
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            html = render_to_string('funcionario/partials/funcionarios_table.html', {
+                'funcionarios': funcionarios_page,
+                'search_term': search_term,
+                'page_window': page_window,
+            }, request=request)
+            return JsonResponse({'html': html})
+
         return render(request, 'funcionario/funcionarios.html', {
             'form': form,
-            'funcionarios': funcionarios
+            'funcionarios': funcionarios_page,
+            'page_obj': funcionarios_page,
+            'search_term': search_term,
+            'page_window': page_window,
         })
     else:
         return redirect('home')
@@ -90,8 +127,47 @@ def funcionario_delete(request, pk):
     funcionario.excluido = True
     funcionario.save()
 
-    messages.success(request, 'Funcionario excluído com sucesso.')
+    search_term = request.GET.get('q', '').strip()
+    page_number = request.GET.get('page')
 
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        funcionarios_qs = Funcionario.objects.all().order_by('nome')
+        if search_term:
+            funcionarios_qs = funcionarios_qs.filter(
+                Q(nome__icontains=search_term) |
+                Q(matricula__icontains=search_term) |
+                Q(setor__nome__icontains=search_term)
+            )
+        paginator = Paginator(funcionarios_qs, 10)
+        try:
+            funcionarios_page = paginator.page(page_number)
+        except PageNotAnInteger:
+            funcionarios_page = paginator.page(1)
+        except EmptyPage:
+            funcionarios_page = paginator.page(paginator.num_pages)
+
+        def build_page_window(current, total):
+            base_pages = {1, 2, total - 1, total, current - 1, current, current + 1}
+            pages = sorted(p for p in base_pages if 1 <= p <= total)
+            display = []
+            prev = None
+            for p in pages:
+                if prev and p - prev > 1:
+                    display.append("...")
+                display.append(p)
+                prev = p
+            return display
+
+        page_window = build_page_window(funcionarios_page.number, paginator.num_pages) if paginator.num_pages else []
+
+        html = render_to_string('funcionario/partials/funcionarios_table.html', {
+            'funcionarios': funcionarios_page,
+            'search_term': search_term,
+            'page_window': page_window,
+        }, request=request)
+        return JsonResponse({'status': 'ok', 'html': html})
+
+    messages.success(request, 'Funcionario excluído com sucesso.')
     return redirect('funcionarios')
 
 

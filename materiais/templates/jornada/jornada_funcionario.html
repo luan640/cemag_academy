@@ -2,148 +2,119 @@
 
 {% load static %}
 
-{% block title %}Lista trilhas{% endblock %}
+{% block title %}Jornada do colaborador{% endblock %}
 
 {% block content %}
 
-<style>
-  .accordion {
-    position: relative; /* Necessário para que o ponto seja posicionado em relação ao contêiner */
-}
-  #notification-dot {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    width: 10px;
-    height: 10px;
-    background-color: red;
-    border-radius: 50%;
-    z-index: 888;
-}
-</style>
-
-<div class="row justify-content-center" style="margin-bottom: 50px;">
-    <div class="col-12 col-sm-12 col-md-6 col-lg-5 col-xl-5 text-center">
-        <h1 style="font-weight: 700;"><label for="">Filtrar Funcionário</label></h1>
-        <p class="fw-medium" style="color: #6e6e77;">Explore o desempenho e progresso de cada colaborador</p>
-        <div class="input-group">
-          <input class="form-control custom-select custom-select-sm fw-semibold" list="encodings" id="filterInput" type="text" placeholder="Pesquisar jornada do funcionário..." aria-label="Pesquisar jornada do funcionário" aria-describedby="filtrar_funcionario">
-          <datalist id="encodings">
-            {% for funcionario in funcionarios_iniciais %}
-              <option value="{{ funcionario.nome }}" data-matricula="{{ funcionario.matricula }}">{{ funcionario.nome }}</option>
-            {% endfor %}
-          </datalist>
-          <button id="filtrar_funcionario" class="input-group-text btn btn-light border" type="button">
-            <i id="search-icon-glass" class="fa-solid fa-magnifying-glass"></i>
-            <span class="spinner-border spinner-border-sm d-none" aria-hidden="true"></span>
-            <span class="visually-hidden" role="status">Loading...</span>
-          </button>
-        </div>
+<section class="page-header">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+      <div>
+        <p class="text-muted mb-1 small">Jornada</p>
+        <h1 class="page-title mb-1">Progresso do colaborador</h1>
+        <p class="page-subtitle">Acompanhe leituras, certificados, provas e avaliações.</p>
+      </div>
+      <a class="btn btn-ghost btn-sm d-flex align-items-center gap-2" href="{% url 'home' %}">
+        <i class="fa-solid fa-arrow-left"></i>
+        Voltar
+      </a>
     </div>
-</div>
+  </div>
+</section>
 
-<div class="row justify-content-center g-4 mb-4">
-    <div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-3">
-      <div class="accordion" id="accordionExample">
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingOne">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne" aria-expanded="false" aria-controls="collapseOne">
-                <h5>Livros Lidos</h5><span class="badge bg-primary rounded-pill" id="notificationOne" style="margin-left: 10px; margin-bottom: 5px;">0</span>
-              </button>
-            </h2>
-            <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionExample">
-              <div class="accordion-body" style="height: 200px; overflow-y: auto;">
-                <ul class="list-group">
-
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-    </div>
-    <div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-3">
-      <div class="accordion" id="accordionExampleThree">
-          <div class="accordion-item">
-            <h2 class="accordion-header" id="headingThree">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCertificado" aria-expanded="false" aria-controls="collapseCertificado">
-                <h5>Certificações</h5><span class="badge bg-primary rounded-pill" id="notificationCertificado" style="margin-left: 10px; margin-bottom: 5px;">0</span>
-              </button>
-            </h2>
-            <div id="collapseCertificado" class="accordion-collapse collapse" aria-labelledby="headingThree" data-bs-parent="#accordionExampleThree">
-              <div class="accordion-body" style="height: 200px; overflow-y: auto;">
-                <ul class="list-group">
-
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-    </div>
-</div>
-
-<div class="row justify-content-center g-4 mb-4">
-  <div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-3">
-    <div class="accordion" id="accordionExampleFour">
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="headingFour">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFour" aria-expanded="false" aria-controls="collapseFour">
-              <h5>Provas</h5><span class="badge bg-primary rounded-pill" id="notificationFour" style="margin-left: 10px; margin-bottom: 5px;">0</span>
+<section class="py-4 py-lg-5">
+  <div class="container">
+    <div class="row justify-content-center mb-4">
+      <div class="col-lg-6">
+        <div class="content-panel">
+          <h2 class="h5 mb-2 text-center">Filtrar funcionário</h2>
+          <p class="text-muted small text-center mb-3">Explore o desempenho e progresso de cada colaborador</p>
+          <div class="input-group">
+            <input class="form-control fw-semibold" list="encodings" id="filterInput" type="text" placeholder="Pesquisar jornada do funcionário..." aria-label="Pesquisar jornada do funcionário" aria-describedby="filtrar_funcionario">
+            <datalist id="encodings">
+              {% for funcionario in funcionarios_iniciais %}
+                <option value="{{ funcionario.nome }}" data-matricula="{{ funcionario.matricula }}">{{ funcionario.nome }}</option>
+              {% endfor %}
+            </datalist>
+            <button id="filtrar_funcionario" class="input-group-text btn btn-outline-secondary" type="button">
+              <i id="search-icon-glass" class="fa-solid fa-magnifying-glass"></i>
+              <span class="spinner-border spinner-border-sm d-none" aria-hidden="true"></span>
+              <span class="visually-hidden" role="status">Loading...</span>
             </button>
-          </h2>
-          <div id="collapseFour" class="accordion-collapse collapse" aria-labelledby="headingFour" data-bs-parent="#accordionExampleFour">
-            <div class="accordion-body" style="height: 200px; overflow-y: auto;">
-              <ul class="list-group">
-
-              </ul>
-            </div>
           </div>
         </div>
       </div>
-  </div>
-  <div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-3">
-    <div class="accordion" id="accordionExampleFive">
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="headingFive">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseFive" aria-expanded="false" aria-controls="collapseFive">
-              <h5>Materiais visualizados</h5><span class="badge bg-primary rounded-pill" id="notificationFive" style="margin-left: 10px; margin-bottom: 5px;">0</span>
-            </button>
-          </h2>
-          <div id="collapseFive" class="accordion-collapse collapse" aria-labelledby="headingFive" data-bs-parent="#accordionExampleFive">
-            <div class="accordion-body" style="height: 200px; overflow-y: auto;">
-              <ul class="list-group">
+    </div>
 
-              </ul>
-            </div>
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="content-panel h-100">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 class="h6 mb-0">Livros lidos</h3>
+            <span class="badge bg-light text-dark" id="notificationOne">0</span>
+          </div>
+          <div class="pending-list">
+            <ul class="list-group border-0" id="lista-livros"></ul>
           </div>
         </div>
       </div>
-  </div>
-  <div class="col-12 col-sm-12 col-md-5 col-lg-5 col-xl-3">
-    <div class="accordion" id="accordionExampleSix">
-        <div class="accordion-item">
-          <h2 class="accordion-header" id="headingSix">
-            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseSix" aria-expanded="false" aria-controls="collapseSix">
-              <h5>Avaliações por Trilha</h5><span class="badge bg-primary rounded-pill" id="notificationSix" style="margin-left: 10px; margin-bottom: 5px;">0</span>
-            </button>
-            <span id="notification-dot" style="display: none;"></span>
-          </h2>
-          <div id="collapseSix" class="accordion-collapse collapse" aria-labelledby="headingSix" data-bs-parent="#accordionExampleSix">
-            <div class="accordion-body" style="height: 200px; overflow-y: auto;">
-              <ul class="list-group">
 
-              </ul>
-            </div>
+      <div class="col-md-4">
+        <div class="content-panel h-100">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 class="h6 mb-0">Certificações</h3>
+            <span class="badge bg-light text-dark" id="notificationCertificado">0</span>
+          </div>
+          <div class="pending-list">
+            <ul class="list-group border-0" id="lista-certificados"></ul>
           </div>
         </div>
       </div>
+
+      <div class="col-md-4">
+        <div class="content-panel h-100">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 class="h6 mb-0">Provas</h3>
+            <span class="badge bg-light text-dark" id="notificationFour">0</span>
+          </div>
+          <div class="pending-list">
+            <ul class="list-group border-0" id="lista-provas"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="content-panel h-100">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 class="h6 mb-0">Materiais visualizados</h3>
+            <span class="badge bg-light text-dark" id="notificationFive">0</span>
+          </div>
+          <div class="pending-list">
+            <ul class="list-group border-0" id="lista-materiais"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4">
+        <div class="content-panel h-100">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <h3 class="h6 mb-0">Avaliações por trilha</h3>
+            <span class="badge bg-light text-dark" id="notificationSix">0</span>
+          </div>
+          <div class="pending-list">
+            <ul class="list-group border-0" id="lista-avaliacoes"></ul>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
-</div>
+</section>
 
 {% endblock %}
 
 {% block scripts %}
 
-<script src="/static/js/jornada_funcionario/jornada_funcionario_cards.js"></script>
-<script src="/static/js/jornada_funcionario/opcoes_select.js"></script>
+<script src="{% static 'js/jornada_funcionario/jornada_funcionario_cards.js' %}"></script>
+<script src="{% static 'js/jornada_funcionario/opcoes_select.js' %}"></script>
 
 {% endblock %}

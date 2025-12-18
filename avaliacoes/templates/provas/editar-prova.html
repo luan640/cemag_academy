@@ -2,64 +2,105 @@
 
 {% load custom_filters %}
 
-{% block title %}Lista trilhas{% endblock %}
+{% block title %}Editar prova{% endblock %}
 
 {% block content %}
 
-<a style="color: black; text-decoration: none;" href="{% url 'list-prova' prova.pasta.id %}"><i class="fa-solid fa-arrow-left"></i> Voltar</a>
-
-<div id="container-edit-title" class="d-flex gap-3 mb-4 align-items-baseline">
-    <h1 id="title" class="mt-3" style="white-space: normal; word-break: break-word;">{{ prova.titulo }}</h1>
-    <input id="input-edit-title" style="width: 100%; display: none;" type="text" class="form-control mt-4">
-    <a id="button-edit-title" style="color: #0d6efd; text-decoration: underline; cursor: pointer; font-size: 22px;"><i class="fa-solid fa-pencil"></i></a>
-</div>
-
-<form id="form-realizar-prova" method="post">
-    {% csrf_token %}
-    {% for questao in questoes %}
-    <hr>
-    <div class="questao mb-4" id="questao_{{ questao.id }}">
-        <div class="d-flex gap-3 mb-4">
-            <strong id="enunciado_{{ questao.id }}">{{ questao.enunciado|linebreaksbr }}</strong>
-            <textarea id="input_enunciado_{{ questao.id }}" style="width: 100%; display: none;" type="text" class="form-control" rows="5"></textarea>
-            <!-- Link de edição -->
-            <a id="editar_enunciado_{{ questao.id }}" style="color: #0d6efd; text-decoration: underline; cursor: pointer;">
-                <i class="fa-solid fa-pencil"></i>
-            </a>
-            <!-- Botões de Editar e Cancelar (inicialmente ocultos) -->
-            <div id="botoes_edicao_{{ questao.id }}" style="display: none;">
-                <div class="d-flex gap-3">
-                    <button id="salvar_edicao_{{ questao.id }}" type="button" class="btn btn-success btn-sm">
-                        Editar
-                        <span class="spinner-border spinner-border-sm" style="display: none;" role="status"></span>
-                    </button>
-                    
-                    <button id="cancelar_edicao_{{ questao.id }}" type="button" class="btn btn-danger btn-sm"><i class="fa-solid fa-xmark"></i></button>
-                </div>
+<section class="page-header">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <div>
+                <p class="text-muted mb-1 small">Editar prova</p>
+                <h1 id="title" class="page-title mb-1" style="white-space: normal; word-break: break-word;">{{ prova.titulo }}</h1>
+                <p class="page-subtitle">Atualize o título, enunciados e alternativas.</p>
             </div>
+            <a class="btn btn-ghost btn-sm d-flex align-items-center gap-2" href="{% url 'list-prova' prova.pasta.id %}">
+                <i class="fa-solid fa-arrow-left"></i>
+                Voltar para provas
+            </a>
         </div>
-        {% if questao.tipo == 'objetiva' %}
-            {% with questao.pk as questao_pk %}
-                {% for alternativa in alternativas|get_item:questao_pk %}
-                    <div class="alternativa d-flex gap-3 align-items-center">
-                        <input type="radio" id="alternativa_{{ alternativa.id }}" name="questao_{{ questao.id }}" value="{{ alternativa.id }}" 
-                                {% if forloop.first %}required{% endif %}
-                                {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}disabled{% endif %}>
-                        <label id="label_alternativa_{{ alternativa.id }}" for="alternativa_{{ alternativa.id }}">{{ alternativa.texto }}</label>
-                        <textarea id="textarea_alternativa_{{ alternativa.id }}" type="text" class="form-control" rows="1" style="width: 300px; display: none;"></textarea>
+    </div>
+</section>
+
+<section class="py-4 py-lg-5">
+    <div class="container">
+        <div class="content-panel">
+            <div id="container-edit-title" class="d-flex gap-2 flex-wrap align-items-center mb-3">
+                <input id="input-edit-title" style="width: 100%; max-width: 420px; display: none;" type="text" class="form-control mt-1">
+                <a id="button-edit-title" class="text-primary" style="text-decoration: underline; cursor: pointer; font-size: 18px;">
+                    <i class="fa-solid fa-pencil"></i> Editar título
+                </a>
+            </div>
+
+            <form id="form-realizar-prova" method="post" class="exam-question-list">
+                {% csrf_token %}
+                {% for questao in questoes %}
+                <article class="exam-question-card" id="questao_{{ questao.id }}">
+                    <div class="question-header">
+                        <span class="question-number">Questão {{ forloop.counter }}</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge {% if questao.tipo == 'objetiva' %}bg-light text-dark{% else %}bg-dark text-white{% endif %}">
+                                {{ questao.get_tipo_display }}
+                            </span>
+                            <a id="editar_enunciado_{{ questao.id }}" class="text-primary small" style="text-decoration: underline; cursor: pointer;">
+                                <i class="fa-solid fa-pencil"></i> editar enunciado
+                            </a>
+                        </div>
                     </div>
+
+                    <div class="mb-3">
+                        <strong id="enunciado_{{ questao.id }}">{{ questao.enunciado|linebreaksbr }}</strong>
+                        <textarea id="input_enunciado_{{ questao.id }}" style="width: 100%; display: none;" type="text" class="form-control mt-2" rows="4"></textarea>
+                        <div id="botoes_edicao_{{ questao.id }}" class="mt-2" style="display: none;">
+                            <div class="d-flex gap-2 flex-wrap">
+                                <button id="salvar_edicao_{{ questao.id }}" type="button" class="btn btn-cemag btn-sm d-flex align-items-center gap-2">
+                                    Editar
+                                    <span class="spinner-border spinner-border-sm" style="display: none;" role="status"></span>
+                                </button>
+                                <button id="cancelar_edicao_{{ questao.id }}" type="button" class="btn btn-outline-danger btn-sm">
+                                    <i class="fa-solid fa-xmark"></i> Cancelar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    {% if questao.tipo == 'objetiva' %}
+                        {% with questao.pk as questao_pk %}
+                        <div class="option-list">
+                            {% for alternativa in alternativas|get_item:questao_pk %}
+                            <label class="option-item d-flex align-items-center gap-3">
+                                <div class="option-marker">
+                                    <input type="radio"
+                                           id="alternativa_{{ alternativa.id }}"
+                                           name="questao_{{ questao.id }}"
+                                           value="{{ alternativa.id }}"
+                                           {% if forloop.first %}required{% endif %}
+                                           {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}disabled{% endif %}>
+                                </div>
+                                <div class="option-body w-100">
+                                    <div id="label_alternativa_{{ alternativa.id }}" class="option-text">{{ alternativa.texto }}</div>
+                                    <textarea id="textarea_alternativa_{{ alternativa.id }}" type="text" class="form-control mt-2" rows="1" style="width: 100%; display: none;"></textarea>
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                        {% endwith %}
+                    {% elif questao.tipo == 'dissertativa' %}
+                        <div class="dissertativa-box">
+                            <div class="dissertativa-label">Resposta esperada</div>
+                            <textarea class="form-control"
+                                      name="questao_{{ questao.id }}"
+                                      rows="3"
+                                      {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}disabled{% endif %}
+                                      required></textarea>
+                        </div>
+                    {% endif %}
+                </article>
                 {% endfor %}
-            {% endwith %}
-        {% elif questao.tipo == 'dissertativa' %}
-        <div style="width: 320px;">
-            <textarea class="form-control" name="questao_{{ questao.id }}" rows="2" cols="10" 
-                        {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}disabled{% endif %} 
-                        required></textarea>
+            </form>
         </div>
-        {% endif %}
-    </div>        
-    {% endfor %}
-</form>
+    </div>
+</section>
 
 {% endblock %}
 

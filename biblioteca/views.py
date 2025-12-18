@@ -84,6 +84,7 @@ def livro_add(request):
 
     return redirect('list-livro')
 
+@csrf_exempt
 def registrar_visualizacao_livro(request):
     if request.method == 'POST':
         livro_id = request.POST.get('livro_id')

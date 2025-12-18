@@ -4,13 +4,15 @@ from django.views.decorators.csrf import csrf_exempt
 from django.contrib import messages
 from django.db import transaction
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils import timezone
+from django.contrib.auth.decorators import login_required
 
-from .models import Prova, Questao, Alternativa, Resposta,ProvaRealizada, HistoricoProva
+from .models import Prova, Questao, Alternativa, Resposta,ProvaRealizada, HistoricoProva, AprovacaoTrilha
 from cadastros.models import Funcionario
 from materiais.models import Pasta
 from users.models import CustomUser
 
-from django.db.models import Sum
+from django.db.models import Sum, Q
 
 from .forms import CorrigirRespostaDissertativaFormSet,CorrigirRespostaDissertativaForm
 
@@ -123,6 +125,18 @@ def list_prova(request, pk):
     prova_certificada = provas.first() if baixar_certificado and provas.exists() else None
 
     provas_corrigidas = {prova.id: prova.respostas_corrigidas(funcionario) for prova in provas}
+
+    total_provas = provas.count()
+    provas_realizadas_count = sum(1 for prova in provas if realizou_provas.get(prova.id))
+    provas_aprovadas = sum(
+        1
+        for prova in provas
+        if realizou_provas.get(prova.id) and acertos_por_prova.get(prova.id, 0) >= prova.nota_minima
+    )
+    taxa_aprovacao = (provas_aprovadas / total_provas) * 100 if total_provas else 0
+    media_acertos = (
+        sum(acertos_por_prova.get(prova.id, 0) for prova in provas) / total_provas if total_provas else 0
+    )
     
     return render(request, 'provas/list-prova.html', {
         'pasta': pasta,
@@ -131,7 +145,11 @@ def list_prova(request, pk):
         'realizou_provas': realizou_provas,
         'baixar_certificado': baixar_certificado,
         'prova_certificada': prova_certificada,  # Passa a lista de pastas certificadas para o template
-        'provas_corrigidas':provas_corrigidas
+        'provas_corrigidas':provas_corrigidas,
+        'taxa_aprovacao': taxa_aprovacao,
+        'provas_realizadas_count': provas_realizadas_count,
+        'media_acertos': media_acertos,
+        'total_provas': total_provas,
     })
 
 def realizar_prova(request, pk):
@@ -177,6 +195,12 @@ def realizar_prova(request, pk):
                 )
         
         ProvaRealizada.objects.create(usuario=request.user, prova=prova)
+        # cria pendência de aprovação da trilha para líder
+        AprovacaoTrilha.objects.get_or_create(
+            usuario=request.user,
+            pasta=prova.pasta,
+            defaults={'status': 'pendente'}
+        )
         messages.success(request, "Prova realizada com sucesso!")
         
         return redirect('list-prova', pk=prova.pasta_id)
@@ -188,14 +212,45 @@ def realizar_prova(request, pk):
         'alternativas': alternativas_dict
     })
 
+@login_required
+def aprovar_trilha_usuario(request, pasta_id, user_id):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Método não permitido.'}, status=405)
+
+    pasta = get_object_or_404(Pasta, pk=pasta_id)
+    usuario = get_object_or_404(CustomUser, pk=user_id)
+
+    # Permissão: ADM ou LID da mesma pasta/setor
+    if request.user.type not in ('ADM', 'LID'):
+        return JsonResponse({'success': False, 'error': 'Sem permissão.'}, status=403)
+    if request.user.type == 'LID':
+        try:
+            if usuario.funcionario.setor_id != request.user.funcionario.setor_id:
+                return JsonResponse({'success': False, 'error': 'Sem permissão.'}, status=403)
+        except Exception:
+            return JsonResponse({'success': False, 'error': 'Sem permissão.'}, status=403)
+
+    aprovacao, _ = AprovacaoTrilha.objects.get_or_create(
+        usuario=usuario,
+        pasta=pasta,
+        defaults={'status': 'pendente'}
+    )
+    aprovacao.status = 'aprovado'
+    aprovacao.aprovado_por = request.user
+    aprovacao.decidido_em = timezone.now()
+    aprovacao.save()
+
+    return JsonResponse({'success': True})
+
 def visualizar_prova(request, pk,pk_matricula=0):
     prova = get_object_or_404(Prova, pk=pk)
     questoes = prova.questao_prova.all().order_by('id')
     
     alternativas_dict = {}
-    alternativas_selecionadas = {}  # Dicionário para armazenar IDs das alternativas selecionadas e respostas dissertativas
-    alternativas_certas = {}  # Dicionário para armazenar a alternativa correta
-    nota_dissertativa = {}  
+    alternativas_selecionadas = {}  # IDs selecionadas ou texto da dissertativa
+    alternativas_certas = {}  # Alternativa correta
+    nota_dissertativa = {}  # Notas das dissertativas
+    dissertativa_status = {}
 
     for questao in questoes:
         # Obter alternativas para cada questão
@@ -213,6 +268,21 @@ def visualizar_prova(request, pk,pk_matricula=0):
             nota_dissertativa[questao.pk] = resposta.nota
         else:
             resposta = Resposta.objects.get(questao=questao, funcionario=request.user)
+            correta = alternativas_questao.filter(correta=True).first()
+            alternativas_certas[questao.pk] = correta.id if correta else None
+            if questao.tipo == 'dissertativa' and resposta.corrigida:
+                nota_dissertativa[questao.pk] = resposta.nota
+
+        if questao.tipo == 'dissertativa':
+            status = None
+            if resposta.corrigida and resposta.nota is not None:
+                if resposta.nota >= 1:
+                    status = 'correta'
+                elif resposta.nota <= 0:
+                    status = 'errada'
+                else:
+                    status = 'parcial'
+            dissertativa_status[questao.pk] = status
 
         if resposta.alternativa_selecionada_id is not None:
             alternativas_selecionadas[questao.pk] = resposta.alternativa_selecionada_id
@@ -226,14 +296,18 @@ def visualizar_prova(request, pk,pk_matricula=0):
             'alternativas': alternativas_dict,
             'alternativa_selecionada': alternativas_selecionadas,  # Passar o dicionário de respostas selecionadas
             'alternativas_certas': alternativas_certas,  # Passar o dicionário de alternativas corretas
-            'nota_dissertativa': nota_dissertativa
+            'nota_dissertativa': nota_dissertativa,
+            'dissertativa_status': dissertativa_status
         })
     else:
         return render(request, 'provas/visualizar-prova.html', {
             'prova': prova,
             'questoes': questoes,
             'alternativas': alternativas_dict,
-            'alternativa_selecionada': alternativas_selecionadas  # Passar o dicionário de respostas selecionadas
+            'alternativa_selecionada': alternativas_selecionadas,  # Passar o dicionário de respostas selecionadas
+            'alternativas_certas': alternativas_certas,
+            'nota_dissertativa': nota_dissertativa,
+            'dissertativa_status': dissertativa_status
         })
 
 def editar_prova(request, pk):
@@ -377,3 +451,12 @@ def refazer_prova(request, pk_prova,pk_user):
     respostas_anteriores.delete()
     
     return redirect('list-prova', pk=prova.pasta_id)
+
+
+def provas_pendentes_usuario(request):
+    usuario = request.user
+    provas_pendentes = Prova.objects.filter(Q(status='ativa') | Q(status=True)).exclude(provarealizada__usuario=usuario)
+
+    return render(request, 'provas/provas-pendentes.html', {
+        'provas_pendentes': provas_pendentes
+    })

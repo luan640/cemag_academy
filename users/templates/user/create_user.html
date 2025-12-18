@@ -1,85 +1,202 @@
 {% extends 'base.html' %}
 
+{% load custom_filters %}
+
 {% block title %}Adicionar Usuario{% endblock %}
 
 {% block content %}
-<div>
+
+<section class="page-header">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+      <div>
+        <p class="text-muted mb-1 small">Cadastros</p>
+        <h1 class="page-title mb-1">Adicionar novo usuario</h1>
+        <p class="page-subtitle">Crie acesso para colaboradores ja cadastrados.</p>
+      </div>
+      <a class="btn btn-ghost btn-sm d-flex align-items-center gap-2" href="{% url 'funcionarios' %}">
+        <i class="fa-solid fa-arrow-left"></i>
+        Voltar para funcionarios
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="py-4 py-lg-5">
+  <div class="container">
     {% if messages %}
     {% for message in messages %}
-            {% if 'matricula' in message.tags %}
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endif %}
-        {% endfor %}
+      <div class="alert {% if 'matricula' in message.tags or 'error' in message.tags %}alert-danger{% elif 'success' in message.tags %}alert-success{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      </div>
+    {% endfor %}
     {% endif %}
 
-    <h1>Adicionar Novo Usuario</h1>
-    <form id="form-create" method="post">
-        {% csrf_token %}
-        <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
-            <div class="card">
-                <div class="card-header fw-bold"><h4 class="m-2">Cadastro de Usuário</h4></div>
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-sm-6 mt-4">
-                            {{ form.matricula.label_tag }}
-                            {{ form.matricula }}
+    {% if success_message %}
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+      {{ success_message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endif %}
+
+    <div class="d-flex justify-content-end mb-3">
+      <button class="btn btn-cemag btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#modal-create-user">
+        Adicionar usuario
+      </button>
+    </div>
+
+    <div class="content-panel mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h2 class="h6 mb-0">Usuarios cadastrados</h2>
+        <span class="badge bg-light text-dark">{{ users|length }}</span>
+      </div>
+      <div class="table-responsive">
+        <table class="table table-sm align-middle">
+          <thead>
+            <tr>
+              <th>Matricula</th>
+              <th>Nome</th>
+              <th>Tipo</th>
+              <th>Email</th>
+              <th>Status</th>
+              <th class="text-end">Acoes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for usuario in users %}
+            <tr>
+              <td>{{ usuario.matricula }}</td>
+              <td>{{ usuario.first_name }} {{ usuario.last_name }}</td>
+              <td>{{ usuario.get_type_display }}</td>
+              <td>{{ usuario.email|default:"-" }}</td>
+              <td>
+                {% if usuario.is_active %}
+                  <span class="badge bg-success">Ativo</span>
+                {% else %}
+                  <span class="badge bg-secondary">Inativo</span>
+                {% endif %}
+              </td>
+              <td class="text-end">
+                <button class="btn btn-outline-secondary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#modal-edit-user-{{ usuario.pk }}">
+                  Editar
+                </button>
+                <form method="post" action="{% url 'toggle-user-active' usuario.pk %}" class="d-inline">
+                  {% csrf_token %}
+                  <button class="btn btn-outline-danger btn-sm" type="submit">
+                    {% if usuario.is_active %}Desabilitar{% else %}Habilitar{% endif %}
+                  </button>
+                </form>
+              </td>
+            </tr>
+            <div class="modal fade" id="modal-edit-user-{{ usuario.pk }}" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modal-edit-user-label-{{ usuario.pk }}" aria-hidden="true">
+              <div class="modal-dialog" style="margin-top: 60px;">
+                <div class="modal-content">
+                  <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="modal-edit-user-label-{{ usuario.pk }}">Editar usuario</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <form method="post" action="{% url 'edit-user' usuario.pk %}">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                      <div class="mb-3">
+                        <div class="fw-semibold">{{ usuario.first_name }} {{ usuario.last_name }}</div>
+                        <div class="text-muted small">Matricula: {{ usuario.matricula }}</div>
+                      </div>
+                      {% with edit_form=edit_forms|get_item:usuario.id %}
+                      <div class="row">
+                        <div class="col-sm-6 mt-3">
+                          {{ edit_form.email.label_tag }}
+                          {{ edit_form.email }}
                         </div>
-                        <div class="col-sm-6 mt-4">
-                            {{ form.type.label_tag }}
-                            {{ form.type }}
+                        <div class="col-sm-6 mt-3">
+                          {{ edit_form.type.label_tag }}
+                          {{ edit_form.type }}
                         </div>
+                      </div>
+                      {% endwith %}
                     </div>
-                    <div class="row">
-                        <div class="col-sm-6 mt-4">
-                            {{ form.first_name.label_tag }}
-                            {{ form.first_name }}
-                        </div>
-                        <div class="col-sm-6 mt-4">
-                            {{ form.last_name.label_tag }}
-                            {{ form.last_name }}
-                        </div>
+                    <div class="modal-footer">
+                      <button class="btn btn-cemag" type="submit">Salvar</button>
                     </div>
-                    <div class="row">
-                        <div class="col-sm-4 mt-4 align-content-end">
-                            {{ form.email.label_tag }}
-                            {{ form.email }}
-                        </div>
-                        <div class="col-sm-4 mt-4 align-content-end">
-                            {{ form.password1.label_tag }}
-                            {{ form.password1 }}
-                        </div>
-                        <div class="col-sm-4 mt-4 align-content-end">
-                            {{ form.password2.label_tag }}
-                            {{ form.password2 }}
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-end">
-                        <div class="d-flex justify-content-end">
-                            <button id="submit-edit" class="btn btn-primary mt-4" type="submit">
-                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                                <span id="button-text">Cadastrar</span>
-                            </button>
-                        </div>
-                    </div>
+                  </form>
                 </div>
+              </div>
             </div>
+            {% empty %}
+            <tr>
+              <td colspan="6" class="text-muted">Nenhum usuario cadastrado.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="modal fade" id="modal-create-user" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modal-create-user-label" aria-hidden="true">
+  <div class="modal-dialog modal-lg" style="margin-top: 60px;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h1 class="modal-title fs-5" id="modal-create-user-label">Adicionar usuario</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="form-create" method="post">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="alert alert-info mb-3">
+            Nao encontrou o funcionario? Cadastre primeiro em Cadastros &gt; Funcionarios.
+          </div>
+          <div class="row">
+            <div class="col-sm-12 mt-3">
+              {{ form.funcionario.label_tag }}
+              {{ form.funcionario }}
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-6 mt-3">
+              {{ form.type.label_tag }}
+              {{ form.type }}
+            </div>
+            <div class="col-sm-6 mt-3">
+              {{ form.email.label_tag }}
+              {{ form.email }}
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-sm-6 mt-3 align-content-end">
+              {{ form.password1.label_tag }}
+              {{ form.password1 }}
+            </div>
+            <div class="col-sm-6 mt-3 align-content-end">
+              {{ form.password2.label_tag }}
+              {{ form.password2 }}
+            </div>
+          </div>
         </div>
-    </form>
+        <div class="modal-footer">
+          <button id="submit-edit" class="btn btn-cemag" type="submit">
+            <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+            <span id="button-text">Cadastrar</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
 
 <script>
-    document.getElementById('form-create').addEventListener('submit', function() {
-        var submitButton = document.getElementById('submit-edit');
-        submitButton.disabled = true; // Desabilita o botão
-        submitButton.querySelector('.spinner-border').classList.remove('d-none'); // Exibe o spinner
-        document.getElementById('button-text').textContent = 'Cadastrando...'; // Altera o texto
-    });
+  document.getElementById('form-create').addEventListener('submit', function() {
+    var submitButton = document.getElementById('submit-edit');
+    submitButton.disabled = true;
+    submitButton.querySelector('.spinner-border').classList.remove('d-none');
+    document.getElementById('button-text').textContent = 'Cadastrando...';
+  });
 </script>
 
 {% endblock %}

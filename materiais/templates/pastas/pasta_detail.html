@@ -1,474 +1,862 @@
 {% extends 'base.html' %}
 
+{% load custom_filters %} 
+
 {% load static %}
 
-{% block title %}Detalhes da Trilha{% endblock %}
+{% block title %}Sala de aula{% endblock %}
 
 {% block content %}
+<body class="course-player-body">
+  
+  <!-- Header minimal -->
+  <nav class="navbar navbar-dark cemag-navbar fixed-top">
+    <div class="container-fluid px-4">
+      <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'home' %}" class="navbar-brand d-flex align-items-center gap-2">
+          <span class="brand-mark"></span>
+          <span class="brand-text">CEMAG Academy</span>
+        </a>
+        <span class="text-light-emphasis small d-none d-md-inline">
+          {{ pasta.nome }}
+        </span>
+      </div>
 
-<style>
-      /* Estilo para a sobreposição da imagem */
-      .img-overlay {
-        position: relative;
-        display: inline-block;
-    }
-
-    .img-overlay img {
-        cursor: pointer;
-        transition: transform 0.3s ease;
-    }
-
-    /* Fundo da sobreposição que aparece quando a imagem é clicada */
-    .overlay-bg {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        justify-content: center;
-        align-items: center;
-        z-index: 1050; /* Coloque um z-index maior para garantir que fique à frente */
-    }
-
-    .overlay-bg img {
-        max-width: 80%; /* Ajuste o tamanho da imagem ampliada */
-        max-height: 80%;
-        border: 3px solid white; /* Adicione uma borda branca para contraste */
-        border-radius: 10px; /* Adicione bordas arredondadas */
-    }
-    .checked {
-        color: orange;
-    }
-
-    .drive-item {
-        transition: all 0.2s ease;
-        border-left: 4px solid #28a745 !important;
-    }
-    .drive-item:hover {
-        background-color: #f8fff9;
-        transform: translateX(2px);
-    }
-    #drive-section {
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 2px dashed #dee2e6;
-    }
-
-    /* Estilos para o spinner no modal */
-    #driveModal .modal-body {
-        min-height: 400px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    /* Estilos para o iframe do PDF */
-    #driveModal .ratio-16x9 {
-        min-height: 400px;
-    }
-
-    #driveModal iframe {
-        border-radius: 0.375rem;
-    }
-</style>
-
-<div class="row">
-    <div class="col-md-7 order-2 order-md-1" style="margin-bottom: 80px;">
-        <h1 class="mb-4 mt-4">Materiais</h1>
-        <div class="card">
-            <div class="card-body">
-                <div class="list-group" id="lista-materiais" 
-                    data-pasta-id="{% if pasta and pasta.pasta_drive %}{{ pasta.id }}{% endif %}"
-                    data-has-drive="{% if pasta and pasta.pasta_drive %}true{% else %}false{% endif %}">
-                    {% if materiais %}
-                    <div class="mb-4">
-                        <h4 class="text-primary mb-3">
-                            <i class="fa-solid fa-database me-2"></i>
-                            Materiais do Sistema
-                        </h4>
-                        {% for material in materiais %}
-                        <div class="list-group-item flex-column align-items-start system-item mb-3 p-3">
-                            
-                            <div class="d-flex w-100 justify-content-between align-items-center">
-                                <div class="d-flex align-items-center" style="gap: 15px;">
-                                    <i class="fa-solid fa-layer-group fa-2x text-primary"></i>
-                                    
-                                    <div>
-                                        <h6 class="mb-1 fw-bold">{{ material.nome }}</h6>
-                                        <small class="text-muted d-block">{{ material.descricao|truncatechars:80 }}</small>
-                                        
-                                        <div class="mt-2">
-                                            {% if material.video_youtube or material.video %}
-                                                <span class="badge rounded-pill bg-danger me-1">
-                                                    <i class="fa-solid fa-film me-1"></i> Vídeo
-                                                </span>
-                                            {% endif %}
-                                            {% if material.arquivo %}
-                                                <span class="badge rounded-pill bg-info me-1">
-                                                    <i class="fa-solid fa-file-pdf me-1"></i> Arquivo
-                                                </span>
-                                            {% endif %}
-                                            {% if material.arquivo_drive %}
-                                                <span class="badge rounded-pill bg-success me-1">
-                                                    <i class="fa-brands fa-google-drive me-1"></i> Arquivo Drive
-                                                </span>
-                                            {% endif %}
-                                            {% if material.fotos.exists %}
-                                                <span class="badge rounded-pill bg-primary me-1">
-                                                    <i class="fa-solid fa-images me-1"></i> Foto(s)
-                                                </span>
-                                            {% endif %}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div class="btn-group">
-                                    <button class="btn btn-outline-primary btn-sm" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#modal{{ material.pk }}" 
-                                            title="Visualizar Material">
-                                        <i class="fa-solid fa-eye"></i>
-                                    </button>
-                                    {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
-                                    <a href="{% url 'edit-material' material.pk pasta.pk %}" class="btn btn-outline-secondary btn-sm" title="Editar">
-                                        <i class="fa-solid fa-pencil"></i>
-                                    </a>
-                                    <a href="{% url 'delete-material' material.pk pasta.pk %}" class="btn btn-outline-danger btn-sm delete-link" title="Excluir">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </a>
-                                    {% endif %}
-                                </div>
-                            </div>
-
-                            {% if request.user.type != "ADM" and request.user.id != pasta.created_by.id %}
-                            <div class="d-flex justify-content-end mt-3">
-                                <div class="form-check form-switch bg-light p-2 ps-3 pe-3 rounded-pill border">
-                                    <input
-                                        class="form-check-input material-visualizado ms-2"
-                                        type="checkbox"
-                                        role="switch"
-                                        id="visualizado-{{ material.id }}"
-                                        data-material-id="{{ material.id }}"
-                                        data-pasta-id="{{ material.pasta.id }}"
-                                        data-url="{% url 'registrar_visualizacao' %}"
-                                        {% if material.id in visualizacoes %}checked{% endif %}>
-                                    <label class="form-check-label small" for="visualizado-{{ material.id }}">
-                                        Marcar como concluído
-                                    </label>
-                                </div>
-                            </div>
-                            {% endif %}
-                        </div>
-
-                        <div class="modal fade" id="modal{{ material.pk }}" tabindex="-1" aria-labelledby="modalLabel{{ material.pk }}" aria-hidden="true" data-bs-backdrop="static">
-                            <div class="modal-dialog" style="margin-top: 60px;">
-                                <div class="modal-content">
-                                    <div class="modal-body" style="padding: 0;">
-                        
-                                        {% if material.video_youtube %}
-                                            <iframe class="w-100" style="height: 400px; border-radius: 7px;" src="https://www.youtube.com/embed/{{ material.video_youtube }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-                                        {% endif %}
-                                        
-                                        <div style="padding: 20px; overflow-y: auto; height: 300px;">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <h5 class="mb-4">{{ material.nome }}</h5>
-                                                <div class="d-flex justify-content-end align-items-start" style="gap: 20px;">
-                                                    {% if material.video %}
-                                                    <div class="video-overlay">
-                                                        <button class="btn btn-secondary" onclick="openVideoInNewTab('{{ material.video.url }}')">
-                                                            <i class="fa-solid fa-circle-play"></i>
-                                                            <span class="ms-2">Clique aqui para abrir o v&iacute;deo</span>
-                                                        </button>
-                                                    </div>
-                                                    {% endif %}
-                                                    {% if material.arquivo_drive %}
-                                                        <button class="btn btn-secondary drive-download-btn" 
-                                                                data-file-id="{{ material.arquivo_drive }}"
-                                                                title="Drive">
-                                                            <i class="fa-brands fa-google-drive"></i>
-                                                            <span class="ms-2">Clique aqui para acessar o arquivo</span>
-                                                        </button>
-                                                    {% endif %}
-                                                    {% if material.fotos %}
-                                                    <p>
-                                                        <button class="btn btn-secondary img-overlay" data-img-url="{{ material.fotos.url }}">
-                                                            <i class="fa-solid fa-image" title="Imagem"></i>
-                                                            <span class="ms-2">Clique aqui para visualizar a imagem</span>
-                                                        </button>
-                                                    </p>
-                                                    {% endif %}
-                                
-                                                    {% if material.arquivo %}
-                                                    <p>
-                                                        <button class="btn btn-secondary" data-file-url="{{ material.arquivo.url }}" onclick="window.open(this.getAttribute('data-file-url'), '_blank')">
-                                                            <i class="fa-solid fa-file" title="Arquivo"></i>
-                                                            <span class="ms-2">Clique aqui para abrir o arquivo</span>
-                                                        </button>
-                                                    </p>
-                                                    {% endif %}
-                                                </div>
-                                            </div>
-                                            <p>{{ material.descricao }}</p>
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-
-                <!-- SEÇÃO 2: ARQUIVOS DO GOOGLE DRIVE -->
-                {% if pasta and pasta.pasta_drive %}
-                    <div id="drive-section">
-                        <h4 class="text-success mb-3">
-                            <i class="fa-brands fa-google-drive me-2"></i>
-                            Arquivos do Google Drive
-                        </h4>
-                        
-                        <div id="drive-content">
-                            <div id="drive-loading" class="text-center py-4">
-                                <div class="spinner-border text-success" role="status">
-                                    <span class="visually-hidden">Carregando...</span>
-                                </div>
-                                <p class="mt-2 text-muted">Carregando arquivos do Drive...</p>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-
-                <!-- SEÇÃO 3: NENHUM MATERIAL DISPONÍVEL -->
-                {% if not materiais and not pasta.pasta_drive %}
-                <a class="list-group-item list-group-item-action flex-column align-items-start" style="cursor: pointer;">
-                    <div class="d-flex w-100 justify-content-between">
-                        <div class="d-flex align-items-center" style="gap: 20px;">
-                            <i class="fa-regular fa-face-sad-tear" style="color: #000000; width: 50px; height: auto;"></i>
-                            <h5 class="mb-1">Nenhum material disponível</h5>
-                        </div>
-                    </div>
-                    <p class="mb-1 mt-4">Não há materiais para exibir no momento.</p>
-                </a>
-                {% endif %}
-        </div>
-        </div>
-    </div>
-    </div>
-    <div class="col-md-5 order-1 order-md-2">
-        <h1 class="mb-4 mt-4">Detalhes da Trilha</h1>
-        <div class="card">
-            <div class="card-body" style="height: 100%;">
-                <p class="d-none" id="andamentoVisualizacoes"></p>
-                {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id or not materiais and pasta.pasta_drive %}
-                {% else %}
-                <div class="d-flex align-items-baseline" style="gap: 15px;">
-                    <p>Progresso: </p>
-                    <div class="progress w-100" style="height: 2rem;font-size: 17px;font-weight: 700;">
-                        <div id="progressBar" class="progress-bar bg-success" role="progressbar" style="width: 0%;" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
-                    </div>
-                </div>
-                {% endif %}
-                <div class="card p-3">
-                    <div>
-                        <div class="d-flex align-items-baseline" style="gap: 10px;">
-                            <i class="fa-solid fa-file-signature"></i><strong><p>Nome: </p></strong><p style="font-weight: 600;">{{ pasta.nome }}</p>
-                        </div>
-                        <div class="d-flex align-items-baseline" style="gap: 10px;">
-                            <div>
-                                <i class="fa-regular fa-comments"></i>
-                            </div>
-                            <div>
-                                <strong><p style="margin: 0;">Descrição: </p></strong>
-                                <p style="margin: 0; font-weight: 600;"> {{ pasta.descricao }}</p>
-                            </div>
-                        </div>
-                    </div>    
-                </div>
-
-                <div class="card p-3" id="card_provaDisponivel">
-                    {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id or not materiais and pasta.pasta_drive %}
-                    <strong><a id="provaDisponivel" href="{% url 'list-prova' pasta.pk %}" style="text-decoration: none; width: 150px;">Visualizar Provas</a></strong>
-                    {% else %}
-                    <div class="d-flex justify-content-between">
-                        <strong><a id="provaDisponivel" href="{% url 'list-prova' pasta.pk %}" style="width: 150px;">Provas disponíveis</a></strong>
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" style="width: 30px; height: 30px;">
-                            <path id="statusIconCheck" fill="#008000" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM369 209L241 337c-9.4 9.4-24.6 9.4-33.9 0l-64-64c-9.4-9.4-9.4-24.6 0-33.9s24.6-9.4 33.9 0l47 47L335 175c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9z"/>
-                            <path id="statusIconXmark" fill="#ff0000" d="M256 512A256 256 0 1 0 256 0a256 256 0 1 0 0 512zM175 175c9.4-9.4 24.6-9.4 33.9 0l47 47 47-47c9.4-9.4 24.6-9.4 33.9 0s9.4 24.6 0 33.9l-47 47 47 47c9.4 9.4 9.4 24.6 0 33.9s-24.6 9.4-33.9 0l-47-47-47 47c-9.4 9.4-24.6 9.4-33.9 0s-9.4-24.6 0-33.9l47-47-47-47c-9.4-9.4-9.4-24.6 0-33.9z"/>
-                        </svg>
-                    </div>
-                    {% endif %}
-                </div>                              
-
-                {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
-                <div class="d-flex justify-content-between mt-2">
-                    <div>
-                        <a href="{% url 'delete-pasta' pasta.pk %}" class="btn btn-dark delete-link" style="margin: 5px; margin-left: 0;">Excluir</a>
-                        <a href="{% url 'edit-pasta' pasta.pk %}" class="btn btn-light" >Editar</a>
-                    </div>
-                    <div style="text-align: end;">
-                        <a href="{% url 'add-material' pasta.pk %}" class="btn btn-dark" style="margin: 5px; margin-right: 0;">Add material</a>
-                        <a href="{% url 'criar-prova' pasta.pk %}" class="btn btn-dark">Add Prova</a>
-                    </div>
-                </div>
-                    {% include 'pastas/modal/pasta_details_excluir_pasta.html' %}
-                {% endif %}
-            </div>
-        </div>
-        {% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
-        {% else %}
-        <div class="flex-column flex-sm-row justify-content-between col-lg-8 mt-4" id="avaliacao_eficacia" style="display: flex;">
-            <div class="d-flex mb-4">
-                <button 
-                    class="btn {% if existe_avaliacao_eficacia %}btn-secondary{% else %}btn-primary{% endif %}" 
-                    style="border-radius: 0.375rem 0px 0px 0.375rem" 
-                    data-bs-toggle="modal" 
-                    data-bs-target="#staticBackdrop"
-                    {% if existe_avaliacao_eficacia %}disabled{% endif %}>
-                    Avaliação de Eficácia da Trilha
-                </button>
-                <span class="btn {% if existe_avaliacao_eficacia %}btn-success{% else %}btn-secondary{% endif %}" style="border-radius: 0px 0.375rem 0.375rem 0px">
-                    {% if existe_avaliacao_eficacia %}Concluída <i class="fa-solid fa-check"></i>{% else %}Pendente <i class="fa-regular fa-clock"></i>{% endif %}
-                </span>
-            </div>
+      <div class="d-flex align-items-center gap-3">
+        <span class="text-light-emphasis small d-none d-md-inline">Progresso: {{ progresso_geral|default:"0" }}%</span>
+        {% if request.user.id == pasta.created_by.id or request.user.type == 'ADM' %}
+        <div class="d-flex align-items-center gap-2">
+          <button type="button" class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#modal-edit-pasta">
+            Editar trilha
+          </button>
+          <button type="button" class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#modal-drive-materials" {% if not pasta.pasta_drive %}disabled title="Configure a pasta do Drive para usar este recurso"{% endif %}>
+            Adicionar do Drive
+          </button>
+          <button type="button" class="btn btn-cemag btn-sm" data-bs-toggle="modal" data-bs-target="#modal-add-material">
+            Add material
+          </button>
         </div>
         {% endif %}
-    </div>
-</div>
-
-<div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <div class="modal-dialog" style="margin-top: 60px;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h1 class="modal-title fs-5" id="staticBackdropLabel">Avaliação pelo Colaborador</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{% url 'avaliacao' pasta.id %}" method="POST" id="avaliacao-form">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="border p-3">
-                        <p>Você considera que a qualificação agregará valor para o seu trabalho?</p>
-                        <label for="sim_colaborador">Sim</label>
-                        <input type="radio" name="valor_trabalho" id="sim_colaborador" value="true" required>
-                        <label for="nao_colaborador">Não</label>
-                        <input type="radio" name="valor_trabalho" id="nao_colaborador" value="false" required>
-                    </div>
-                    <div class="mt-4">
-                        <label for="justificativa">Justifique</label>
-                        <input class="form-control" type="text" name="justificativa" id="justificativa" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" id="submit-button" class="btn btn-primary">Enviar</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<div class="modal fade" id="driveModal" data-bs-backdrop="static" tabindex="-1" aria-labelledby="driveModalTitle" aria-hidden="true">
-  <div class="modal-dialog modal-xl modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="driveModalTitle">Carregando arquivo...</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        <a href="{% url 'list-pasta' %}" class="btn btn-outline-light btn-sm btn-ghost">
+          Sair do curso
+        </a>
       </div>
-      <div class="modal-body" id="driveModalBody">
+    </div>
+  </nav>
+
+  <!-- Main -->
+  <main class="course-player">
+    <div class="container-fluid">
+      <div class="row g-0">
+
+        <!-- Área da aula -->
+        <div class="col-lg-9">
+          <section class="lesson-area">
+            
+            <!-- Player (placeholder corporativo) -->
+            <div id="lesson-player" class="lesson-player">
+              <div class="lesson-placeholder">
+                <div>
+                  <div id="lesson-title" class="fw-semibold mb-1"></div>
+                  <div id="lesson-description" class="text-muted small"></div>
+                </div>
+              </div>
+            </div>
+            <!-- Conteúdo da aula -->
+            <div class="lesson-content">
+              <h1 id="lesson-title" class="h5 mb-2"></h1>
+              <p id="lesson-description" class="text-muted"></p>
+
+              <hr>
+            </div>
+
+            <!-- Encerramento do curso -->
+            <section id="course-actions" class="course-actions mt-4">
+              <h2 class="h6 mb-2">Encerramento do curso</h2>
+              <p class="text-muted small mb-3">
+                  Ao finalizar todas as aulas, você poderá realizar a avaliação final e,
+                  em seguida, responder a pesquisa de satisfação.
+              </p>
+
+              <div class="row g-2">
+                  <!-- Prova -->
+                  <div class="col-md-6">
+                      <div class="action-card">
+                          <div>
+                              <div class="fw-semibold mb-1">Prova final</div>
+                              <p class="text-muted small mb-2">
+                                  Avaliação para validação do aprendizado e liberação do certificado.
+                              </p>
+                          </div>
+
+                          <a href="{% url 'list-prova' pasta.pk %}" class="btn btn-cemag btn-sm w-100">
+                          Ir para ambiente de prova
+                          </a>
+                      </div>
+                  </div>
+
+                  <!-- Pesquisa -->
+                  <div class="col-md-6">
+                      <div class="action-card">
+                          <div>
+                          <div class="fw-semibold mb-1">Eficácia da trilha</div>
+                          <p class="text-muted small mb-2">
+                              Sua opinião é importante para melhorar nossos treinamentos.
+                          </p>
+                          </div>
+
+                          <button {% if existe_avaliacao_eficacia %} disabled {% endif %}
+                            id="btnAvaEficacia"
+                            class="btn btn-outline-secondary btn-sm w-100" 
+                            style="border-radius: 0.375rem 0px 0px 0.375rem; font-size: 0.875rem;" 
+                            data-bs-toggle="modal" 
+                            data-bs-target="#modal-form-avaliacao-trilha">
+                            {% if existe_avaliacao_eficacia %} Você ja realizou a avaliação de eficácia {% else %} Avaliação de Eficácia da Trilha {% endif %}
+                          </button>
+
+                      </div>
+                  </div>
+              </div>
+            </section>
+
+          </section>
         </div>
-      <div class="modal-footer" id="driveModalFooter">
+
+        <!-- Sidebar – trilha -->
+        <div class="col-lg-3 border-start">
+          <aside class="lesson-sidebar">
+            
+            <div class="sidebar-header">
+              <h2 class="h6 mb-1">Conteúdo do curso</h2>
+              <span class="text-muted small">
+                {{ carga_horaria|default:"0" }} horas &middot; {{ materiais_count|default:"0" }} aulas
+              </span>
+            </div>
+            <div class="accordion cemag-accordion" id="courseLessons">
+              <div class="accordion-item">
+                <h2 class="accordion-header">
+                  <button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#materiais">
+                    Materiais do curso
+                  </button>
+                </h2>
+
+                <div id="materiais" class="accordion-collapse collapse show">
+                  <div class="accordion-body p-0">
+                    <ul class="lesson-list clickable">
+
+                      {% for material in materiais %}
+                      <li class="lesson-item {% if forloop.first %}active{% endif %}"
+                          data-nome="{{ material.nome }}"
+                          data-descricao="{{ material.descricao|default:'Sem descrição' }}"
+                          data-video="{% if material.video %}{{ material.video.url }}{% endif %}"
+                          data-youtube="{{ material.video_youtube|default:'' }}"
+                          data-arquivo="{% if material.arquivo %}{{ material.arquivo.url }}{% endif %}"
+                          data-foto="{% if material.fotos %}{{ material.fotos.url }}{% endif %}">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <span>{{ material.nome }}</span>
+                          <div class="text-end">
+                            <small class="text-muted d-block">Visto</small>
+                            <div class="form-check form-switch m-0">
+                              <input
+                                class="form-check-input material-visualizado"
+                                type="checkbox"
+                                role="switch"
+                                id="visualizado-{{ material.id }}"
+                                data-material-id="{{ material.id }}"
+                                data-pasta-id="{{ material.pasta.id }}"
+                                data-url="{% url 'registrar_visualizacao' %}"
+                                {% if material.foi_visualizado or material.id in visualizacoes %}checked{% endif %}>
+                            </div>
+                          </div>
+                        </div>
+                      </li>
+                      {% empty %}
+                      <li class="text-muted small p-3">
+                        Nenhum material disponível.
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+                {% if drive_materiais %}
+                <div class="border-top">
+                  <div class="px-3 pt-3 pb-2 d-flex align-items-center justify-content-between">
+                    <span class="text-muted small text-uppercase">Arquivos do Drive</span>
+                  </div>
+                  <div class="accordion-body p-0">
+                    <ul class="lesson-list clickable">
+                      {% for drive in drive_materiais %}
+                      <li class="lesson-item drive-material {% if not materiais and forloop.first %}active{% endif %}"
+                          data-nome="{{ drive.nome }}"
+                          data-descricao="Arquivo do Google Drive"
+                          data-arquivo="{{ drive.link_download }}"
+                          data-mime="{{ drive.mime|default:'' }}"
+                          data-ext="{{ drive.extensao|default:'' }}"
+                          data-preview="{{ drive.preview|default:'' }}">
+                        <div class="d-flex justify-content-between align-items-center">
+                          <span>{{ drive.nome }}</span>
+                          <span class="badge bg-light text-dark">{{ drive.extensao|default:"Drive" }}</span>
+                        </div>
+                      </li>
+                      {% endfor %}
+                    </ul>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+            </div>
+          </aside>
         </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- modals -->
+
+  <!-- Modal de avaliação da trilha -->
+  <div class="modal fade" id="modal-form-avaliacao-trilha" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modal-form-avaliacao-trilha-label" aria-hidden="true">
+      <div class="modal-dialog" style="margin-top: 60px;">
+          <div class="modal-content">
+              <div class="modal-header">
+                  <h1 class="modal-title fs-5" id="modal-form-avaliacao-trilha-label">Avaliação pelo Colaborador</h1>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <form action="{% url 'avaliacao' pasta.id %}" method="POST" id="avaliacao-form">
+                  {% csrf_token %}
+                  <div class="modal-body">
+                      <div class="border p-3">
+                          <p>Você considera que a qualificação agregará valor para o seu trabalho?</p>
+                          <label for="sim_colaborador">Sim</label>
+                          <input type="radio" name="valor_trabalho" id="sim_colaborador" value="true" required>
+                          <label for="nao_colaborador">Não</label>
+                          <input type="radio" name="valor_trabalho" id="nao_colaborador" value="false" required>
+                      </div>
+                      <div class="mt-4">
+                          <label for="justificativa">Justifique</label>
+                          <input class="form-control" type="text" name="justificativa" id="justificativa" required>
+                      </div>
+                  </div>
+                  <div class="modal-footer">
+                      <button type="submit" id="submit-button" class="btn btn-primary">Enviar</button>
+                  </div>
+              </form>
+          </div>
+      </div>
+  </div>
+
+  {% if request.user.id == pasta.created_by.id or request.user.type == 'ADM' %}
+  <div class="modal fade" id="modal-drive-materials" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modal-drive-materials-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="margin-top: 60px;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="modal-drive-materials-label">Adicionar materiais do Google Drive</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          {% if not pasta.pasta_drive %}
+          <div class="alert alert-warning mb-0">
+            Configure a pasta do Drive da trilha para listar e selecionar arquivos.
+          </div>
+          {% else %}
+          <div class="mb-3 d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div class="flex-grow-1">
+              <input type="text" class="form-control" id="drive-search" placeholder="Buscar por nome..." oninput="filterDriveFiles()">
+            </div>
+            <div class="form-check ms-2">
+              <input class="form-check-input" type="checkbox" id="drive-select-all" onchange="toggleSelectAllDrive(this)">
+              <label class="form-check-label" for="drive-select-all">Selecionar todos</label>
+            </div>
+          </div>
+          <div id="drive-status" class="mb-3 text-muted small"></div>
+          <div id="drive-list" class="border rounded-3 p-2" style="max-height: 360px; overflow-y: auto;">
+            <div class="d-flex align-items-center gap-2 text-muted">
+              <span class="spinner-border spinner-border-sm" role="status"></span>
+              <span>Carregando arquivos do Drive...</span>
+            </div>
+          </div>
+          {% endif %}
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+          {% if pasta.pasta_drive %}
+          <button type="button" class="btn btn-cemag" id="drive-save-btn" onclick="salvarArquivosDrive()" disabled>Salvar seleção</button>
+          {% endif %}
+        </div>
+      </div>
     </div>
   </div>
-</div>
+  {% endif %}
 
+  {% if request.user.id == pasta.created_by.id or request.user.type == 'ADM' %}
+  <div class="modal fade" id="modal-edit-pasta" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modal-edit-pasta-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="margin-top: 60px;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="modal-edit-pasta-label">Editar trilha</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" action="{% url 'detail-pasta' pasta.pk %}" id="edit-pasta-form">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="edit_pasta">
+          <div class="modal-body">
+            {% if edit_pasta_form.non_field_errors %}
+            <div class="alert alert-danger">
+              {{ edit_pasta_form.non_field_errors }}
+            </div>
+            {% endif %}
+            <div class="mb-3">
+              <div class="row">
+                <div class="col-md-6">
+                  {{ edit_pasta_form.nome.label_tag }}
+                  {{ edit_pasta_form.nome }}
+                  {{ edit_pasta_form.nome.errors }}
+                </div>
+                <div class="col-md-6">
+                  {{ edit_pasta_form.area_trilha.label_tag }}
+                  {{ edit_pasta_form.area_trilha }}
+                  {{ edit_pasta_form.area_trilha.errors }}
+                </div>
+              </div>
+            </div>
+            <div class="mb-3">
+              {{ edit_pasta_form.descricao.label_tag }}
+              {{ edit_pasta_form.descricao }}
+              {{ edit_pasta_form.descricao.errors }}
+            </div>
+            <div class="mb-3">
+              {{ edit_pasta_form.pasta_drive.label_tag }}
+              {{ edit_pasta_form.pasta_drive }}
+              {{ edit_pasta_form.pasta_drive.errors }}
+            </div>
+
+            <div class="mt-4">
+              <h2 class="h6 mb-2">Setores</h2>
+              <input type="text" class="form-control mb-2" placeholder="Buscar setor..." oninput="filterSetores()" id="search-setores">
+              {{ edit_pasta_form.setores.errors }}
+              <div class="border rounded p-3 overflow-auto" style="max-height: 180px;" id="setores-list">
+                {{ edit_pasta_form.setores }}
+              </div>
+            </div>
+            <div class="mt-4">
+              <h2 class="h6 mb-2">Participantes</h2>
+              <input type="text" class="form-control mb-2" placeholder="Buscar participante ou setor..." oninput="filterParticipantes()" id="search-participantes">
+              {{ edit_pasta_form.funcionarios.errors }}
+              <div class="border rounded p-3 overflow-auto" style="max-height: 200px;" id="participantes-list">
+                {{ edit_pasta_form.funcionarios }}
+              </div>
+              <p class="text-muted small mt-2">Selecione para adicionar novos participantes ou remover quem não deve mais fazer parte.</p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-cemag">Salvar alterações</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if request.user.id == pasta.created_by.id %}
+  <div class="modal fade" id="modal-add-material" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="modal-add-material-label" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="margin-top: 60px;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="modal-add-material-label">Adicionar material</h1>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form method="post" enctype="multipart/form-data" action="{% url 'detail-pasta' pasta.pk %}" id="add-material-form">
+          {% csrf_token %}
+          <input type="hidden" name="form_type" value="add_material">
+          {{ add_material_form.pasta }}
+          <div class="modal-body">
+            {% if add_material_form.non_field_errors %}
+            <div class="alert alert-danger">
+              {{ add_material_form.non_field_errors }}
+            </div>
+            {% endif %}
+            <div class="border rounded-3 p-3 mb-3">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <div>
+                  <h2 class="h6 mb-1">Seção 1: Informações do material</h2>
+                  <p class="text-muted small mb-0">Dê um título e descreva o conteúdo.</p>
+                </div>
+                <span class="badge bg-light text-dark">1/2</span>
+              </div>
+              <div class="row">
+                <div class="col-12 mt-3">
+                  {{ add_material_form.nome.label_tag }}
+                  {{ add_material_form.nome }}
+                  {{ add_material_form.nome.errors }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-12 mt-3">
+                  {{ add_material_form.descricao.label_tag }}
+                  {{ add_material_form.descricao }}
+                  {{ add_material_form.descricao.errors }}
+                </div>
+              </div>
+            </div>
+
+            <div class="border rounded-3 p-3">
+              <div class="d-flex align-items-center justify-content-between mb-2">
+                <div>
+                  <h2 class="h6 mb-1">Seção 2: Arquivos e links</h2>
+                  <p class="text-muted small mb-0">Adicione vídeo, arquivo, fotos ou link externo.</p>
+                </div>
+                <span class="badge bg-light text-dark">2/2</span>
+              </div>
+              <div class="row">
+                <div class="col-sm-6 mt-3">
+                  {{ add_material_form.video.label_tag }}
+                  {{ add_material_form.video }}
+                  {{ add_material_form.video.errors }}
+                </div>
+                <div class="col-sm-6 mt-3">
+                  {{ add_material_form.arquivo.label_tag }}
+                  {{ add_material_form.arquivo }}
+                  {{ add_material_form.arquivo.errors }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-6 mt-3 align-content-end">
+                  {{ add_material_form.fotos.label_tag }}
+                  {{ add_material_form.fotos }}
+                  {{ add_material_form.fotos.errors }}
+                </div>
+                <div class="col-sm-6 mt-3 align-content-end">
+                  <div class="d-flex align-items-center">
+                    {{ add_material_form.arquivo_drive.label_tag }}
+                    <span class="ms-2"
+                        tabindex="0"
+                        style="cursor: pointer;"
+                        data-bs-toggle="popover"
+                        data-bs-trigger="hover focus"
+                        data-bs-placement="top"
+                        data-bs-html="true"
+                        title="Como obter o link do arquivo?"
+                        data-bs-content='<img src="/static/img/arquivo.gif" alt="Demonstração de como obter o link de um arquivo no Drive" style="max-width: 100%; height: auto; display: block;">'>
+                      <i class="fas fa-circle-info"></i>
+                    </span>
+                  </div>
+                  {{ add_material_form.arquivo_drive }}
+                  {{ add_material_form.arquivo_drive.errors }}
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-sm-6 mt-3 align-content-end">
+                  {{ add_material_form.video_youtube.label_tag }}
+                  {{ add_material_form.video_youtube }}
+                  {{ add_material_form.video_youtube.errors }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="submit" id="add-material-submit" class="btn btn-primary">
+              <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+              <span id="add-material-button-text">Salvar</span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</body>
 {% endblock %}
 
 {% block scripts %}
-<script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
-<script src="{% static 'js/drive/carregar_arquivos_drive.js' %}"></script>
-<script src="{% static 'js/drive/drive_sistema.js' %}"></script>
-{% if request.user.type == "ADM" or request.user.id == pasta.created_by.id or not materiais and pasta.pasta_drive %}
-{% else %}
-<script src="{% static 'js/contador_andamento.js' %}"></script>
-{% endif %}
 <script src="{% static 'js/visualizador.js' %}"></script>
+<script src="{% static 'js/extensoes/input_extensoes_arquivos.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const player = document.getElementById('lesson-player');
+  const titleEl = document.getElementById('lesson-title');
+  const descEl = document.getElementById('lesson-description');
+  const items = Array.from(document.querySelectorAll('.lesson-item'));
+
+  if (!player || !titleEl || !descEl || !items.length) return;
+
+  const getYoutubeId = (url) => {
+    if (!url) return null;
+    const match = url.match(/(?:v=|\/)([0-9A-Za-z_-]{11})/);
+    return match ? match[1] : null;
+  };
+
+  const renderLesson = (item) => {
+    items.forEach(li => li.classList.remove('active'));
+    item.classList.add('active');
+
+    const nome = item.dataset.nome || 'Material';
+    const desc = item.dataset.descricao || 'Sem descrição.';
+    const youtube = getYoutubeId(item.dataset.youtube);
+    const video = item.dataset.video;
+    const arquivo = item.dataset.arquivo;
+    const foto = item.dataset.foto;
+    const mime = item.dataset.mime || '';
+    const drivePreview = item.dataset.preview || '';
+
+    titleEl.textContent = nome;
+    descEl.textContent = desc;
+
+    let content = `<div class="lesson-placeholder">Material sem visualização.</div>`;
+
+    if (youtube) {
+      content = `
+        <div class="ratio ratio-16x9">
+          <iframe src="https://www.youtube.com/embed/${youtube}"
+                  frameborder="0"
+                  allowfullscreen></iframe>
+        </div>`;
+    } 
+    else if (mime.includes('spreadsheet') && (drivePreview || arquivo)) {
+      const sheetUrl = drivePreview || arquivo;
+      content = `
+        <div class="ratio ratio-16x9">
+          <iframe src="${sheetUrl}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>`;
+    }
+    else if (video || (mime && mime.startsWith('video/') && arquivo)) {
+      const videoUrl = video || arquivo;
+      if (drivePreview) {
+        content = `
+          <div class="ratio ratio-16x9">
+            <iframe src="${drivePreview}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+          </div>`;
+      } else {
+        content = `<video controls style="width:100%; border-radius:8px;">
+          <source src="${videoUrl}">
+        </video>`;
+      }
+    } 
+    else if (foto || (mime && mime.startsWith('image/') && arquivo)) {
+      const imageUrl = foto || arquivo;
+      content = `<div class="text-center">
+        <img src="${imageUrl}" style="max-width:100%; max-height:70vh; border-radius:8px;">
+      </div>`;
+    } 
+    else if (arquivo) {
+      const cleanUrl = arquivo.split("#")[0]; // remove âncoras
+      const isPdf = cleanUrl.toLowerCase().split("?")[0].endsWith(".pdf") || mime.includes('pdf');
+
+      if (isPdf) {
+        const viewerUrl = drivePreview ||
+          ("https://drive.google.com/viewerng/viewer?embedded=true&url=" +
+          encodeURIComponent(cleanUrl));
+
+        content = `
+          <div class="pdf-viewer">
+            <div class="pdf-toolbar">
+              <div class="fw-semibold">PDF</div>
+              <div class="d-flex gap-2">
+                <a class="btn btn-outline-light btn-sm btn-ghost" href="${cleanUrl}" target="_blank" rel="noopener">
+                  Abrir em nova aba
+                </a>
+              <a class="btn btn-cemag btn-sm" href="${cleanUrl}" download>
+                Baixar
+              </a>
+            </div>
+          </div>
+
+          <div class="pdf-frame">
+            <iframe src="${viewerUrl}" title="${nome}"></iframe>
+          </div>
+        </div>
+        `;
+        } else {
+        content = `
+          <div class="lesson-placeholder">
+            <p class="mb-2">Pré-visualização não disponível.</p>
+            <a class="btn btn-cemag btn-sm" href="${cleanUrl}" target="_blank" rel="noopener">Abrir / baixar arquivo</a>
+          </div>`;
+      }
+    }
+
+    player.innerHTML = content;
+  };
+
+  items.forEach(item => {
+    item.addEventListener('click', () => renderLesson(item));
+  });
+
+  renderLesson(items[0]);
+});
+</script>
+
+{% if open_add_material_modal %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modalEl = document.getElementById('modal-add-material');
+  if (!modalEl) return;
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
+});
+</script>
+{% endif %}
+{% if open_edit_pasta_modal %}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const modalEl = document.getElementById('modal-edit-pasta');
+  if (!modalEl) return;
+  const modal = new bootstrap.Modal(modalEl);
+  modal.show();
+});
+</script>
+{% endif %}
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
-    const overlayBg = document.getElementById('overlayBg');
-    const overlayImg = document.getElementById('overlayImg');
+const driveListEl = document.getElementById('drive-list');
+const driveStatusEl = document.getElementById('drive-status');
+const driveSaveBtn = document.getElementById('drive-save-btn');
+const driveSelectAllEl = document.getElementById('drive-select-all');
+let driveFiles = [];
 
-    document.querySelectorAll('.img-overlay').forEach(button => {
-        button.addEventListener('click', function () {
-            const imgUrl = this.getAttribute('data-img-url');
-            window.open(imgUrl, '_blank');
-        });
+function getCSRFToken() {
+  const el = document.querySelector('[name=csrfmiddlewaretoken]');
+  return el ? el.value : '';
+}
+
+function renderDriveList(files) {
+  if (!driveListEl) return;
+  if (!files.length) {
+    driveListEl.innerHTML = '<div class="text-muted small">Nenhum arquivo encontrado no Drive.</div>';
+    driveSaveBtn && driveSaveBtn.setAttribute('disabled', 'disabled');
+    return;
+  }
+  const rows = files.map(file => {
+    const nome = file.nome || 'Arquivo sem nome';
+    const checked = file.selecionado ? 'checked' : '';
+    return `
+      <div class="d-flex align-items-center justify-content-between border-bottom py-2 drive-file-row" data-name="${nome.toLowerCase()}">
+        <div class="d-flex align-items-center gap-2">
+          <input class="form-check-input drive-file-checkbox" type="checkbox" value="${file.id}" id="drive-${file.id}" ${checked}>
+          <label class="form-check-label" for="drive-${file.id}">${nome}</label>
+        </div>
+        <span class="text-muted small">${file.extensao || ''}</span>
+      </div>
+    `;
+  }).join('');
+  driveListEl.innerHTML = rows;
+  driveSaveBtn && driveSaveBtn.removeAttribute('disabled');
+  attachDriveCheckboxListeners();
+  updateDriveSelectAllState();
+}
+
+function attachDriveCheckboxListeners() {
+  const checkboxes = driveListEl ? driveListEl.querySelectorAll('.drive-file-checkbox') : [];
+  checkboxes.forEach(cb => cb.addEventListener('change', updateDriveSelectAllState));
+}
+
+function updateDriveSelectAllState() {
+  if (!driveListEl || !driveSelectAllEl) return;
+  const checkboxes = Array.from(driveListEl.querySelectorAll('.drive-file-checkbox'));
+  if (!checkboxes.length) return;
+  const allChecked = checkboxes.every(cb => cb.checked);
+  const anyChecked = checkboxes.some(cb => cb.checked);
+  driveSelectAllEl.checked = allChecked;
+  if (driveSaveBtn) {
+    if (anyChecked) driveSaveBtn.removeAttribute('disabled');
+    else driveSaveBtn.setAttribute('disabled', 'disabled');
+  }
+}
+
+function toggleSelectAllDrive(source) {
+  if (!driveListEl) return;
+  const checkboxes = driveListEl.querySelectorAll('.drive-file-checkbox');
+  checkboxes.forEach(cb => { cb.checked = source.checked; });
+  updateDriveSelectAllState();
+}
+
+function filterDriveFiles() {
+  if (!driveListEl) return;
+  const term = (document.getElementById('drive-search')?.value || '').toLowerCase();
+  const rows = driveListEl.querySelectorAll('.drive-file-row');
+  rows.forEach(row => {
+    const name = row.getAttribute('data-name') || '';
+    row.style.display = term && !name.includes(term) ? 'none' : '';
+  });
+}
+
+function loadDriveFiles() {
+  if (!driveListEl || !driveStatusEl) return;
+  driveStatusEl.textContent = 'Carregando arquivos do Drive...';
+  driveListEl.innerHTML = '<div class="d-flex align-items-center gap-2 text-muted"><span class="spinner-border spinner-border-sm"></span><span>Carregando...</span></div>';
+  if (driveSaveBtn) driveSaveBtn.setAttribute('disabled', 'disabled');
+
+  fetch(`/materiais/pasta/{{ pasta.pk }}/drive/`, {
+    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+  })
+    .then(resp => resp.json())
+    .then(data => {
+      if (!data.success) throw new Error(data.error || 'Erro ao carregar drive');
+      driveFiles = data.arquivos || [];
+      driveStatusEl.textContent = `${driveFiles.length} arquivo(s) encontrados`;
+      renderDriveList(driveFiles);
+    })
+    .catch(() => {
+      driveStatusEl.textContent = 'Não foi possível carregar os arquivos do Drive.';
+      driveListEl.innerHTML = '<div class="text-danger small">Erro ao carregar arquivos.</div>';
     });
-    if(overlayBg){
-        overlayBg.addEventListener('click', function () {
-            overlayBg.style.display = 'none';
-        });
-    }
-});
+}
 
-function openVideoInNewTab(url) {
-    // Verifica se o URL termina com .mp4
-    if (url.endsWith('.mp4')) {
-        // Abre o vídeo em uma nova aba
-        window.open(url, '_blank');
-    } else {
-        alert('O vídeo não está no formato MP4.');
-    }
+function salvarArquivosDrive() {
+  if (!driveListEl || !driveSaveBtn) return;
+  const selecionados = Array.from(driveListEl.querySelectorAll('.drive-file-checkbox'))
+    .filter(cb => cb.checked)
+    .map(cb => cb.value);
+
+  driveSaveBtn.setAttribute('disabled', 'disabled');
+  const originalText = driveSaveBtn.textContent;
+  driveSaveBtn.innerHTML = 'Salvando...';
+
+  const formData = new FormData();
+  selecionados.forEach(id => formData.append('arquivos[]', id));
+
+  fetch(`/materiais/pasta/{{ pasta.pk }}/drive-escolher/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCSRFToken(),
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: formData
+  })
+    .then(resp => resp.json())
+    .then(data => {
+      if (!data.success) throw new Error();
+      driveStatusEl.textContent = 'Seleção salva com sucesso.';
+      driveSaveBtn.innerHTML = 'Salvo';
+      setTimeout(() => {
+        driveSaveBtn.innerHTML = originalText;
+        driveSaveBtn.removeAttribute('disabled');
+      }, 1000);
+    })
+    .catch(() => {
+      driveStatusEl.textContent = 'Erro ao salvar seleção. Tente novamente.';
+      driveSaveBtn.innerHTML = originalText;
+      driveSaveBtn.removeAttribute('disabled');
+    });
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const driveModalEl = document.getElementById('modal-drive-materials');
+  if (driveModalEl) {
+    driveModalEl.addEventListener('shown.bs.modal', () => {
+      loadDriveFiles();
+    });
+  }
+});
+</script>
+
+<script>
+const addMaterialForm = document.getElementById('add-material-form');
+if (addMaterialForm) {
+  addMaterialForm.addEventListener('submit', function() {
+    const submitButton = document.getElementById('add-material-submit');
+    if (!submitButton) return;
+    submitButton.disabled = true;
+    const spinner = submitButton.querySelector('.spinner-border');
+    if (spinner) spinner.classList.remove('d-none');
+    const text = document.getElementById('add-material-button-text');
+    if (text) text.textContent = 'Salvando...';
+  });
 }
 </script>
 
 <script>
-    document.getElementById('avaliacao-form').addEventListener('submit', function(event) {
-        // Obtém o botão de envio
-        const submitButton = document.getElementById('submit-button');
+(function() {
+  const section = document.getElementById('course-actions');
+  const toggles = Array.from(document.querySelectorAll('.material-visualizado'));
+  {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
+  if (!section) return;
+  section.classList.remove('d-none');
+  return;
+  {% endif %}
+  if (!section || !toggles.length) return;
+  const update = () => {
+    const allChecked = toggles.every(t => t.checked);
+    section.classList.toggle('d-none', !allChecked);
+  };
+  toggles.forEach(t => t.addEventListener('change', update));
+  update();
+})();
 
-        // Substitui o conteúdo do botão pelo spinner de carregamento
-        submitButton.innerHTML = `
-            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
-            Carregando...
-        `;
-        
-        // Desativa o botão para evitar múltiplos cliques
-        submitButton.disabled = true;
+function filterParticipantes() {
+  const input = document.getElementById('search-participantes');
+  const list = document.getElementById('participantes-list');
+  if (!input || !list) return;
+  const term = input.value.toLowerCase();
+  const labels = list.querySelectorAll('label');
+  labels.forEach(label => {
+    const wrapper = label.closest('li, div');
+    if (!wrapper) return;
+    const text = label.textContent.toLowerCase();
+    wrapper.style.display = term && !text.includes(term) ? 'none' : '';
+  });
+}
+
+function filterSetores() {
+  const input = document.getElementById('search-setores');
+  const list = document.getElementById('setores-list');
+  if (!input || !list) return;
+  const term = input.value.toLowerCase();
+  const labels = list.querySelectorAll('label');
+  labels.forEach(label => {
+    const wrapper = label.closest('li, div');
+    if (!wrapper) return;
+    const text = label.textContent.toLowerCase();
+    wrapper.style.display = term && !text.includes(term) ? 'none' : '';
+  });
+}
+
+document.getElementById('avaliacao-form').addEventListener('submit', async function(event) {
+  event.preventDefault();
+
+  const form = event.currentTarget;
+  const submitButton = document.getElementById('submit-button');
+  const original = submitButton.innerHTML;
+
+  submitButton.innerHTML = `
+    <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+    Carregando...
+  `;
+  submitButton.disabled = true;
+
+  try {
+    const formData = new FormData(form);
+    const btnAvaEficacia = document.getElementById("btnAvaEficacia");
+
+    const resp = await fetch(form.action, {
+      method: 'POST',
+      body: formData,
+      headers: {
+        'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value,
+        'X-Requested-With': 'XMLHttpRequest'
+      }
     });
 
+    if (!resp.ok) throw new Error('Erro ao enviar');
+
+    // Fechar modal
+    const modalEl = document.getElementById('modal-form-avaliacao-trilha');
+    const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+    modal.hide();
+    
+    btnAvaEficacia.disabled = true;
+    btnAvaEficacia.innerHTML = 'Você ja realizou a avaliação de eficácia';
+
+    form.reset();
+
+  } catch (e) {
+    submitButton.innerHTML = original;
+    submitButton.disabled = false;
+    alert('Não foi possível enviar. Tente novamente.');
+  }
+});
+
 </script>
-
-{% if request.user.type == "ADM" or request.user.id == pasta.created_by.id %}
-{% else %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // Função para verificar se todos os checkboxes estão marcados
-        function checkAllCheckboxes() {
-            const checkboxes = document.querySelectorAll('.material-visualizado');
-            const allChecked = Array.from(checkboxes).every(checkbox => checkbox.checked);
-            const avaliacaoEficaciaDiv = document.getElementById('avaliacao_eficacia');
-
-            // Exibe ou oculta o div baseado no estado dos checkboxes
-            if (allChecked && checkboxes.length > 0) {
-                avaliacaoEficaciaDiv.style.display = 'flex';
-            } else {
-                avaliacaoEficaciaDiv.style.display = 'none';
-            }
-        }
-
-        // Adiciona event listeners aos checkboxes
-        document.querySelectorAll('.material-visualizado').forEach(checkbox => {
-            checkbox.addEventListener('change', checkAllCheckboxes);
-        });
-
-        // Verifica o estado dos checkboxes na carga inicial
-        checkAllCheckboxes();
-    });
-</script>
-{% endif %}
 
 {% endblock %}

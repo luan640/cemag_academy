@@ -2,60 +2,94 @@
 
 {% load static %}
 
-{% block title %}Lista de Participantes{% endblock %}
+{% block title %}Participantes da prova{% endblock %}
 
 {% block content %}
 
-<div class="col-md-9">
-    <h1>Participantes da Prova</h1>
-    <div class="card">    
-        <div class="card-body" style="height: 100%;">                     
-            <div class="list-group">
+<section class="page-header">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <div>
+                <p class="text-muted mb-1 small">Prova</p>
+                <h1 class="page-title mb-1">Participantes</h1>
+                <p class="page-subtitle">Acompanhe quem realizou a prova e gerencie ações.</p>
+            </div>
+            <a class="btn btn-ghost btn-sm d-flex align-items-center gap-2" href="{% url 'list-prova' prova.pasta.id %}">
+                <i class="fa-solid fa-arrow-left"></i>
+                Voltar para provas
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="py-4 py-lg-5">
+    <div class="container">
+        <div class="content-panel">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                <div>
+                    <p class="text-muted small mb-0">Prova</p>
+                    <h2 class="h6 mb-0">{{ prova.titulo }}</h2>
+                </div>
+                <span class="badge bg-light text-dark">{{ lista_participantes|length }} participantes</span>
+            </div>
+
+            <div class="exam-question-list">
                 {% for participante in lista_participantes %}
                     {% if prova.pasta.created_by.matricula != participante.matricula %}
-                    <div class="list-group-item flex-column align-items-start" style="gap: 15px;">
-                        <p>
-                            <strong>Matrícula:</strong> {{ participante.matricula }} 
-                            <strong>Nome:</strong> {{ participante.nome }}
-                        </p>
-                        <p>
-                            <strong>Status:</strong> 
-                            {% if participante.realizou_prova %}
-                                <span class="text-success">Prova realizada</span>
-                            {% else %}
-                                <span class="text-danger">Ainda não realizou a prova</span>
-                            {% endif %}
-                        </p>
+                    <article class="exam-question-card">
+                        <div class="d-flex align-items-start justify-content-between flex-wrap gap-2 mb-2">
+                            <div>
+                                <div class="fw-semibold">{{ participante.nome }}</div>
+                                <div class="text-muted small">Matrícula {{ participante.matricula }}</div>
+                            </div>
+                            <span class="badge {% if participante.realizou_prova %}bg-light text-success{% else %}bg-light text-danger{% endif %}">
+                                {% if participante.realizou_prova %}Prova realizada{% else %}Não realizou{% endif %}
+                            </span>
+                        </div>
+
                         {% if participante.realizou_prova %}
-                            <p>
-                                <strong>Nota:</strong> 
-                                <span>
-                                    {{ participante.nota }} / {{ participante.total_questoes }}
-                                </span><br>
-                                
-                                <strong>Porcentagem de Acertos:</strong> 
-                                <span>
-                                    {{ participante.porcentagem_acertos }}
-                                </span>
-                            </p>
+                            <div class="row g-2 text-muted small mb-2">
+                                <div class="col-sm-6">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Nota: <span class="fw-semibold text-dark">{{ participante.nota }} / {{ participante.total_questoes }}</span></span>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <div class="d-flex justify-content-between">
+                                        <span>Percentual: <span class="fw-semibold text-dark">{{ participante.porcentagem_acertos }}</span></span>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+
                             {% if participante.matricula == request.user.matricula %}
-                                <strong>Não poderá acessar seus próprios dados</strong>
+                                <p class="text-muted small mb-0">Não é permitido alterar seus próprios dados.</p>
                             {% else %}
-                                <a href="{% url 'refazer-prova' pk_prova=prova.pk pk_user=participante.matricula %}" class="delete-link-refazer-prova">
-                                    <button class="btn btn-primary mb-2">Refazer prova</button>
-                                </a> <!-- Descartar prova anterior -->
-                                <a href="{% url 'corrigir-prova' pk_prova=prova.pk pk_user=participante.matricula %}">
-                                    <button class="btn btn-primary mb-2">Corrigir questões dissertativas</button>
-                                </a>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <a href="{% url 'refazer-prova' pk_prova=prova.pk pk_user=participante.matricula %}" class="delete-link-refazer-prova btn btn-outline-danger btn-sm">
+                                        Refazer prova
+                                    </a>
+                                    {% if participante.contem_dissertativa %}
+                                    <a href="{% url 'corrigir-prova' pk_prova=prova.pk pk_user=participante.matricula %}" class="btn btn-cemag btn-sm">
+                                        Corrigir dissertativas
+                                    </a>
+                                    {% endif %}
+                                </div>
                             {% endif %}
+                        {% else %}
+                            <p class="text-muted small mb-0">Participante ainda não enviou esta prova.</p>
                         {% endif %}
-                    </div> 
+                    </article>
                     {% endif %}
+                {% empty %}
+                    <article class="exam-question-card">
+                        <p class="mb-0 text-muted">Nenhum participante listado.</p>
+                    </article>
                 {% endfor %}
             </div>
         </div>
     </div>
-</div>
+</section>
 
 {% endblock %}
 

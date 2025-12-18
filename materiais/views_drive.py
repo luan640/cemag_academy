@@ -106,3 +106,25 @@ def pastas_detail_drive_filtrado(request, pk):
         'arquivos': arquivos_processados
     })
 
+
+@login_required
+def selecionar_arquivos_drive(request, pk):
+    """
+    Salva os IDs dos arquivos do Drive selecionados para a pasta.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Método não permitido.'}, status=405)
+
+    pasta = get_object_or_404(Pasta, pk=pk)
+
+    if request.user.type != 'ADM' and request.user.id != pasta.created_by.id:
+        return JsonResponse({'success': False, 'error': 'Sem permissão.'}, status=403)
+
+    arquivos_ids = request.POST.getlist('arquivos[]') or request.POST.getlist('arquivos')
+
+    ArquivosDrive.objects.filter(pasta=pasta).delete()
+    for arquivo_id in arquivos_ids:
+        if arquivo_id:
+            ArquivosDrive.objects.create(pasta=pasta, id_arquivo=arquivo_id)
+
+    return JsonResponse({'success': True, 'total': len(arquivos_ids)})

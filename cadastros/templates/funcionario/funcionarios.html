@@ -1,9 +1,128 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Adicionar funcionario{% endblock %}
+{% block title %}Funcionários{% endblock %}
 
 {% block content %}
+
+<section class="page-header">
+    <div class="container">
+        <h1 class="page-title mb-1">Funcionários</h1>
+        <p class="page-subtitle">Cadastre, edite ou remova colaboradores da plataforma.</p>
+    </div>
+</section>
+
+<section class="py-4 py-lg-5">
+    <div class="container">
+        {% if messages %}
+            {% for message in messages %}
+                {% if 'funcionario' in message.tags %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+        <div id="alert-placeholder"></div>
+
+        <div class="content-panel">
+            <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 filter-toolbar">
+                <div class="input-group search-input" style="max-width: 340px;">
+                    <input class="form-control" id="filtrar_funcionario" type="text" placeholder="Pesquisar funcionário..." aria-label="Pesquisar funcionário..." value="{{ search_term|default_if_none:'' }}" />
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="button" class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#importarModal">
+                        <i class="fa-solid fa-file-excel"></i>
+                        <span>Importar</span>
+                    </button>
+                    <button type="button" class="btn btn-cemag btn-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#criarFuncionarioModal">
+                        <i class="fa-solid fa-plus"></i>
+                        <span>Novo funcionário</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="tabela-funcionarios-container">
+                {% include 'funcionario/partials/funcionarios_table.html' %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Modal: Criar Funcionário -->
+<div class="modal fade" id="criarFuncionarioModal" tabindex="-1" aria-labelledby="criarFuncionarioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content">
+            <form id="form-funcionario" method="post">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="criarFuncionarioLabel">Adicionar Funcionário</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-5">
+                            {{ form.matricula.label_tag }}
+                            {{ form.matricula }}
+                        </div>
+                        <div class="col-7">
+                            {{ form.nome.label_tag }}
+                            {{ form.nome }}
+                        </div>
+                        <div class="col-12">
+                            {{ form.setor.label_tag }}
+                            {{ form.setor }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button id="submit-edit" class="btn btn-cemag" type="submit">
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                        <span id="button-text">Salvar</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Editar Funcionário -->
+<div class="modal fade" id="editarFuncionarioModal" tabindex="-1" aria-labelledby="editarFuncionarioLabel" aria-hidden="true">
+    <div class="modal-dialog modal-md modal-dialog-centered">
+        <div class="modal-content">
+            <form id="edit-funcionario-form" method="post">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editarFuncionarioLabel">Editar Funcionário</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-5">
+                            <label for="edit_matricula" class="form-label">Matrícula</label>
+                            <input type="text" class="form-control" id="edit_matricula" name="matricula" required>
+                        </div>
+                        <div class="col-7">
+                            <label for="edit_nome" class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="edit_nome" name="nome" required>
+                        </div>
+                        <div class="col-12">
+                            <label for="edit_setor" class="form-label">Setor</label>
+                            <select class="form-control" id="edit_setor" name="setor"></select>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+                    <button class="btn btn-cemag" type="submit">Salvar alterações</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
 <style>
     #drop-zone {
@@ -16,8 +135,8 @@
         transition: background-color 0.2s, border-color 0.2s;
     }
     #drop-zone.drag-over {
-        background-color: #f0f8ff; /* Azul claro */
-        border-color: #0d6efd; /* Azul do Bootstrap */
+        background-color: #f0f8ff;
+        border-color: #0d6efd;
     }
     #file-name-display {
         margin-top: 15px;
@@ -25,76 +144,6 @@
         color: #333;
     }
 </style>
-
-<div>
-    {% if messages %}
-    {% for message in messages %}
-        {% if 'funcionario' in message.tags %}
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                {{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            </div>
-        {% endif %}
-    {% endfor %}
-    {% endif %}
-    
-    <h1>Adicionar Novo Funcionário</h1>
-    <form id="form-funcionario" method="post">
-        {% csrf_token %}
-        <div class="col-lg-8 mx-auto" style="margin-top: 50px;">
-            <div class="card">
-                <div class="card-header fw-bold">Adicionar Funcionário</div>
-                <div class="card-body">
-                    <div class="row justify-content-center align-items-end">
-                        <div class="col-sm-2 mt-4">
-                            {{ form.matricula.label_tag }}
-                            {{ form.matricula }}
-                        </div>
-                        <div class="col-sm-4 mt-4">
-                            {{ form.nome.label_tag }}
-                            {{ form.nome }}
-                        </div>
-                        <div class="col-sm-3 mt-4">
-                            {{ form.setor.label_tag }}
-                            {{ form.setor }}
-                        </div>
-                        <div class="col-sm-3 mt-4">
-                            <button id="submit-edit" class="btn btn-primary mt-4" type="submit">
-                                <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
-                                <span id="button-text">Salvar</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </form>
-</div>
-
-
-<div class="col-lg-8 mx-auto" style="margin-top: 50px;">
-    <div class="card" style="max-height: 500px;">
-        <div class="card-header fw-bold d-flex justify-content-between align-items-center">
-            <label>Lista de Funcionários</label>
-            <div>
-                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#importarModal">
-                    <i class="fa-solid fa-file-excel"></i> Importar Planilha
-                </button>
-                <input type="text" id="filtrar_funcionario" class="form-control d-inline-block" style="width: 150px; font-size: 14px;" placeholder="Filtrar...">
-            </div>
-        </div>
-        <div class="card-body" style="overflow-y: auto;">
-            <ul class="list-group" id="lista_funcionarios">
-                {% for funcionario in funcionarios %}
-                <li class="funcionarios_cadastrados list-group-item justify-content-between align-items-center" style="display: flex;">
-                    <a href="{% url 'edit-funcionario' funcionario.pk %}" class="flex-grow-1 matricula_nome" style="width: 80%;">{{ funcionario.matricula }} - {{ funcionario.nome }}</a> 
-                    <a href="{% url 'delete-funcionario' funcionario.pk %}" class="btn btn-link p-0 delete-link"><i class="fa-solid fa-trash" style="color: red;"></i></a>
-                </li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
-</div>
 
 
 <div class="modal fade" id="importarModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="importarModalLabel" aria-hidden="true">
@@ -132,10 +181,187 @@
 {% block scripts %}
 
 <script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
-<script src="{% static 'js/filtro_cadasto/cadastrar_funcionario.js' %}"></script>
 <script src="{% static 'js/form-loading/form-loading.js' %}"></script>
 
 <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const container = document.getElementById('tabela-funcionarios-container');
+    const searchInput = document.getElementById('filtrar_funcionario');
+    const createForm = document.getElementById('form-funcionario');
+    const createModalEl = document.getElementById('criarFuncionarioModal');
+    const alertPlaceholder = document.getElementById('alert-placeholder');
+    const submitBtn = document.getElementById('submit-edit');
+    const submitText = document.getElementById('button-text');
+    const submitSpinner = submitBtn ? submitBtn.querySelector('.spinner-border') : null;
+
+    function showAlert(message, type = 'success') {
+        const div = document.createElement('div');
+        div.className = `alert alert-${type} alert-dismissible fade show`;
+        div.role = 'alert';
+        div.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>`;
+        alertPlaceholder.innerHTML = '';
+        alertPlaceholder.appendChild(div);
+    }
+
+    function toggleSubmitLoading(isLoading) {
+        if (!submitBtn || !submitText || !submitSpinner) return;
+        submitBtn.disabled = isLoading;
+        submitSpinner.classList.toggle('d-none', !isLoading);
+        submitText.textContent = isLoading ? 'Salvando...' : 'Salvar';
+    }
+
+    function bindEditButtons(scope) {
+        const editButtons = scope.querySelectorAll('.btn-edit-funcionario');
+        const editForm = document.getElementById('edit-funcionario-form');
+        const editMatricula = document.getElementById('edit_matricula');
+        const editNome = document.getElementById('edit_nome');
+        const editSetor = document.getElementById('edit_setor');
+        const createSetor = document.getElementById('{{ form.setor.auto_id }}');
+
+        if (createSetor && editSetor) {
+            editSetor.innerHTML = createSetor.innerHTML;
+        }
+
+        editButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                editForm.action = btn.dataset.editUrl;
+                editMatricula.value = btn.dataset.matricula || '';
+                editNome.value = btn.dataset.nome || '';
+                if (editSetor) {
+                    editSetor.value = btn.dataset.setor || '';
+                }
+            });
+        });
+    }
+
+    function getCurrentPage() {
+        const active = container.querySelector('.pagination .active .page-link');
+        return active ? active.textContent.trim() : '1';
+    }
+
+    function buildUrl(baseUrl) {
+        const term = (searchInput?.value || '').trim();
+        if (!term) return baseUrl;
+        const separator = baseUrl.includes('?') ? '&' : '?';
+        return `${baseUrl}${separator}q=${encodeURIComponent(term)}`;
+    }
+
+    function buildDeleteUrl(href) {
+        const term = (searchInput?.value || '').trim();
+        const page = getCurrentPage();
+        const separator = href.includes('?') ? '&' : '?';
+        let url = `${href}${separator}page=${page}`;
+        if (term) {
+            url += `&q=${encodeURIComponent(term)}`;
+        }
+        return url;
+    }
+
+    async function loadPage(url) {
+        try {
+            const resp = await fetch(buildUrl(url), { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+            const data = await resp.json();
+            container.innerHTML = data.html;
+            bindEditButtons(container);
+            bindPagination();
+            bindDisableButtons(container);
+        } catch (err) {
+            console.error('Erro ao carregar página', err);
+        }
+    }
+
+    function bindPagination() {
+        const links = container.querySelectorAll('.pagination a.page-link');
+        links.forEach(link => {
+            link.addEventListener('click', (e) => {
+                const href = link.getAttribute('href');
+                if (!href || href === '#') return;
+                e.preventDefault();
+                loadPage(href);
+            });
+        });
+    }
+
+    function bindDisableButtons(scope) {
+        const disableLinks = scope.querySelectorAll('.disable-link');
+        disableLinks.forEach(link => {
+            link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                const href = link.getAttribute('href');
+                if (!href) return;
+                const confirmed = confirm('Desabilitará o funcionário e ele não terá mais acesso ao sistema. Continuar?');
+                if (!confirmed) return;
+                try {
+                    const resp = await fetch(buildDeleteUrl(href), { headers: { 'X-Requested-With': 'XMLHttpRequest' } });
+                    const data = await resp.json();
+                    if (!resp.ok || data.status !== 'ok') {
+                        throw new Error('Falha ao desabilitar funcionário');
+                    }
+                    container.innerHTML = data.html;
+                    bindEditButtons(container);
+                    bindPagination();
+                    bindDisableButtons(container);
+                    showAlert('Funcionário desabilitado com sucesso.', 'success');
+                } catch (err) {
+                    console.error(err);
+                    showAlert('Erro ao desabilitar funcionário. Tente novamente.', 'danger');
+                }
+            });
+        });
+    }
+
+    async function submitCreate(event) {
+        event.preventDefault();
+        if (!createForm) return;
+        toggleSubmitLoading(true);
+        const formData = new FormData(createForm);
+        try {
+            const resp = await fetch(buildUrl(createForm.action || window.location.pathname), {
+                method: 'POST',
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                body: formData,
+            });
+            const data = await resp.json();
+            if (!resp.ok || data.status !== 'ok') {
+                throw new Error('Erro ao salvar funcionário');
+            }
+            container.innerHTML = data.html;
+            bindEditButtons(container);
+            bindPagination();
+            bindDisableButtons(container);
+            if (createModalEl) {
+                const modal = bootstrap.Modal.getInstance(createModalEl) || new bootstrap.Modal(createModalEl);
+                modal.hide();
+            }
+            createForm.reset();
+            showAlert('Funcionário adicionado com sucesso.', 'success');
+        } catch (err) {
+            console.error(err);
+            showAlert('Erro ao adicionar funcionário. Verifique os dados e tente novamente.', 'danger');
+        } finally {
+            toggleSubmitLoading(false);
+        }
+    }
+
+    bindEditButtons(document);
+    bindPagination();
+    bindDisableButtons(document);
+
+    if (searchInput) {
+        let debounceTimer = null;
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                loadPage('?page=1');
+            }, 300);
+        });
+    }
+
+    if (createForm) {
+        createForm.addEventListener('submit', submitCreate);
+    }
+});
+
 document.addEventListener('DOMContentLoaded', function() {
     // Seletores dos elementos do DOM
     const dropZone = document.getElementById('drop-zone');

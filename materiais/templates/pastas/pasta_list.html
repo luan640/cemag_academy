@@ -2,88 +2,27 @@
 
 {% block title %}Lista trilhas{% endblock %}
 
-{% block links %}
-<style>
-    .btn-pastel {
-        background-color: #5da57c; /* Cor verde pastel */
-        color: white; /* Cor do texto */
-        border: none; /* Remover borda */
-    }
-
-    .btn-pastel:hover {
-        background-color: #41d882; /* Cor mais escura no hover */
-    }
-
-    .btn-pastel i {
-        margin-right: 5px; /* Espaço entre o ícone e o texto */
-    }
-
-    .btn-secondary-light {
-        background-color: #bdbdbd;
-        color: white; /* Cor do texto */
-    }
-
-    .btn-secondary-light:hover {
-        background-color: #bdbdbd; /* Cor mais escura no hover */
-        color: white;
-        cursor: default;
-    }
-
-    .btn-secondary-light:active {
-        background-color: #bdbdbd !important;/* Cor mais escura no hover */
-        color: white !important;
-    }
-    .notification-icon {
-        position: relative;
-        display: inline-block;
-    }
-
-    .notification-count {
-        position: absolute;
-        top: -5px;
-        right: -10px;
-        background-color: red;
-        color: white;
-        border-radius: 50%;
-        padding: 3px 7px;
-        font-size: 12px;
-        font-weight: bold;
-    }
-
-    #notification-dot {
-        position: absolute;
-        top: 6px;
-        right:-4px;
-        width: 8px;
-        height: 8px;
-        background-color: red;
-        border-radius: 50%;
-        z-index: 888;
-    }
-    #filterSection {
-        position: absolute;
-        top: 90px; /* Define a posição a partir do topo */
-        right: 0px; /* Define a posição a partir da lateral direita */
-        z-index: 1050; /* Garante que fique acima de outros elementos */
-        width: 300px; /* Largura da seção */
-    }
-</style>
-{% endblock %}
-
 {% block content %}
 
-<h1>Trilhas de aprendizado</h1>
+<section class="page-header">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+      <div>
+        <p class="text-muted mb-1 small">Trilhas</p>
+        <h1 class="page-title mb-1">Trilhas de aprendizado</h1>
+        <p class="page-subtitle">Encontre e gerencie as trilhas disponíveis.</p>
+      </div>
+      {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
+      <button class="btn btn-cemag btn-sm d-flex align-items-center gap-2" type="button" data-bs-toggle="offcanvas"
+        data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
+        <i class="fas fa-plus"></i> Adicionar trilha
+      </button>
+      {% endif %}
+    </div>
+  </div>
+</section>
 
 {% if request.user.type == 'ADM' or request.user.type == 'LID' %}
-<div class="row mb-3">
-    <div class="col-lg-8 mx-auto text-end">
-        <button class="btn btn-pastel" type="button" data-bs-toggle="offcanvas"
-            data-bs-target="#offcanvasRight" aria-controls="offcanvasRight">
-            <i class="fas fa-plus"></i> Adicionar trilha
-        </button>
-    </div>
-</div>
-
 <div class="offcanvas offcanvas-end" tabindex="-1" id="offcanvasRight"
     aria-labelledby="offcanvasRightLabel">
     <div class="offcanvas-header">
@@ -97,139 +36,157 @@
 </div>
 {% endif %}
 
-<div class="row">
-    
-    <div class="col-lg-8 mx-auto mt-4 mb-4">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <h4>Trilhas</h4>
-                <div class="flex-column text-end">
-                    <div class="input-group" style="width: 200px;">
-                        <input class="form-control" id="inputSearch" type="text" placeholder="Pesquisar trilha..." aria-label="Pesquisar trilha..." aria-describedby="btnSearch" />
-                        <button class="btn btn-primary" id="btnSearch" type="button"><i class="fas fa-search"></i></button>
-                    </div>
-                    {% if request.user.type == 'ADM' %}
-                    <button class="btn btn-light mt-2" 
-                            id="filterButton" 
-                            style="background-color: rgb(235, 235, 235); border: 1px solid #cfcfcf; font-size: 14px; border-radius: 20px;" 
-                            data-bs-toggle="collapse" 
-                            data-bs-target="#filterSection" 
-                            aria-expanded="true" 
-                            aria-controls="filterSection">
-                        <i class="fa-solid fa-filter"></i> 
-                        <span id="filterButtonText">Filtros</span>
-                        <span id="clearFilter" style="cursor: pointer; margin-left: 10px; display: none;"><i class="fa-solid fa-xmark"></i></span>
-                    </button>
-                    {% endif %}
-
-                    <!-- Seção de Filtros -->
-                    <div class="collapse" id="filterSection">
-                        <div class="card card-body shadow">
-                            <div class="mb-3">
-                                <label for="filterCategory" class="form-label">Setores:</label>
-                                <select class="form-select" id="filterCategory">
-                                    <option value="" disabled hidden selected>Selecione um setor</option>
-                                    {% for setor in setores %}
-                                        <option value="{{setor}}">{{setor}}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="creators" class="form-label">Criadores:</label>
-                                <select class="form-select" id="creators">
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body" style="max-height:600px;overflow-y: auto;">
-                <div class="list-group">
-                    {% if pastas_com_criadores %}
-                    {% for item in pastas_com_criadores %}
-                    <div class="list-group-item flex-column align-items-start trilha-item" data-setores="{{ item.setores }}">
-                        <div class="w-100">
-                            <div>
-                                <div class="d-flex justify-content-between">
-                                    <h3 class="w-75"><a href="{% url 'detail-pasta' item.pasta.pk %}" class="trilha-nome">{{ item.pasta.nome }}</a></h3>
-                                    {% if request.user.type != 'LEI' %}
-                                    <h3 class="d-flex text-end" style="gap: 20px;">
-                                        <a style="cursor: pointer;" onclick="fetchPastaDetail('{{ item.pasta.pk }}')"
-                                         data-bs-toggle="modal"  data-bs-target="#staticBackdrop{{ item.pasta.pk }}">
-                                            <div class="notification-icon" style="position: relative; display: inline-block;">
-                                                <i class="fa-solid fa-bell" style="color: #0d6efd; font-size: 20px;"></i>
-                                                {% if item.possui_avaliacao_pendente %}
-                                                    <span id="notification-dot"></span>
-                                                {% endif %}
-                                            </div>
-                                        </a>
-                                        {% if request.user.type == 'ADM' %}
-                                            {% if item.possui_avaliacao %}
-                                            <a style="cursor: pointer;" title="Trilha Avaliada pelo Gestor" href="{% url 'frequencia-pasta' item.pasta.pk %}">
-                                                <i class="fa-solid fa-users" style="color: #198754;font-size: 20px;"></i>
-                                            </a>
-                                            {% else %}
-                                            <a style="cursor: pointer;" title="Trilha Não Avaliada pelo Gestor" href="{% url 'frequencia-pasta' item.pasta.pk %}">
-                                                <i class="fa-solid fa-users" style="color: #0d6efd;font-size: 20px;"></i>
-                                            </a>
-                                            {% endif %}
-                                        {% endif %}
-                                    </h3>
-                                    {% endif %}
-                                </div>
-                                <div class="creator-name" style="color: #333; font-size: 10pt; margin-bottom: 10px;">
-                                    {{ item.criador_nome_completo }}
-                                </div>
-                                <div class="d-flex justify-content-between">
-                                    <div class="authors" style="font-style: italic; width: 70%;">
-                                        {{ item.pasta.descricao }}
-                                    </div>
-                                    {% if item.pasta.is_norma_regulamentadora %}
-                                    <div class="m-2 workload" style="color: rgb(126, 126, 126); font-size: 14px;">
-                                        Carga Horária: {{ item.pasta.carga_horaria }} horas
-                                    </div>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% include 'pastas/modal/pasta_list_avaliar_trilha.html' %}
-                    {% endfor %}
-                    {% else %}
-                    <div class="list-group-item list-group-item-action flex-column align-items-start">
-                        <div class="d-flex w-100">
-                            <div>
-                                <h3>Sem trilhas</h3>
-                            </div>
-                        </div>
-                    </div>
-                {% endif %}
-                </div>
-            </div>
+<section class="py-4 py-lg-5">
+  <div class="container">
+    <div class="content-panel">
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 filter-toolbar">
+        <div class="input-group search-input">
+          <input class="form-control" id="inputSearch" type="text" placeholder="Pesquisar trilha..." aria-label="Pesquisar trilha..." aria-describedby="btnSearch" />
+          <button class="btn btn-outline-secondary" id="btnSearch" type="button"><i class="fas fa-search"></i></button>
         </div>
+        {% if request.user.type == 'ADM' %}
+        <div class="d-flex gap-2 align-items-center">
+          <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2"
+                  id="filterButton"
+                  data-bs-toggle="collapse"
+                  data-bs-target="#filterSection"
+                  aria-expanded="false"
+                  aria-controls="filterSection">
+              <i class="fa-solid fa-filter"></i>
+              <span id="filterButtonText">Filtros</span>
+              <span id="clearFilter" class="ms-2 d-none" style="cursor: pointer;"><i class="fa-solid fa-xmark"></i></span>
+          </button>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if request.user.type == 'ADM' %}
+      <div class="collapse mb-3" id="filterSection">
+        <div class="content-panel">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label for="filterCategory" class="form-label">Setores</label>
+              <select class="form-select" id="filterCategory">
+                <option value="" disabled hidden selected>Selecione um setor</option>
+                {% for setor in setores %}
+                    <option value="{{setor}}">{{setor}}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label for="creators" class="form-label">Criadores</label>
+              <select class="form-select" id="creators"></select>
+            </div>
+            <div class="col-md-4 d-flex align-items-end">
+              <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="filterMine">
+                <label class="form-check-label" for="filterMine">
+                  Mostrar trilhas destinadas a mim
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="exams-grid">
+        {% if pastas_com_criadores %}
+          {% for item in pastas_com_criadores %}
+          <div class="exam-card trilha-item" data-setores="{{ item.setores }}" data-criador="{{ item.criador_nome_completo|lower }}" data-destinada="{{ item.destinada_ao_usuario|yesno:'true,false' }}">
+            <div class="exam-card-header d-flex justify-content-between align-items-start gap-2">
+              <div>
+                <h3 class="exam-card-title mb-1">
+                  <a href="{% url 'detail-pasta' item.pasta.pk %}" class="trilha-nome text-decoration-none text-dark">{{ item.pasta.nome }}</a>
+                </h3>
+                <p class="text-muted small mb-1 creator-name">{{ item.criador_nome_completo }}</p>
+                <p class="text-muted small mb-0">{{ item.pasta.descricao|truncatechars:100 }}</p>
+              </div>
+              {% if request.user.type != 'LEI' %}
+              <div class="d-flex flex-column align-items-end gap-2">
+                <a href="javascript:void(0);" class="btn btn-outline-secondary btn-sm" title="Ver inscritos" data-pasta-id="{{ item.pasta.pk }}" data-pasta-nome="{{ item.pasta.nome }}" onclick="openInscritosModal(event)">
+                  <i class="fa-solid fa-users"></i>
+                </a>
+                {% if request.user.type == 'ADM' %}
+                <a title="Frequência da trilha" href="{% url 'frequencia-pasta' item.pasta.pk %}" class="btn btn-outline-secondary btn-sm">
+                      <i class="fa-solid fa-clipboard-list" style="color: {% if item.possui_avaliacao %}#198754{% else %}#0d6efd{% endif %};font-size: 18px;"></i>
+                  </a>
+                {% endif %}
+              </div>
+              {% endif %}
+            </div>
+            <div class="exam-card-body">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                {% if item.pasta.is_norma_regulamentadora %}
+                <span class="badge bg-light text-dark">NR</span>
+                {% else %}
+                <span class="badge bg-light text-dark">Trilha</span>
+                {% endif %}
+                {% if item.pasta.carga_horaria %}
+                <span class="text-muted small">Carga horária: {{ item.pasta.carga_horaria }}h</span>
+                {% endif %}
+              </div>
+              {% with progresso=item.progresso|default:"0" %}
+              <div class="mb-2">
+                <div class="d-flex justify-content-between align-items-center small text-muted">
+                  <span>Progresso</span>
+                  <span class="fw-semibold text-dark">{{ progresso }}%</span>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-warning" style="width: {{ progresso }}%"></div>
+                </div>
+              </div>
+              {% endwith %}
+            </div>
+            <div class="exam-card-footer d-flex flex-column gap-2">
+              <a href="{% url 'detail-pasta' item.pasta.pk %}" class="btn btn-outline-secondary btn-sm w-100">Visualizar trilha</a>
+              {% if request.user.type == 'ADM' or request.user.id == item.pasta.created_by.id or item.progresso == 100 %}
+                <a href="{% url 'list-prova' item.pasta.pk %}" class="btn btn-cemag btn-sm w-100 btn-ambiente-prova" data-has-material="{{ item.has_material|yesno:'true,false' }}">
+                  Ir para ambiente de prova
+                </a>
+              {% else %}
+                <button class="btn btn-outline-secondary btn-sm w-100" disabled title="Conclua a trilha para liberar a prova">
+                  Ir para ambiente de prova
+                </button>
+              {% endif %}
+            </div>
+          </div>
+          {% include 'pastas/modal/pasta_list_avaliar_trilha.html' %}
+          {% endfor %}
+        {% else %}
+          <div class="exam-card">
+            <div class="exam-card-body">
+              <p class="mb-0 text-muted">Sem trilhas disponíveis.</p>
+            </div>
+          </div>
+        {% endif %}
+      </div>
     </div>
-</div>
+  </div>
+</section>
 
 {% endblock %}
 
 {% block scripts %}
 
 <script src="/static/js/lista_trilha/trilha-list.js"></script>
+<script src="/static/js/adicionar_trilha/checkbox/toggle.js"></script>
 <script src="/static/js/adicionar_trilha/filtrar_setor_funcionario.js"></script>
 <script src="/static/js/adicionar_trilha/checkbox/setores.js"></script>
-<script src="/static/js/adicionar_trilha/checkbox/toggle.js"></script>
 
 <script>
-    document.getElementById('add-trilha').addEventListener('submit', function() {
-        var submitButton = document.getElementById('submit-edit');
-        submitButton.disabled = true; // Desabilita o botão
-        submitButton.querySelector('.spinner-border').classList.remove('d-none'); // Exibe o spinner
-        document.getElementById('button-text').textContent = 'Salvando...'; // Altera o texto
+  
+  if (btnAddTrilha) {
+    btnAddTrilha.addEventListener('submit', function() {
+      var submitButton = document.getElementById('submit-edit');
+      submitButton.disabled = true;
+      submitButton.querySelector('.spinner-border').classList.remove('d-none');
+      document.getElementById('button-text').textContent = 'Salvando...';
     });
+  }
 </script>
 
-<script>
-
+<!-- <script>
     document.querySelector('form').addEventListener('submit', function(event) {
         const radios = document.querySelectorAll('input[name="valor_trabalho"]');
         let selected = false;
@@ -255,7 +212,6 @@
             const resposta_avaliacao_chefia = document.getElementById('resposta_avaliacao_chefia' + pastaPk);
             const resposta_parecer_rh = document.getElementById('resposta_parecer_rh' + pastaPk);
 
-            // Exibe os campos apenas se um colaborador for selecionado
             if (filter_collaborator) {
                 resposta_do_colaborador_selecionado.style.display = 'block';
 
@@ -278,29 +234,24 @@
     });
 
     function fetchCollaboratorData(pastaId) {
-        // Pegue o colaborador selecionado
         const collaborator = document.getElementById(`filter_collaborator${pastaId}`).value;
         const textResposta = document.getElementById(`resposta_colaborador_text${pastaId}`);
         const justificativa = document.getElementById(`justificativa_avaliacao${pastaId}`);
-        const checkboxSim = document.getElementById(`sim${pastaId}`); // Agregou valor
-        const checkboxNao = document.getElementById(`nao${pastaId}`); // Não agregou valor
+        const checkboxSim = document.getElementById(`sim${pastaId}`);
+        const checkboxNao = document.getElementById(`nao${pastaId}`);
         textResposta.innerHTML = `<p class="placeholder-glow">
                                     <span class="placeholder col-10 rounded-pill"></span>
                                   </p>`;
         justificativa.value = "";                               
         checkboxSim.checked = false;
         checkboxNao.checked = false;                           
-        // Verifique se um colaborador foi selecionado
+
         if (collaborator) {
-            // Crie a URL para o GET request
             const url = `/materiais/avaliacao/supervisor/${pastaId}/?matricula_collaborator=${collaborator}`;
 
-            // Envie o GET request usando fetch API
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    // Atualize a resposta na página com os dados retornados
-                    // Aqui você pode manipular a resposta e exibi-la na página
                     textResposta.innerHTML = "Resposta - " + data.user_name
                     document.getElementById(`resposta_do_colaborador_selecionado${pastaId}`).style.display = "block";
                     justificativa.value = data.resposta
@@ -319,14 +270,13 @@
         }
     }
 
-</script>
+</script> -->
 
 <script>
     function fetchPastaDetail(pastaId) {
-        // URL da view no backend que vai lidar com o detalhe da pasta
         const url = `${pastaId}/funcionarios-avaliaram`;
         const select = document.getElementById(`filter_collaborator${pastaId}`);
-        select.innerHTML = '<option value="" selected>Carregando...</option>'; // Reseta as opções
+        select.innerHTML = '<option value="" selected>Carregando...</option>';
         const resposta_parecer_rh = document.getElementById(`resposta_parecer_rh${pastaId}`);
         const resposta_avaliacao_chefia = document.getElementById(`resposta_avaliacao_chefia${pastaId}`);
         const resposta_do_colaborador_selecionado = document.getElementById(`resposta_do_colaborador_selecionado${pastaId}`);
@@ -339,13 +289,13 @@
         if(resposta_avaliacao_chefia){
             resposta_avaliacao_chefia.style.display = "none";
         }
-        // Fazer a requisição para a view no backend
+
         fetch(url, {
             method: 'GET',
             headers: {
-                'X-Requested-With': 'XMLHttpRequest', // Identifica que é uma requisição AJAX
+                'X-Requested-With': 'XMLHttpRequest',
                 'Content-Type': 'application/json',
-                'X-CSRFToken': getCSRFToken() // Função para obter o CSRF token
+                'X-CSRFToken': getCSRFToken()
             },
         })
         .then(response => {
@@ -355,23 +305,141 @@
             return response.json();
         })
         .then(data => {
-            // Lógica para lidar com a resposta do backend (ex.: redirecionar ou exibir detalhes)
-            select.innerHTML = '<option value="" selected>-------</option>'; // Reseta as opções
-            console.log(data.usuarios_avaliados)
+            select.innerHTML = '<option value="" selected>-------</option>';
             data.usuarios_avaliados.forEach(collaborator => {
                 const option = document.createElement('option');
-                option.value = `${collaborator.usuario__matricula}`; // ID do colaborador
-                option.textContent = `${collaborator.usuario__first_name} ${collaborator.usuario__last_name}`; // Nome completo
+                const setor = collaborator.usuario__funcionario__setor__nome || 'Sem setor';
+                option.value = `${collaborator.usuario__matricula}`;
+                option.textContent = `${collaborator.usuario__first_name} ${collaborator.usuario__last_name} - ${setor}`;
                 select.appendChild(option);
             });
         })
         .catch(error => console.error('Erro ao buscar detalhes da pasta:', error));
     }
 
-// Função para obter o CSRF token do cookie
 function getCSRFToken() {
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     return csrfToken;
 }
+
+function filterCollaborators(pastaId) {
+    const searchInput = document.getElementById(`search_collaborator${pastaId}`);
+    const select = document.getElementById(`filter_collaborator${pastaId}`);
+    if (!searchInput || !select) return;
+    const term = searchInput.value.toLowerCase();
+    Array.from(select.options).forEach(option => {
+        if (!option.value) {
+            option.hidden = false;
+            return;
+        }
+        const text = option.textContent.toLowerCase();
+        option.hidden = term && !text.includes(term);
+    });
+}
+</script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    if (!document.getElementById('inscritosTrilhaModal')) {
+        const modalHtml = `
+        <div class="modal fade" id="inscritosTrilhaModal" tabindex="-1" aria-labelledby="inscritosTrilhaModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="inscritosTrilhaModalLabel">Inscritos na trilha</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+              </div>
+              <div class="modal-body">
+                <div id="inscritosTrilhaAlert" class="alert alert-danger d-none" role="alert"></div>
+                <div id="inscritosTrilhaLoading" class="d-flex align-items-center gap-2 mb-3">
+                  <div class="spinner-border spinner-border-sm" role="status"></div>
+                  <span>Carregando inscritos...</span>
+                </div>
+                <div class="table-responsive">
+                  <table class="table table-sm align-middle mb-0">
+                    <thead>
+                      <tr>
+                        <th class="text-nowrap">Matricula</th>
+                        <th>Nome</th>
+                        <th>Setor</th>
+                      </tr>
+                    </thead>
+                    <tbody id="inscritosTrilhaBody"></tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+    }
+});
+
+function openInscritosModal(event) {
+    const button = event.currentTarget;
+    const pastaId = button.getAttribute('data-pasta-id');
+    const pastaNome = button.getAttribute('data-pasta-nome');
+    const modalEl = document.getElementById('inscritosTrilhaModal');
+    const modalTitle = document.getElementById('inscritosTrilhaModalLabel');
+    const alertEl = document.getElementById('inscritosTrilhaAlert');
+    const bodyEl = document.getElementById('inscritosTrilhaBody');
+    const loadingEl = document.getElementById('inscritosTrilhaLoading');
+
+    if (modalTitle) {
+        modalTitle.textContent = `Inscritos na trilha - ${pastaNome}`;
+    }
+    alertEl.classList.add('d-none');
+    alertEl.textContent = '';
+    bodyEl.innerHTML = '';
+    loadingEl.classList.remove('d-none');
+
+    const modal = new bootstrap.Modal(modalEl);
+    modal.show();
+
+    fetch(`/materiais/pasta/${pastaId}/inscritos/`, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Erro ao carregar inscritos');
+        }
+        return response.json();
+    })
+    .then(data => {
+        loadingEl.classList.add('d-none');
+        if (!data.inscritos || data.inscritos.length === 0) {
+            bodyEl.innerHTML = '<tr><td colspan="3" class="text-center text-muted">Nenhum inscrito encontrado.</td></tr>';
+            return;
+        }
+
+        const rows = data.inscritos.map(item => {
+            const matricula = item.matricula || '-';
+            const nome = item.nome || 'Nao informado';
+            const setor = item.setor || '-';
+            return `<tr><td class="text-nowrap">${matricula}</td><td>${nome}</td><td>${setor}</td></tr>`;
+        }).join('');
+        bodyEl.innerHTML = rows;
+    })
+    .catch(() => {
+        loadingEl.classList.add('d-none');
+        alertEl.textContent = 'Nao foi possivel carregar os inscritos desta trilha.';
+        alertEl.classList.remove('d-none');
+    });
+}
+</script>
+<script>
+document.addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn-ambiente-prova');
+  if (!btn) return;
+  const hasMaterial = btn.getAttribute('data-has-material') === 'true';
+  if (!hasMaterial) {
+    e.preventDefault();
+    alert('Adicione materiais à trilha (arquivo, vídeo ou Drive) para acessar o ambiente de prova.');
+  }
+});
 </script>
 {% endblock %}
