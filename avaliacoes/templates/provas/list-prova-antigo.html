@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% load custom_filters %}
+
+{% load static %}
+
+{% block title %}Lista trilhas{% endblock %}
+
+{% block content %}
+
+<div class="row">
+    <a style="color: black; text-decoration: none;" href="{% url 'detail-pasta' pasta.id %}"><i class="fa-solid fa-arrow-left"></i> Voltar</a>
+    <div class="col-md-7 order-2 order-md-1">
+        <h1 class="mb-4 mt-4" style="font-size: 25px;">Provas para a trilha: {{ pasta.nome }}</h1>
+        <div class="card">                   
+            <div class="list-group">
+                {% for prova in provas %}  
+                <div class="list-group-item flex-column align-items-start" style="gap: 15px;">
+                    {% with percentual_acerto=acertos_por_prova|get_item:prova.id|default_if_none:"0.00" %}
+                    {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
+                    {% else %}
+                    <p style="font-weight: 600;">Percentual de Acertos: </p>
+                    <div class="d-flex justify-content-between align-items-baseline">
+                        <div class="progress w-100 mb-4 m-4 mt-0" style="height: 0.5rem;font-weight: 700;">
+                            <div id="progressBar" class="progress-bar bg-success acertos_prova" role="progressbar" aria-valuenow="{{ percentual_acerto|floatformat:2 }}" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <p class="fw-bold" style="color: rgb(128, 128, 128);">{{ percentual_acerto|floatformat:2 }}%</p>
+                    </div>
+                    {% endif %}
+                    <div class="list-group">
+                        <div class="list-group-item">
+                            {% if prova.possui_dissertativas and not provas_corrigidas|get_item:prova.id and realizou_provas|get_item:prova.id %}
+                                {% if request.user.type != 'ADM' and request.user.id != pasta.created_by.id %}
+                                    <code style="font-weight: 600;">Aguardando correção da dissertativa</code> 
+                                {% endif %}
+                            {% endif %}
+                            <p style="font-weight: 600;">{{ prova.titulo }}</p> 
+                            <div class="row">
+                            {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
+                                <div class="col-md-6 text-center">
+                                    <a href="{% url 'deletar-prova' prova.pk %}"><button class="btn btn-dark mb-4 delete-link" type="submit" style="width: 160px;">Excluir</button></a>
+                                    <a href="{% url 'list-participantes' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Participantes</button></a>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <a href="{% url 'editar-prova' prova.pk %}"><button class="btn btn-dark mb-4" style="width: 160px;">Editar prova</button></a>
+                                    <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-light mb-4" style="width: 160px;">Visualizar prova</button></a>
+                                </div>
+                            {% else %}
+                                {% if realizou_provas|get_item:prova.id %}
+                                <div class="col-md-6">
+                                    <a href="{% url 'visualizar-prova' prova.pk 0 %}"><button class="btn btn-primary mb-4" style="width: 160px;">Visualizar prova</button></a>
+                                </div>
+                                {% else %}
+                                <div class="col-md-6">
+                                    <a href="{% url 'realizar-prova' prova.pk %}"><button class="btn btn-primary mb-4" style="width: 160px;">Realizar prova</button></a>
+                                </div>
+                                {% endif %}
+                            {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                {% endwith %}
+                </div> 
+                
+                {% empty %}
+                <a class="list-group-item list-group-item-action flex-column align-items-start" style="cursor: pointer;">
+                    <div class="d-flex w-100 justify-content-between">
+                        <div class="d-flex align-items-center" style="gap: 20px;">
+                            <i class="fa-regular fa-face-sad-cry"  style="color: #000000; width: 50px; height: auto;"></i>
+                            <h5 class="mb-1">Nenhuma prova disponível</h5>
+                        </div>
+                    </div>
+                    <p class="mb-1 mt-4">Não há provas para exibir no momento.</p>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5 order-1 order-md-2">
+        <h1 class="mb-4 mt-4" style="font-size: 25px;">Certificado</h1>
+        <div class="card">
+            <div class="card-body" style="height: 100%;">
+            {% if baixar_certificado and prova_certificada %}
+            <div class="card p-3">
+                <div>
+                    <div class="d-flex align-items-baseline" style="gap: 10px;">
+                        <div>
+                            <i class="fa-solid fa-certificate"></i>
+                        </div>
+                        <div>
+                            <strong><p style="margin: 0;">Status do certificado: </p></strong>
+                            <p style="margin: 0; font-weight: 600;"></p>
+                        </div>
+                        <form action="{% url 'gerar-certificado' %}" method="POST" target="_blank">
+                            {% csrf_token %}
+                            <input type="hidden" name="prova_id" value="{{ prova_certificada.pk }}">
+                            <input type="hidden" name="pasta_id" value="{{ pasta.pk }}">
+                            <input type="hidden" name="matricula" value="{{ request.user.matricula }}">
+                            <button class="btn btn-success" style="width: 160px;">Gerar certificado</button>
+                        </form>                      
+                    </div>
+                </div>    
+            </div>
+            {% elif request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}
+            <h5>Campo que os colaboradores vão gerar o certificado</h5>
+            {% else %}
+            <h5>Você ainda não completou todas as provas ou não atingiu o resultado esperado para gerar o certificado.</h5>
+            {% endif %}                        
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/confirm_delete_pasta.js' %}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded',function() {
+        const acertos_prova = document.querySelectorAll(".acertos_prova")
+        console.log(acertos_prova)
+        acertos_prova.forEach(element => {
+            let acertosProvaValue = element.getAttribute('aria-valuenow');
+            acertosProvaValue = parseInt(acertosProvaValue)
+            element.classList.remove('bg-success', 'bg-warning', 'bg-danger');
+            if (acertosProvaValue >= 70 && acertosProvaValue <= 100) {
+                element.classList.add('bg-success');
+                element.style.width = acertosProvaValue + '%';
+            } else if (acertosProvaValue >= 40 && acertosProvaValue < 70) {
+                element.classList.add('bg-warning');
+                element.style.width = acertosProvaValue + '%';
+            } else {
+                element.classList.add('bg-danger');
+                element.style.width = acertosProvaValue + '%'
+            }
+        });
+    })
+</script>
+
+{% endblock %}

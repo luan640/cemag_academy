@@ -10,7 +10,7 @@ from materiais.models import Pasta,Material,Visualizacao,Setor,RespostaAvaliacao
 from users.models import CustomUser
 from materiais.utils import ProgressoTrilha
 from avaliacoes.models import Prova, ProvaRealizada, Resposta, AprovacaoTrilha
-from biblioteca.models import Livro
+from biblioteca.models import Livro, Rating
 
 import time
 import numpy as np
@@ -78,48 +78,65 @@ import json
     
 @login_required
 def painel_home(request):
-
-    # funcionario = Funcionario.objects.filter(matricula=request.user.matricula)
-    funcionario, created = Funcionario.objects.get_or_create(matricula=request.user.matricula)
-
-    #Andamento de trilhas
-    #pastas que o usuario tem acesso
-    setor_do_usuario_object = Funcionario.objects.get(matricula=request.user.matricula)
-    setor_do_usuario = setor_do_usuario_object.setor
-    pastas = Pasta.objects.filter(Q(setores=setor_do_usuario) | Q(funcionarios__matricula=request.user.matricula)).distinct()
-
+    from django.db.models import Prefetch, Subquery, OuterRef, Exists
     
-    pendencias_trilhas = []
-    # Pastas concluidas pelo usuario (100% materiais vistos)
-    materiais_count = Material.objects.filter(pasta__in=pastas).values('pasta_id').annotate(total=Count('id'))
-    visualizacoes_count = Visualizacao.objects.filter(
-        funcionario__matricula=request.user.matricula,
-        material__pasta__in=pastas
-    ).values('material__pasta_id').annotate(total=Count('id'))
-    materiais_map = {m['pasta_id']: m['total'] for m in materiais_count}
-    visualizacoes_map = {v['material__pasta_id']: v['total'] for v in visualizacoes_count}
+    # Obter funcionário com setor em uma única query
+    funcionario = Funcionario.objects.select_related('setor').get_or_create(
+        matricula=request.user.matricula
+    )[0]
+    setor_do_usuario = funcionario.setor
+
+    # Pastas que o usuário tem acesso - otimizado
+    pastas = Pasta.objects.filter(
+        Q(setores=setor_do_usuario) | Q(funcionarios__matricula=request.user.matricula)
+    ).distinct().select_related('created_by')
+
+    # Otimização: Calcular pastas concluídas com annotations
+    pastas_com_counts = pastas.annotate(
+        total_materiais=Count('pasta_material', distinct=True),
+        materiais_vistos=Count(
+            'pasta_material__visualizacoes',
+            filter=Q(pasta_material__visualizacoes__funcionario=funcionario),
+            distinct=True
+        )
+    )
+    
+    # IDs das pastas concluídas (100% materiais vistos)
     pastas_concluidas_ids = [
-        pasta.id for pasta in pastas
-        if materiais_map.get(pasta.id, 0) > 0 and visualizacoes_map.get(pasta.id, 0) >= materiais_map.get(pasta.id, 0)
+        p.id for p in pastas_com_counts 
+        if p.total_materiais > 0 and p.materiais_vistos >= p.total_materiais
     ]
 
+    # Pendências de provas - otimizado com select_related
     pendencias_provas = Prova.objects.filter(
         Q(status='ativa') | Q(status=True),
-        pasta__in=pastas_concluidas_ids
-    ).exclude(provarealizada__usuario=request.user)
+        pasta_id__in=pastas_concluidas_ids
+    ).exclude(
+        provarealizada__usuario=request.user
+    ).select_related('pasta').distinct()
+
+    pendencias_trilhas = []
     pendencias_avaliacoes = []
     pendencias_correcao = []
     pendencias_aprovacao = []
+
+    # Pendências de correção e aprovação para ADM/LID
     if request.user.type in ['ADM', 'LID']:
+        # Correções pendentes - otimizado
         respostas_pendentes = Resposta.objects.filter(
             questao__tipo='dissertativa',
             corrigida=False
+        ).select_related(
+            'questao__prova__pasta',
+            'funcionario__funcionario__setor'
         )
+        
         if request.user.type == 'LID':
             respostas_pendentes = respostas_pendentes.filter(
                 funcionario__type='LEI',
                 funcionario__funcionario__setor=setor_do_usuario
             )
+        
         pendencias_correcao = list(
             respostas_pendentes.values(
                 'questao__prova_id',
@@ -128,14 +145,23 @@ def painel_home(request):
                 'funcionario__matricula',
                 'funcionario__first_name',
                 'funcionario__last_name'
-            ).annotate(total=Count('id')).order_by('-total')
+            ).annotate(total=Count('id')).order_by('-total')[:20]
         )
-        aprovacao_qs = AprovacaoTrilha.objects.filter(status='pendente')
+
+        # Aprovações pendentes - otimizado
+        aprovacao_qs = AprovacaoTrilha.objects.filter(
+            status='pendente'
+        ).select_related(
+            'usuario__funcionario__setor',
+            'pasta'
+        )
+        
         if request.user.type == 'LID':
             aprovacao_qs = aprovacao_qs.filter(
                 usuario__type='LEI',
                 usuario__funcionario__setor=setor_do_usuario
             )
+        
         pendencias_aprovacao = list(aprovacao_qs.values(
             'usuario__id',
             'usuario__matricula',
@@ -144,66 +170,133 @@ def painel_home(request):
             'pasta__id',
             'pasta__nome',
             'criado_em'
-        ).order_by('-criado_em'))
+        ).order_by('-criado_em')[:20])
+
+    # Últimas pastas do usuário - otimizado com progresso
     pastas_usuario = Pasta.objects.filter(
         Q(created_by=request.user) |
         Q(funcionarios__matricula=request.user.matricula) |
         Q(setores=setor_do_usuario)
-    ).distinct().order_by('-created_at')[:5]
+    ).distinct().select_related('created_by').annotate(
+        total_materiais=Count('pasta_material', distinct=True),
+        total_arquivos_drive=Count('arquivosdrive', distinct=True),
+        visualizacoes_count=Count(
+            'pasta_material__visualizacoes',
+            filter=Q(pasta_material__visualizacoes__funcionario=funcionario),
+            distinct=True
+        )
+    ).order_by('-created_at')[:5]
+    
+    # Calcular progresso para cada pasta
+    for pasta in pastas_usuario:
+        total = pasta.total_materiais + pasta.total_arquivos_drive
+        if total > 0:
+            pasta.progresso = int((pasta.visualizacoes_count / total) * 100)
+        else:
+            pasta.progresso = 0
+    
+    # Últimos livros
     livros = Livro.objects.order_by('-created_at')[:5]
+    
+    # Adicionar rating information para cada livro
+    for livro in livros:
+        user_rating = livro.ratings.filter(user=request.user).first()
+        ratings = livro.ratings.all()
 
-    # Últimas provas corrigidas
-    provas_realizadas = ProvaRealizada.objects.filter(usuario=request.user).select_related('prova__pasta').order_by('-data_realizacao')[:20]
+        if ratings:
+            media_ratings = sum(r.score for r in ratings) / len(ratings)
+        else:
+            media_ratings = 0 
+
+        livro.media_ratings = media_ratings
+
+        if user_rating:
+            livro.user_rating = user_rating.score
+        else:
+            livro.user_rating = 0
+
+    # Últimas provas corrigidas - OTIMIZADO (principal gargalo removido!)
+    provas_realizadas = ProvaRealizada.objects.filter(
+        usuario=request.user
+    ).select_related('prova__pasta').order_by('-data_realizacao')[:20]
+    
+    # Pré-carregar todas as informações de respostas em uma query
+    provas_ids = [pr.prova_id for pr in provas_realizadas]
+    
+    # Query otimizada: buscar todas as respostas de uma vez
+    respostas_info = Resposta.objects.filter(
+        questao__prova_id__in=provas_ids,
+        funcionario=request.user,
+        questao__tipo='dissertativa'
+    ).values('questao__prova_id').annotate(
+        total=Count('id'),
+        corrigidas=Count('id', filter=Q(corrigida=True)),
+        com_comentario=Count('id', filter=Q(comentario__isnull=False) & ~Q(comentario=''))
+    )
+    
+    # Criar mapa de respostas por prova
+    respostas_map = {r['questao__prova_id']: r for r in respostas_info}
+    
+    # Query otimizada: contar questões dissertativas por prova
+    questoes_dissertativas = Resposta.objects.filter(
+        questao__prova_id__in=provas_ids,
+        questao__tipo='dissertativa'
+    ).values('questao__prova_id').annotate(
+        total_questoes=Count('questao_id', distinct=True)
+    )
+    questoes_map = {q['questao__prova_id']: q['total_questoes'] for q in questoes_dissertativas}
+    
     provas_corrigidas_recentes = []
     for pr in provas_realizadas:
-        if pr.prova.respostas_corrigidas(request.user):
-            possui_comentario = Resposta.objects.filter(
-                questao__prova=pr.prova,
-                funcionario=request.user,
-                comentario__isnull=False
-            ).exclude(comentario='').exists()
+        prova_id = pr.prova_id
+        info = respostas_map.get(prova_id, {})
+        total_questoes = questoes_map.get(prova_id, 0)
+        
+        # Verifica se todas as questões dissertativas foram corrigidas
+        if total_questoes > 0 and info.get('corrigidas', 0) >= total_questoes:
             provas_corrigidas_recentes.append({
                 'id': pr.prova.id,
                 'titulo': pr.prova.titulo,
                 'pasta': pr.prova.pasta.nome,
                 'data': pr.data_realizacao,
-                'possui_comentario': possui_comentario,
+                'possui_comentario': info.get('com_comentario', 0) > 0,
             })
+            
+            if len(provas_corrigidas_recentes) >= 5:
+                break
 
-    provas_corrigidas_recentes = provas_corrigidas_recentes[:5]
-
-    return render(request,
-                'home.html', {
-                'funcionario':funcionario,
-                'pastas_usuario': pastas_usuario,
-                'livros': livros,
-                'pendencias_trilhas': pendencias_trilhas,
-                'pendencias_provas': pendencias_provas,
-                'pendencias_avaliacoes': pendencias_avaliacoes,
-                'pendencias_correcao': pendencias_correcao,
-                'pendencias_aprovacao': pendencias_aprovacao,
-                'provas_corrigidas_recentes': provas_corrigidas_recentes,
-            })
+    return render(request, 'home.html', {
+        'funcionario': funcionario,
+        'pastas_usuario': pastas_usuario,
+        'livros': livros,
+        'pendencias_trilhas': pendencias_trilhas,
+        'pendencias_provas': pendencias_provas,
+        'pendencias_avaliacoes': pendencias_avaliacoes,
+        'pendencias_correcao': pendencias_correcao,
+        'pendencias_aprovacao': pendencias_aprovacao,
+        'provas_corrigidas_recentes': provas_corrigidas_recentes,
+    })
 
 def ultimas_trilhas(request):
-    ultimas_trilhas = Pasta.objects.all().order_by('-created_at')[:5]
+    ultimas_trilhas = Pasta.objects.select_related('created_by').order_by('-created_at')[:5]
     html_content = render_to_string('partials/card_ultimas_trilhas.html', {
         'ultimas_trilhas': ultimas_trilhas,
     })
-
     return JsonResponse({'html': html_content})
 
 def ultimos_acessos(request):
-
     if request.user.type == 'ADM':
-        ultimos_acessos = CustomUser.objects.filter(last_login__isnull=False).order_by('-last_login')
-    else:
-        setor_funcionario = Funcionario.objects.get(matricula=request.user.matricula).setor
-        funcionarios = Funcionario.objects.filter(setor=setor_funcionario)
-        funcionarios_ids = [funcionario.matricula for funcionario in funcionarios]
-        
         ultimos_acessos = CustomUser.objects.filter(
-            matricula__in=funcionarios_ids,
+            last_login__isnull=False
+        ).order_by('-last_login')[:5]
+    else:
+        setor_funcionario = Funcionario.objects.select_related('setor').get(
+            matricula=request.user.matricula
+        ).setor
+        
+        # Otimizado: uma única query com values
+        ultimos_acessos = CustomUser.objects.filter(
+            funcionario__setor=setor_funcionario,
             last_login__isnull=False
         ).values('matricula', 'first_name', 'last_login').order_by('-last_login')[:5]
     
@@ -262,6 +355,13 @@ def load_progresso_funcionarios(request):
 @login_required
 def load_home_progress(request):
     try:
+        # Cache para melhorar performance
+        cache_key = f'home_progress_{request.user.matricula}'
+        cached_data = cache.get(cache_key)
+        
+        if cached_data:
+            return JsonResponse(cached_data)
+        
         setor_do_usuario = get_setor_do_usuario(request.user)
         pastas = get_pastas(setor_do_usuario, request.user.matricula)
         progresso_trilha_individual = calcular_progresso_trilha_individual(request.user, pastas)
@@ -276,42 +376,71 @@ def load_home_progress(request):
         'pendencias_trilhas': pendencias_trilhas,
     })
 
-    return JsonResponse({
+    result = {
         'html': html_content,
         'progresso_geral': round(progresso_geral),
         'trilhas_pendentes_count': len(pendencias_trilhas),
-    })
+    }
+    
+    # Cache por 10 minutos
+    cache.set(cache_key, result, timeout=600)
+    
+    return JsonResponse(result)
 
 @login_required
 def load_home_avaliacoes(request):
     try:
-        setor_do_usuario = get_setor_do_usuario(request.user)
-        pastas = list(get_pastas(setor_do_usuario, request.user.matricula))
-        materiais_count = Material.objects.filter(pasta__in=pastas).values('pasta_id').annotate(total=Count('id'))
-        visualizacoes_count = Visualizacao.objects.filter(
-            funcionario__matricula=request.user.matricula,
-            material__pasta__in=pastas
-        ).values('material__pasta_id').annotate(total=Count('id'))
-        materiais_map = {m['pasta_id']: m['total'] for m in materiais_count}
-        visualizacoes_map = {v['material__pasta_id']: v['total'] for v in visualizacoes_count}
-        provas_realizadas_map = set(
-            ProvaRealizada.objects.filter(usuario=request.user, prova__pasta__in=pastas).values_list('prova__pasta_id', flat=True)
+        # Cache para melhorar performance
+        cache_key = f'home_avaliacoes_{request.user.matricula}'
+        cached_data = cache.get(cache_key)
+        
+        if cached_data:
+            return JsonResponse(cached_data)
+        
+        funcionario = Funcionario.objects.select_related('setor').get(matricula=request.user.matricula)
+        setor_do_usuario = funcionario.setor
+        
+        # Otimizado: usar annotate direto
+        pastas = Pasta.objects.filter(
+            Q(setores=setor_do_usuario) | Q(funcionarios__matricula=request.user.matricula)
+        ).distinct().annotate(
+            total_materiais=Count('pasta_material', distinct=True),
+            materiais_vistos=Count(
+                'pasta_material__visualizacoes',
+                filter=Q(pasta_material__visualizacoes__funcionario=funcionario),
+                distinct=True
+            )
         )
-        pastas_finalizadas = []
-        for p in pastas:
-            total_mat = materiais_map.get(p.id, 0)
-            vistos = visualizacoes_map.get(p.id, 0)
-            progresso_ok = total_mat > 0 and vistos >= total_mat
-            if progresso_ok or p.id in provas_realizadas_map:
-                pastas_finalizadas.append(p)
-        pastas_finalizadas_ids = [p.id for p in pastas_finalizadas]
+        
+        # IDs das pastas finalizadas
+        pastas_finalizadas_ids = [
+            p.id for p in pastas 
+            if p.total_materiais > 0 and p.materiais_vistos >= p.total_materiais
+        ]
+        
+        # Também incluir pastas onde o usuário já fez prova
+        provas_realizadas_ids = set(
+            ProvaRealizada.objects.filter(
+                usuario=request.user
+            ).values_list('prova__pasta_id', flat=True)
+        )
+        
+        pastas_finalizadas_ids = list(set(pastas_finalizadas_ids) | provas_realizadas_ids)
+        
+        # IDs das avaliações já respondidas pelo usuário (buscar todas, não apenas das finalizadas)
         respondidas_ids = set(
             RespostaAvaliacaoEficacia.objects.filter(
-                usuario=request.user,
-                avaliacao_eficacia__pasta_id__in=pastas_finalizadas_ids
+                usuario=request.user
             ).values_list('avaliacao_eficacia__pasta_id', flat=True)
         )
-        pendencias_avaliacoes = [p for p in pastas_finalizadas if p.id not in respondidas_ids]
+        
+        # Pendências de avaliações
+        pendencias_avaliacoes = Pasta.objects.filter(
+            id__in=pastas_finalizadas_ids
+        ).exclude(
+            id__in=respondidas_ids
+        ).select_related('created_by')[:20]
+        
     except Funcionario.DoesNotExist:
         pendencias_avaliacoes = []
 
@@ -319,17 +448,40 @@ def load_home_avaliacoes(request):
         'pendencias_avaliacoes': pendencias_avaliacoes,
     })
 
-    return JsonResponse({
+    result = {
         'html': html_content,
-        'avaliacoes_pendentes_count': len(pendencias_avaliacoes),
-    })
+        'avaliacoes_pendentes_count': pendencias_avaliacoes.count() if hasattr(pendencias_avaliacoes, 'count') else len(pendencias_avaliacoes),
+    }
+    
+    # Cache por 10 minutos
+    cache.set(cache_key, result, timeout=600)
+    
+    return JsonResponse(result)
 
 def get_setor_do_usuario(user):
-    funcionario = Funcionario.objects.get(matricula=user.matricula)
-    return funcionario.setor
+    # Cache do setor do usuário
+    cache_key = f'setor_usuario_{user.matricula}'
+    setor = cache.get(cache_key)
+    
+    if not setor:
+        funcionario = Funcionario.objects.select_related('setor').get(matricula=user.matricula)
+        setor = funcionario.setor
+        cache.set(cache_key, setor, timeout=3600)  # Cache de 1 hora
+    
+    return setor
 
 def get_pastas(setor_do_usuario, matricula):
-    return Pasta.objects.filter(Q(setores=setor_do_usuario) | Q(funcionarios__matricula=matricula)).distinct()
+    # Cache das pastas do usuário
+    cache_key = f'pastas_usuario_{matricula}'
+    pastas = cache.get(cache_key)
+    
+    if not pastas:
+        pastas = Pasta.objects.filter(
+            Q(setores=setor_do_usuario) | Q(funcionarios__matricula=matricula)
+        ).distinct().select_related('created_by')
+        cache.set(cache_key, pastas, timeout=1800)  # Cache de 30 minutos
+    
+    return pastas
 
 def calcular_progresso_trilha_individual(user, pastas):
     cache_key = f"progresso_trilha_{user.matricula}"
@@ -360,25 +512,77 @@ def calcular_media_progresso_area_trilha(user, pastas, progresso_pasta):
     return progresso_trilha_individual_func.calcular_media_progresso_area_trilha(progresso_pasta, pastas)
 
 def get_leader_data(user):
-    setor_funcionario = Funcionario.objects.select_related('setor').get(matricula=user.matricula).setor
+    # Cache dos dados do líder
+    cache_key = f'leader_data_{user.matricula}'
+    cached_data = cache.get(cache_key)
+    
+    if cached_data:
+        return cached_data
+    
+    setor_funcionario = Funcionario.objects.select_related('setor').get(
+        matricula=user.matricula
+    ).setor
+    
     funcionarios = Funcionario.objects.filter(
         setor=setor_funcionario
-    ).select_related('setor', 'user').exclude(user__type='ADM')
-    print(funcionarios)
-    return get_progresso(funcionarios)
+    ).select_related('setor').prefetch_related('user').exclude(user__type='ADM')
+    
+    progresso_data = get_progresso(funcionarios)
+    
+    # Cache por 30 minutos
+    cache.set(cache_key, progresso_data, timeout=1800)
+    
+    return progresso_data
 
 def get_adm_data():
+    # Cache dos dados do admin
+    cache_key = 'adm_data_all'
+    cached_data = cache.get(cache_key)
+    
+    if cached_data:
+        return cached_data
+    
     funcionarios = Funcionario.objects.select_related('setor').all().order_by('nome')
-    return get_progresso(funcionarios)
+    progresso_data = get_progresso(funcionarios)
+    
+    # Cache por 30 minutos
+    cache.set(cache_key, progresso_data, timeout=1800)
+    
+    return progresso_data
 
 def get_progresso(funcionarios):
     progresso_funcionarios = {}
     pastas_cache = {}
 
+    # Otimização: pré-carregar todas as pastas de todos os setores de uma vez
+    setores_ids = list(set(f.setor_id for f in funcionarios if f.setor_id))
+    matriculas = [f.matricula for f in funcionarios]
+    
+    # Query única para buscar todas as pastas relevantes
+    todas_pastas = Pasta.objects.filter(
+        Q(setores__id__in=setores_ids) | Q(funcionarios__matricula__in=matriculas)
+    ).distinct().select_related('created_by').prefetch_related('setores', 'funcionarios')
+    
+    # Criar mapa de pastas por setor e funcionário
+    pastas_por_setor = {}
+    pastas_por_funcionario = {}
+    
+    for pasta in todas_pastas:
+        for setor in pasta.setores.all():
+            if setor.id not in pastas_por_setor:
+                pastas_por_setor[setor.id] = []
+            pastas_por_setor[setor.id].append(pasta)
+        
+        for func in pasta.funcionarios.all():
+            if func.matricula not in pastas_por_funcionario:
+                pastas_por_funcionario[func.matricula] = []
+            pastas_por_funcionario[func.matricula].append(pasta)
+
     for funcionario in funcionarios:
-        # Tente obter as pastas do cache ou chame a fun├º├úo get_pastas
-        pastas = pastas_cache.get(funcionario.setor) or get_pastas(funcionario.setor, funcionario.matricula)
-        pastas_cache[funcionario.setor] = pastas
+        # Usar pastas do cache
+        pastas_setor = pastas_por_setor.get(funcionario.setor_id, [])
+        pastas_func = pastas_por_funcionario.get(funcionario.matricula, [])
+        pastas = list(set(pastas_setor + pastas_func))
 
         # Calcular progresso
         progresso_trilha = ProgressoTrilha(funcionario, pastas)

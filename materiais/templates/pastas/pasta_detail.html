@@ -6,6 +6,14 @@
 
 {% block title %}Sala de aula{% endblock %}
 
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/smooth-navigation.css' %}">
+<link rel="preconnect" href="https://www.youtube.com">
+<link rel="preconnect" href="https://drive.google.com">
+<link rel="dns-prefetch" href="https://www.youtube.com">
+<link rel="dns-prefetch" href="https://drive.google.com">
+{% endblock %}
+
 {% block content %}
 <body class="course-player-body">
   
@@ -510,6 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="ratio ratio-16x9">
           <iframe src="https://www.youtube.com/embed/${youtube}"
                   frameborder="0"
+                  loading="lazy"
                   allowfullscreen></iframe>
         </div>`;
     } 
@@ -517,7 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const sheetUrl = drivePreview || arquivo;
       content = `
         <div class="ratio ratio-16x9">
-          <iframe src="${sheetUrl}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+          <iframe src="${sheetUrl}" frameborder="0" loading="lazy" allow="autoplay; encrypted-media" allowfullscreen></iframe>
         </div>`;
     }
     else if (video || (mime && mime.startsWith('video/') && arquivo)) {
@@ -525,10 +534,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (drivePreview) {
         content = `
           <div class="ratio ratio-16x9">
-            <iframe src="${drivePreview}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+            <iframe src="${drivePreview}" frameborder="0" loading="lazy" allow="autoplay; encrypted-media" allowfullscreen></iframe>
           </div>`;
       } else {
-        content = `<video controls style="width:100%; border-radius:8px;">
+        content = `<video controls preload="metadata" style="width:100%; border-radius:8px;">
           <source src="${videoUrl}">
         </video>`;
       }
@@ -536,7 +545,7 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (foto || (mime && mime.startsWith('image/') && arquivo)) {
       const imageUrl = foto || arquivo;
       content = `<div class="text-center">
-        <img src="${imageUrl}" style="max-width:100%; max-height:70vh; border-radius:8px;">
+        <img src="${imageUrl}" loading="lazy" style="max-width:100%; max-height:70vh; border-radius:8px;">
       </div>`;
     } 
     else if (arquivo) {
@@ -563,7 +572,7 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
 
           <div class="pdf-frame">
-            <iframe src="${viewerUrl}" title="${nome}"></iframe>
+            <iframe src="${viewerUrl}" title="${nome}" loading="lazy"></iframe>
           </div>
         </div>
         `;
@@ -597,6 +606,78 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 {% endif %}
+
+<!-- Smooth Navigation & Prefetch -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // Prefetch para links principais
+  const prefetchLinks = document.querySelectorAll('a[href*="list-pasta"], a[href*="home"], a[href*="list-prova"]');
+  
+  prefetchLinks.forEach(link => {
+    // Prefetch on hover (após 50ms para evitar prefetch excessivo)
+    let prefetchTimeout;
+    
+    link.addEventListener('mouseenter', () => {
+      prefetchTimeout = setTimeout(() => {
+        const url = link.getAttribute('href');
+        if (url && !document.querySelector(`link[rel="prefetch"][href="${url}"]`)) {
+          const prefetch = document.createElement('link');
+          prefetch.rel = 'prefetch';
+          prefetch.href = url;
+          document.head.appendChild(prefetch);
+        }
+      }, 50);
+    }, { passive: true });
+    
+    link.addEventListener('mouseleave', () => {
+      clearTimeout(prefetchTimeout);
+    }, { passive: true });
+    
+    // Feedback visual instantâneo no click
+    link.addEventListener('click', (e) => {
+      if (link.href && !e.ctrlKey && !e.metaKey) {
+        link.style.opacity = '0.6';
+      }
+    }, { passive: true });
+  });
+  
+  // Lazy loading otimizado para iframes de vídeo/embed
+  const lazyObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const iframe = entry.target;
+        if (iframe.dataset.src) {
+          iframe.src = iframe.dataset.src;
+          iframe.removeAttribute('data-src');
+          lazyObserver.unobserve(iframe);
+        }
+      }
+    });
+  }, { rootMargin: '50px' });
+  
+  // Observar iframes quando forem criados dinamicamente
+  const playerObserver = new MutationObserver(() => {
+    document.querySelectorAll('iframe[data-src]').forEach(iframe => {
+      lazyObserver.observe(iframe);
+    });
+  });
+  
+  const player = document.getElementById('lesson-player');
+  if (player) {
+    playerObserver.observe(player, { childList: true, subtree: true });
+  }
+  
+  // DNS Prefetch para serviços externos
+  const dnsPrefetch = ['https://www.youtube.com', 'https://drive.google.com'];
+  dnsPrefetch.forEach(domain => {
+    const link = document.createElement('link');
+    link.rel = 'dns-prefetch';
+    link.href = domain;
+    document.head.appendChild(link);
+  });
+});
+</script>
+
 {% if open_edit_pasta_modal %}
 <script>
 document.addEventListener('DOMContentLoaded', () => {

@@ -8,8 +8,11 @@ from django.template.loader import get_template, render_to_string
 from django.conf import settings  # Importe o módulo settings
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.views.decorators.clickjacking import xframe_options_sameorigin
+from django.views.decorators.cache import cache_page
+from django.core.cache import cache
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 from .models import Pasta,Material,Visualizacao,AvaliacaoEficacia, RespostaAvaliacaoEficacia,Certificado, ArquivosDrive
 from .utils import Drive
@@ -67,24 +70,65 @@ def pastas_add(request):
 
 @login_required
 def pastas_list(request):
+    from django.db.models import Prefetch
+    
     form = AddPasta()
     funcionario_logado = Funcionario.objects.select_related('setor').get(matricula=request.user.matricula)
     setor_do_usuario = funcionario_logado.setor
 
     # Filtrando as pastas com base no tipo de usuário logado
     if request.user.type in ['ADM', 'DIR']:
-        pastas = Pasta.objects.all().select_related('created_by').prefetch_related('setores', 'funcionarios').order_by("id")
+        pastas = Pasta.objects.all()
     elif request.user.type == 'LID':
         pastas = Pasta.objects.filter(
             Q(created_by=request.user) |
             Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
-        ).distinct().select_related('created_by').prefetch_related('setores', 'funcionarios').order_by("id")
+        ).distinct()
     else:
         pastas = Pasta.objects.filter(
             Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
-        ).distinct().select_related('created_by').prefetch_related('setores', 'funcionarios').order_by("id")
+        ).distinct()
+
+    # Otimização: Anotar counts diretamente no banco
+    from django.db.models import Count, Case, When, IntegerField, Exists, OuterRef
+    
+    pastas = pastas.select_related('created_by').prefetch_related('setores', 'funcionarios').annotate(
+        total_materiais=Count('pasta_material', distinct=True),
+        total_arquivos_drive=Count('arquivosdrive', distinct=True),
+        visualizacoes_count=Count(
+            'pasta_material__visualizacoes',
+            filter=Q(pasta_material__visualizacoes__funcionario=funcionario_logado),
+            distinct=True
+        )
+    ).order_by("id")
+    
+    # Aplicar filtros do backend (antes da paginação)
+    search_query = request.GET.get('search', '').strip()
+    setor_filter = request.GET.get('setor', '').strip()
+    creator_filter = request.GET.get('criador', '').strip()
+    only_mine = request.GET.get('minhas', '').lower() == 'true'
+    
+    if search_query:
+        pastas = pastas.filter(
+            Q(nome__icontains=search_query) | 
+            Q(created_by__first_name__icontains=search_query) |
+            Q(created_by__last_name__icontains=search_query)
+        )
+    
+    if setor_filter:
+        pastas = pastas.filter(setores__nome=setor_filter)
+    
+    if creator_filter:
+        pastas = pastas.filter(created_by_id=creator_filter)
+    
+    if only_mine:
+        pastas = pastas.filter(
+            Q(created_by=request.user) |
+            Q(funcionarios__matricula=request.user.matricula) |
+            Q(setores=setor_do_usuario)
+        ).distinct()
 
     # Obter as avaliações pendentes de forma otimizada
     if request.user.type == 'ADM':
@@ -116,43 +160,60 @@ def pastas_list(request):
     )
 
     # Pegar os nomes dos funcionários associados a cada pasta e verificar avaliações pendentes
-    pastas_com_funcionarios = [
-        {
+    pastas_com_funcionarios = []
+    for pasta in pastas:
+        # Usar os dados já anotados
+        total_materiais = pasta.total_materiais + pasta.total_arquivos_drive
+        
+        if total_materiais > 0:
+            progresso = int((pasta.visualizacoes_count / total_materiais) * 100)
+        else:
+            progresso = 0
+        
+        pastas_com_funcionarios.append({
             'pasta': pasta,
-            'setores': [setor.nome for setor in pasta.setores.all()],
+            'setores': [setor.nome for setor in pasta.setores.all()],  # Já prefetched
             'criador_nome_completo': f"{pasta.created_by.first_name} {pasta.created_by.last_name}",
             'possui_avaliacao_pendente': pasta.id in pastas_com_avaliacao_pendente,
-            'possui_avaliacao': pasta.id in pastas_com_avaliacao,  # Verifica se a pasta possui AvaliacaoEficacia
+            'possui_avaliacao': pasta.id in pastas_com_avaliacao,
             'destinada_ao_usuario': (
                 pasta.created_by_id == request.user.id
-                or any(func.matricula == request.user.matricula for func in pasta.funcionarios.all())
-                or any(setor.id == setor_do_usuario.id for setor in pasta.setores.all())
+                or any(func.matricula == request.user.matricula for func in pasta.funcionarios.all())  # Já prefetched
+                or any(setor.id == setor_do_usuario.id for setor in pasta.setores.all())  # Já prefetched
             ),
-            'progresso': int(
-                (
-                    Visualizacao.objects.filter(pasta=pasta, funcionario=funcionario_logado)
-                    .values('material_id')
-                    .distinct()
-                    .count()
-                    / Material.objects.filter(pasta=pasta).count()
-                ) * 100
-            ) if Material.objects.filter(pasta=pasta).count() > 0 else 0,
-            'has_material': Material.objects.filter(pasta=pasta).exists() or ArquivosDrive.objects.filter(pasta=pasta).exists(),
-        }
-        for pasta in pastas
-    ]
+            'progresso': progresso,
+            'has_material': total_materiais > 0,
+        })
 
     # Levando setores para filtro
     setores = Setor.objects.all().order_by('nome')
+    
+    # Paginação: 9 trilhas por página
+    paginator = Paginator(pastas_com_funcionarios, 9)
+    page_number = request.GET.get('page', 1)
+    
+    try:
+        page_obj = paginator.get_page(page_number)
+    except PageNotAnInteger:
+        page_obj = paginator.get_page(1)
+    except EmptyPage:
+        page_obj = paginator.get_page(paginator.num_pages)
 
     return render(request, 'pastas/pasta_list.html', {
-        'pastas_com_criadores': pastas_com_funcionarios,
+        'pastas_com_criadores': page_obj,
+        'page_obj': page_obj,
         'form': form,
-        'setores':setores
+        'setores':setores,
+        'search_query': search_query,
+        'setor_filter': setor_filter,
+        'creator_filter': creator_filter,
+        'only_mine': only_mine,
     })
 
 @login_required
 def pastas_list_async(request):
+    from django.db.models import Count
+    
     funcionario_logado = Funcionario.objects.select_related('setor').get(matricula=request.user.matricula)
     setor_do_usuario = funcionario_logado.setor
     page = int(request.GET.get('page', 1))
@@ -164,18 +225,18 @@ def pastas_list_async(request):
     mine_filter = request.GET.get('mine') == 'true'
 
     if request.user.type in ['ADM', 'DIR']:
-        pastas = Pasta.objects.all().select_related('created_by').prefetch_related('setores', 'funcionarios').order_by("id")
+        pastas = Pasta.objects.all()
     elif request.user.type == 'LID':
         pastas = Pasta.objects.filter(
             Q(created_by=request.user) |
             Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
-        ).distinct().select_related('created_by').prefetch_related('setores', 'funcionarios').order_by("id")
+        ).distinct()
     else:
         pastas = Pasta.objects.filter(
             Q(setores=setor_do_usuario) |
             Q(funcionarios__matricula=request.user.matricula)
-        ).distinct().select_related('created_by').prefetch_related('setores', 'funcionarios').order_by("id")
+        ).distinct()
 
     if search:
         pastas = pastas.filter(
@@ -195,34 +256,63 @@ def pastas_list_async(request):
             Q(setores=setor_do_usuario)
         )
 
+    # Otimização: Anotar counts diretamente no banco antes de paginar
+    pastas = pastas.select_related('created_by').prefetch_related('setores', 'funcionarios').annotate(
+        total_materiais=Count('pasta_material', distinct=True),
+        total_arquivos_drive=Count('arquivosdrive', distinct=True),
+        visualizacoes_count=Count(
+            'pasta_material__visualizacoes',
+            filter=Q(pasta_material__visualizacoes__funcionario=funcionario_logado),
+            distinct=True
+        )
+    ).order_by("id")
+
     total = pastas.count()
     pastas_page = pastas[offset:offset+limit]
 
-    pastas_com_funcionarios = [
-        {
+    # Obter avaliações pendentes e com avaliação apenas para as pastas da página
+    pasta_ids = [pasta.id for pasta in pastas_page]
+    
+    avaliacoes_pendentes_dict = {}
+    if request.user.type == 'ADM':
+        avaliacoes_pendentes_dict = set(
+            AvaliacaoEficacia.objects.filter(
+                pasta_id__in=pasta_ids,
+                avaliado_rh=False
+            ).values_list('pasta_id', flat=True)
+        )
+    
+    avaliacoes_usuario_dict = set(
+        AvaliacaoEficacia.objects.filter(
+            usuario_id=request.user.id,
+            pasta_id__in=pasta_ids
+        ).values_list('pasta_id', flat=True)
+    )
+
+    pastas_com_funcionarios = []
+    for pasta in pastas_page:
+        # Usar os dados já anotados
+        total_materiais = pasta.total_materiais + pasta.total_arquivos_drive
+        
+        if total_materiais > 0:
+            progresso = int((pasta.visualizacoes_count / total_materiais) * 100)
+        else:
+            progresso = 0
+        
+        pastas_com_funcionarios.append({
             'pasta': pasta,
-            'setores': [setor.nome for setor in pasta.setores.all()],
+            'setores': [setor.nome for setor in pasta.setores.all()],  # Já prefetched
             'criador_nome_completo': f"{pasta.created_by.first_name} {pasta.created_by.last_name}",
-            'possui_avaliacao_pendente': AvaliacaoEficacia.objects.filter(pasta=pasta, avaliado_rh=False).exists() if request.user.type == 'ADM' else False,
-            'possui_avaliacao': AvaliacaoEficacia.objects.filter(usuario_id=request.user.id, pasta=pasta).exists(),
+            'possui_avaliacao_pendente': pasta.id in avaliacoes_pendentes_dict,
+            'possui_avaliacao': pasta.id in avaliacoes_usuario_dict,
             'destinada_ao_usuario': (
                 pasta.created_by_id == request.user.id
-                or any(func.matricula == request.user.matricula for func in pasta.funcionarios.all())
-                or any(setor.id == setor_do_usuario.id for setor in pasta.setores.all())
+                or any(func.matricula == request.user.matricula for func in pasta.funcionarios.all())  # Já prefetched
+                or any(setor.id == setor_do_usuario.id for setor in pasta.setores.all())  # Já prefetched
             ),
-            'progresso': int(
-                (
-                    Visualizacao.objects.filter(pasta=pasta, funcionario=funcionario_logado)
-                    .values('material_id')
-                    .distinct()
-                    .count()
-                    / Material.objects.filter(pasta=pasta).count()
-                ) * 100
-            ) if Material.objects.filter(pasta=pasta).count() > 0 else 0,
-            'has_material': Material.objects.filter(pasta=pasta).exists() or ArquivosDrive.objects.filter(pasta=pasta).exists(),
-        }
-        for pasta in pastas_page
-    ]
+            'progresso': progresso,
+            'has_material': total_materiais > 0,
+        })
 
     html_content = render_to_string('pastas/partials/pasta_cards.html', {'pastas_com_criadores': pastas_com_funcionarios, 'request': request})
 
@@ -334,10 +424,15 @@ def funcionarios_avaliaram(request, pk):
 
 @login_required
 def pastas_detail(request, pk):
-    pasta = get_object_or_404(Pasta, pk=pk)
-    add_material_form = AddMaterial(initial={'pasta': pasta})
+    # Otimização: select_related para evitar query extra
+    pasta = get_object_or_404(
+        Pasta.objects.select_related('created_by', 'area_trilha'),
+        pk=pk
+    )
+    
+    add_material_form = None
     open_add_material_modal = False
-    edit_pasta_form = AddPasta(instance=pasta)
+    edit_pasta_form = None
     open_edit_pasta_modal = False
     drive_materiais = []
 
@@ -374,43 +469,75 @@ def pastas_detail(request, pk):
             return redirect('detail-pasta', pk=pasta.pk)
         else:
             open_edit_pasta_modal = True
-    avaliacao_eficacia = AvaliacaoEficacia.objects.filter(pasta=pasta, usuario=request.user)
-    resposta_avaliacao_eficacia = RespostaAvaliacaoEficacia.objects.filter(avaliacao_eficacia__in=avaliacao_eficacia)
-
-    existe_avaliacao_eficacia = resposta_avaliacao_eficacia.exists()
     
+    # Otimização: Query única para verificar avaliação de eficácia
+    existe_avaliacao_eficacia = RespostaAvaliacaoEficacia.objects.filter(
+        avaliacao_eficacia__pasta=pasta,
+        avaliacao_eficacia__usuario=request.user
+    ).exists()
+    
+    # Otimização: Buscar materiais com visualização em uma query otimizada
     visualizado_sub = Visualizacao.objects.filter(
         funcionario__matricula=request.user.matricula,
         material=OuterRef('pk')
     )
-    materiais = Material.objects.filter(pasta=pasta).annotate(
+    materiais = Material.objects.filter(pasta=pasta).select_related(
+        'created_by'
+    ).annotate(
         foi_visualizado=Exists(visualizado_sub)
     ).order_by("id")
+    
     total_materiais = materiais.count()
 
-    # Arquivos do Drive selecionados para esta pasta
+    # Otimização: Cache da lista de arquivos do Drive
     if pasta.pasta_drive:
-        drive = Drive()
-        drive_id = drive.extrair_id_drive(pasta.pasta_drive)
-        selecionados_ids = list(
-            ArquivosDrive.objects.filter(pasta=pasta).values_list('id_arquivo', flat=True)
-        )
-        if drive_id and selecionados_ids:
-            arquivos_drive = drive.listar_arquivos_pasta(drive_id)
-            for arquivo in arquivos_drive:
-                file_id = arquivo.get('id')
-                if not file_id or file_id not in selecionados_ids:
-                    continue
-                drive_materiais.append({
-                    'id': file_id,
-                    'nome': arquivo.get('name') or 'Arquivo do Drive',
-                    'tipo': arquivo.get('mimeType'),
-                    'extensao': arquivo.get('fileExtension'),
-                    'mime': arquivo.get('mimeType'),
-                    'link_download': reverse('download_drive_file', args=[file_id]),
-                    'preview': f'https://drive.google.com/file/d/{file_id}/preview',
-                })
-            total_materiais += 1
+        cache_key = f'drive_materiais_detail_{pasta.pk}'
+        drive_materiais = cache.get(cache_key)
+        
+        if drive_materiais is None:
+            drive = Drive()
+            drive_id = drive.extrair_id_drive(pasta.pasta_drive)
+            selecionados_ids = set(
+                ArquivosDrive.objects.filter(pasta=pasta).values_list('id_arquivo', flat=True)
+            )
+            
+            if drive_id and selecionados_ids:
+                try:
+                    arquivos_drive = drive.listar_arquivos_pasta(drive_id)
+                    drive_materiais = []
+                    
+                    for arquivo in arquivos_drive:
+                        file_id = arquivo.get('id')
+                        if not file_id or file_id not in selecionados_ids:
+                            continue
+                        
+                        drive_materiais.append({
+                            'id': file_id,
+                            'nome': arquivo.get('name') or 'Arquivo do Drive',
+                            'tipo': arquivo.get('mimeType'),
+                            'extensao': arquivo.get('fileExtension'),
+                            'mime': arquivo.get('mimeType'),
+                            'link_download': reverse('download_drive_file', args=[file_id]),
+                            'preview': f'https://drive.google.com/file/d/{file_id}/preview',
+                        })
+                    
+                    # Cache por 10 minutos
+                    cache.set(cache_key, drive_materiais, timeout=600)
+                except Exception as e:
+                    print(f"Erro ao buscar arquivos do Drive: {e}")
+                    drive_materiais = []
+            else:
+                drive_materiais = []
+        
+        if drive_materiais:
+            total_materiais += len(drive_materiais)
+
+    # Só instancia forms quando necessário (GET ou quando há erro)
+    if add_material_form is None:
+        add_material_form = AddMaterial(initial={'pasta': pasta})
+    
+    if edit_pasta_form is None:
+        edit_pasta_form = AddPasta(instance=pasta)
 
     return render(request, 'pastas/pasta_detail.html', {
         'pasta': pasta,

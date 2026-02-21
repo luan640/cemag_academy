@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Provas pendentes{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+            <div>
+                <p class="text-muted mb-1 small">Provas</p>
+                <h1 class="page-title mb-1">Pendentes</h1>
+                <p class="page-subtitle">Escolha uma prova para realizar.</p>
+            </div>
+            <a class="btn btn-ghost btn-sm d-flex align-items-center gap-2" href="{% url 'home' %}">
+                <i class="fa-solid fa-arrow-left"></i>
+                Voltar para início
+            </a>
+        </div>
+    </div>
+</section>
+
+<section class="py-4 py-lg-5">
+    <div class="container">
+        <div class="section-head">
+            <div>
+                <h2 class="section-title h5 mb-1">Provas disponíveis para você</h2>
+                <p class="section-subtitle mb-0">Provas ativas que ainda não foram realizadas.</p>
+            </div>
+            <span class="badge bg-light text-dark">{{ provas_pendentes|length }} pendentes</span>
+        </div>
+
+        <div class="exams-grid">
+            {% for prova in provas_pendentes %}
+            <div class="exam-card">
+                <div class="exam-card-header">
+                    <div class="exam-badge available">Disponível</div>
+                    <h3 class="exam-card-title">{{ prova.titulo }}</h3>
+                    <p class="text-muted small mb-0">Trilha: {{ prova.pasta.nome }}</p>
+                </div>
+                <div class="exam-card-body">
+                    <div class="exam-details">
+                        <div class="exam-detail-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"/>
+                                <polyline points="12 6 12 12 16 14"/>
+                            </svg>
+                            <span>{{ prova.questao_prova.count }} questões</span>
+                        </div>
+                        <div class="exam-detail-item">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2v20M2 12h20"/>
+                            </svg>
+                            <span>Nota mínima: {{ prova.nota_minima|floatformat:0 }}%</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="exam-card-footer">
+                    <a class="btn btn-cemag btn-block" href="{% url 'realizar-prova' prova.pk %}">
+                        Realizar prova
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="exam-card">
+                <div class="exam-card-body">
+                    <p class="mb-0 text-muted">Você não possui provas pendentes no momento.</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

@@ -4,13 +4,11 @@ document.addEventListener('DOMContentLoaded', function() {
     checkboxes.forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const livroId = this.dataset.livroId;
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
             fetch(this.dataset.url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrfToken
                 },
                 body: new URLSearchParams({
                     'livro_id': livroId

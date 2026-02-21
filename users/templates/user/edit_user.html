@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Editar Usuario{% endblock %}
+
+{% block content %}
+
+<section class="page-header">
+  <div class="container">
+    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+      <div>
+        <p class="text-muted mb-1 small">Cadastros</p>
+        <h1 class="page-title mb-1">Editar usuario</h1>
+        <p class="page-subtitle">Atualize dados de acesso e perfil.</p>
+      </div>
+      <a class="btn btn-ghost btn-sm d-flex align-items-center gap-2" href="{% url 'create-user' %}">
+        <i class="fa-solid fa-arrow-left"></i>
+        Voltar para usuarios
+      </a>
+    </div>
+  </div>
+</section>
+
+<section class="py-4 py-lg-5">
+  <div class="container">
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{% if message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show" role="alert">
+      {{ message }}
+      <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="content-panel">
+      <div class="mb-3">
+        <div class="fw-semibold">{{ usuario.first_name }} {{ usuario.last_name }}</div>
+        <div class="text-muted small">Matricula: {{ usuario.matricula }}</div>
+      </div>
+      <form method="post">
+        {% csrf_token %}
+        <div class="row">
+          <div class="col-sm-6 mt-3">
+            {{ form.email.label_tag }}
+            {{ form.email }}
+          </div>
+          <div class="col-sm-3 mt-3">
+            {{ form.type.label_tag }}
+            {{ form.type }}
+          </div>
+          <div class="col-sm-3 mt-3">
+            {{ form.is_active.label_tag }}
+            {{ form.is_active }}
+          </div>
+        </div>
+        <div class="d-flex justify-content-end mt-3">
+          <button class="btn btn-cemag" type="submit">Salvar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>
+
+{% endblock %}

@@ -284,8 +284,13 @@ def importar_funcionarios(request):
     setor_atual = None
     erros = []
 
-    for row in ws.iter_rows(min_row=8, values_only=True): # values_only=True é mais rápido
-        codigo, nome = row[0], row[1]
+    for row in ws.iter_rows(min_row=2, values_only=True): # Começa na linha 2 (linha 1 reservada para cabeçalhos)
+        # Pular linhas vazias ou incompletas
+        if not row or all(cell is None or str(cell).strip() == '' for cell in row):
+            continue
+        
+        codigo = row[0] if len(row) > 0 else None
+        nome = row[1] if len(row) > 1 else None
 
         if codigo and ' - ' in str(codigo) and '.' in str(codigo).split(' - ')[0]:
             setor_nome = str(codigo).split('-')[-1].strip().upper()
@@ -420,3 +425,86 @@ def importar_funcionarios(request):
         'novos_usuarios_criados': len(users_para_criar),
         'erros': erros,
     }, status=200)
+
+@login_required
+def download_template_funcionarios(request):
+    """Gera e retorna um arquivo Excel template para importação de funcionários."""
+    from django.http import HttpResponse
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+    
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Funcionários"
+    
+    # Estilos
+    header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+    header_font = Font(bold=True, color="FFFFFF", size=12)
+    setor_fill = PatternFill(start_color="E7E6E6", end_color="E7E6E6", fill_type="solid")
+    setor_font = Font(bold=True, size=11)
+    border = Border(
+        left=Side(style='thin'),
+        right=Side(style='thin'),
+        top=Side(style='thin'),
+        bottom=Side(style='thin')
+    )
+    
+    # Linha 1: Cabeçalhos
+    ws['A1'] = "Código"
+    ws['B1'] = "Nome"
+    ws['A1'].fill = header_fill
+    ws['A1'].font = header_font
+    ws['A1'].alignment = Alignment(horizontal="center", vertical="center")
+    ws['A1'].border = border
+    ws['B1'].fill = header_fill
+    ws['B1'].font = header_font
+    ws['B1'].alignment = Alignment(horizontal="center", vertical="center")
+    ws['B1'].border = border
+    
+    # Exemplos
+    exemplos = [
+        # Setor TI
+        ("1.1 - TI", "", setor_fill, setor_font),
+        ("001234", "João Silva Santos", None, None),
+        ("005678", "Maria Oliveira Costa", None, None),
+        ("009012", "Carlos Pereira Lima", None, None),
+        # Setor RH
+        ("2.1 - RH", "", setor_fill, setor_font),
+        ("012345", "Ana Paula Rodrigues", None, None),
+        ("016789", "Pedro Henrique Alves", None, None),
+        # Setor Financeiro
+        ("3.1 - FINANCEIRO", "", setor_fill, setor_font),
+        ("020123", "Juliana Santos Oliveira", None, None),
+        ("024567", "Roberto Carlos Souza", None, None),
+    ]
+    
+    linha_atual = 2
+    for codigo, nome, fill, font in exemplos:
+        ws[f'A{linha_atual}'] = codigo
+        ws[f'B{linha_atual}'] = nome if nome else ""
+        
+        if fill:
+            ws[f'A{linha_atual}'].fill = fill
+            ws[f'B{linha_atual}'].fill = fill
+        if font:
+            ws[f'A{linha_atual}'].font = font
+            ws[f'B{linha_atual}'].font = font
+        
+        ws[f'A{linha_atual}'].border = border
+        ws[f'B{linha_atual}'].border = border
+        ws[f'A{linha_atual}'].alignment = Alignment(vertical="center")
+        ws[f'B{linha_atual}'].alignment = Alignment(vertical="center")
+        
+        linha_atual += 1
+    
+    # Ajustar largura das colunas
+    ws.column_dimensions['A'].width = 20
+    ws.column_dimensions['B'].width = 35
+    
+    # Preparar resposta HTTP
+    response = HttpResponse(
+        content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    )
+    response['Content-Disposition'] = 'attachment; filename="template_funcionarios.xlsx"'
+    wb.save(response)
+    
+    return response

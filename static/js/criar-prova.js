@@ -7,11 +7,17 @@ function adicionarQuestao() {
 
     const questaoDiv = document.createElement('div');
     questaoDiv.className = 'questao exam-question-card';
+    questaoDiv.setAttribute('data-questao-index', questaoIndex);
     questaoDiv.innerHTML = `
+        <div class="d-flex justify-content-between align-items-start mb-3">
+            <h5 class="mb-0">Questão ${questaoIndex + 1}</h5>
+            <button class="btn btn-outline-danger btn-sm" type="button" onclick="excluirQuestao(this)" title="Excluir esta questão">
+                <i class="fa-solid fa-trash"></i>
+            </button>
+        </div>
         <div class="row">
-            <h5>Questao</h5>
             <div class="col-sm-6 mb-4">
-                <label for="questao-${questaoIndex}-enunciado">Enunciado da questao</label>
+                <label for="questao-${questaoIndex}-enunciado">Enunciado da questão</label>
                 <textarea class="form-control" id="questao-${questaoIndex}-enunciado" name="questoes[${questaoIndex}][enunciado]" required></textarea>
             </div>
             <div class="col-sm-5 mb-4">
@@ -27,13 +33,33 @@ function adicionarQuestao() {
             <h5>Alternativas</h5>
             <div class="d-flex flex-wrap gap-2 mb-3">
                 <button class="btn btn-outline-secondary btn-sm" type="button" onclick="adicionarAlternativa(${questaoIndex})">Adicionar alternativa</button>
-                <button class="btn btn-outline-danger btn-sm" type="button" onclick="excluirUltimaAlternativa(${questaoIndex})">Excluir ultima alternativa</button>
+                <button class="btn btn-outline-danger btn-sm" type="button" onclick="excluirUltimaAlternativa(${questaoIndex})">Excluir última alternativa</button>
             </div>
             <div class="alternativas"></div>
         </div>
         <hr>
     `;
     questoesContainer.appendChild(questaoDiv);
+    atualizarNumeracaoQuestoes();
+}
+
+function excluirQuestao(botaoElement) {
+    const questoesContainer = document.getElementById('questoes-container');
+    const totalQuestoes = questoesContainer.children.length;
+    
+    if (totalQuestoes > 1) {
+        // Confirmação antes de excluir
+        if (confirm('Tem certeza que deseja excluir esta questão?')) {
+            // Remove a questão específica
+            const questaoDiv = botaoElement.closest('.questao');
+            questaoDiv.remove();
+            
+            // Atualiza a numeração e os índices
+            atualizarNumeracaoQuestoes();
+        }
+    } else {
+        alert("É necessário ter pelo menos uma questão na prova.");
+    }
 }
 
 function excluirUltimaQuestao() {
@@ -41,33 +67,128 @@ function excluirUltimaQuestao() {
     const totalQuestoes = questoesContainer.children.length;
     
     if (totalQuestoes > 1) {
-        // Remove a ultima questao criada
-        questoesContainer.lastChild.remove();
+        if (confirm('Tem certeza que deseja excluir a última questão?')) {
+            questoesContainer.lastChild.remove();
+            atualizarNumeracaoQuestoes();
+        }
     } else {
-        alert("Nao ha mais questoes para remover.");
+        alert("É necessário ter pelo menos uma questão na prova.");
     }
 }
 
-// Certifique-se de que as alternativas tem IDs e names unicos
+function atualizarNumeracaoQuestoes() {
+    const questoesContainer = document.getElementById('questoes-container');
+    const questoes = questoesContainer.querySelectorAll('.questao');
+    
+    questoes.forEach((questaoDiv, novoIndex) => {
+        // Atualiza o atributo data
+        questaoDiv.setAttribute('data-questao-index', novoIndex);
+        
+        // Atualiza o título da questão
+        const tituloQuestao = questaoDiv.querySelector('h5');
+        if (tituloQuestao) {
+            tituloQuestao.textContent = `Questão ${novoIndex + 1}`;
+        }
+        
+        // Atualiza os IDs e names dos elementos
+        const enunciado = questaoDiv.querySelector('textarea');
+        if (enunciado) {
+            enunciado.id = `questao-${novoIndex}-enunciado`;
+            enunciado.name = `questoes[${novoIndex}][enunciado]`;
+        }
+        
+        const tipoSelect = questaoDiv.querySelector('select');
+        if (tipoSelect) {
+            tipoSelect.id = `questao-${novoIndex}-tipo`;
+            tipoSelect.name = `questoes[${novoIndex}][tipo]`;
+            tipoSelect.setAttribute('onchange', `selecionarTipoQuestao(this, ${novoIndex})`);
+        }
+        
+        // Atualiza o container de alternativas
+        const alternativasContainer = questaoDiv.querySelector('[id^="alternativas-container-"]');
+        if (alternativasContainer) {
+            alternativasContainer.id = `alternativas-container-${novoIndex}`;
+            
+            // Atualiza os botões de adicionar/excluir alternativas
+            const btnAdicionar = alternativasContainer.querySelector('button[onclick*="adicionarAlternativa"]');
+            if (btnAdicionar) {
+                btnAdicionar.setAttribute('onclick', `adicionarAlternativa(${novoIndex})`);
+            }
+            
+            const btnExcluir = alternativasContainer.querySelector('button[onclick*="excluirUltimaAlternativa"]');
+            if (btnExcluir) {
+                btnExcluir.setAttribute('onclick', `excluirUltimaAlternativa(${novoIndex})`);
+            }
+            
+            // Atualiza as alternativas existentes
+            const alternativas = alternativasContainer.querySelectorAll('.alternativa');
+            alternativas.forEach((alt, altIndex) => {
+                const inputTexto = alt.querySelector('input[type="text"]');
+                const inputCheckbox = alt.querySelector('input[type="checkbox"]');
+                const labelTexto = alt.querySelector('label[for*="texto"]');
+                const labelCheckbox = alt.querySelector('label[for*="correta"]');
+                
+                if (inputTexto) {
+                    inputTexto.id = `questao-${novoIndex}-alternativa-${altIndex}-texto`;
+                    inputTexto.name = `questoes[${novoIndex}][alternativas][${altIndex}][texto]`;
+                }
+                
+                if (inputCheckbox) {
+                    inputCheckbox.id = `questao-${novoIndex}-alternativa-${altIndex}-correta`;
+                    inputCheckbox.name = `questoes[${novoIndex}][alternativas][${altIndex}][correta]`;
+                }
+                
+                if (labelTexto) {
+                    labelTexto.setAttribute('for', `questao-${novoIndex}-alternativa-${altIndex}-texto`);
+                }
+                
+                if (labelCheckbox) {
+                    labelCheckbox.setAttribute('for', `questao-${novoIndex}-alternativa-${altIndex}-correta`);
+                }
+            });
+        }
+    });
+}
+
+// Certifique-se de que as alternativas têm IDs e names únicos
 function adicionarAlternativa(questaoIndex) {
     const alternativasContainer = document.querySelector(`#alternativas-container-${questaoIndex} .alternativas`);
     const alternativaIndex = alternativasContainer.children.length;
 
     const alternativaDiv = document.createElement('div');
-    alternativaDiv.className = 'alternativa';
+    alternativaDiv.className = 'alternativa mb-3';
     alternativaDiv.innerHTML = `
-        <div class="row">
-            <div class="col-sm-8 mb-4">
-                <label for="questao-${questaoIndex}-alternativa-${alternativaIndex}-texto">Alternativa</label>
+        <div class="row align-items-center">
+            <div class="col-sm-8 mb-2">
+                <label for="questao-${questaoIndex}-alternativa-${alternativaIndex}-texto">Alternativa ${alternativaIndex + 1}</label>
                 <input class="form-control" type="text" id="questao-${questaoIndex}-alternativa-${alternativaIndex}-texto" name="questoes[${questaoIndex}][alternativas][${alternativaIndex}][texto]" required>
             </div>
-            <div class="col-sm-2 mt-4">
+            <div class="col-sm-2 mb-2">
                 <label for="questao-${questaoIndex}-alternativa-${alternativaIndex}-correta">Correta</label>
-                <input type="checkbox" id="questao-${questaoIndex}-alternativa-${alternativaIndex}-correta" name="questoes[${questaoIndex}][alternativas][${alternativaIndex}][correta]">
+                <input type="checkbox" class="form-check-input" id="questao-${questaoIndex}-alternativa-${alternativaIndex}-correta" name="questoes[${questaoIndex}][alternativas][${alternativaIndex}][correta]">
+            </div>
+            <div class="col-sm-2 mb-2">
+                <button class="btn btn-outline-danger btn-sm w-100" type="button" onclick="excluirAlternativa(this, ${questaoIndex})" title="Excluir esta alternativa">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
             </div>
         </div>
     `;
     alternativasContainer.appendChild(alternativaDiv);
+    atualizarNumeracaoAlternativas(questaoIndex);
+}
+
+function excluirAlternativa(botaoElement, questaoIndex) {
+    const alternativasContainer = document.querySelector(`#alternativas-container-${questaoIndex} .alternativas`);
+    const totalAlternativas = alternativasContainer.children.length;
+
+    if (totalAlternativas > 0) {
+        if (confirm('Tem certeza que deseja excluir esta alternativa?')) {
+            const alternativaDiv = botaoElement.closest('.alternativa');
+            alternativaDiv.remove();
+            atualizarNumeracaoAlternativas(questaoIndex);
+        }
+    }
 }
 
 function excluirUltimaAlternativa(questaoIndex) {
@@ -75,11 +196,49 @@ function excluirUltimaAlternativa(questaoIndex) {
     const totalAlternativas = alternativasContainer.children.length;
 
     if (totalAlternativas > 0) {
-        // Remove a ultima alternativa criada
-        alternativasContainer.lastChild.remove();
+        if (confirm('Tem certeza que deseja excluir a última alternativa?')) {
+            alternativasContainer.lastChild.remove();
+            atualizarNumeracaoAlternativas(questaoIndex);
+        }
     } else {
-        alert("Nao ha mais alternativas para remover.");
+        alert("Não há mais alternativas para remover.");
     }
+}
+
+function atualizarNumeracaoAlternativas(questaoIndex) {
+    const alternativasContainer = document.querySelector(`#alternativas-container-${questaoIndex} .alternativas`);
+    const alternativas = alternativasContainer.querySelectorAll('.alternativa');
+    
+    alternativas.forEach((alt, altIndex) => {
+        const inputTexto = alt.querySelector('input[type="text"]');
+        const inputCheckbox = alt.querySelector('input[type="checkbox"]');
+        const labelTexto = alt.querySelector('label[for*="texto"]');
+        const labelCheckbox = alt.querySelector('label[for*="correta"]');
+        const btnExcluir = alt.querySelector('button[onclick*="excluirAlternativa"]');
+        
+        if (inputTexto) {
+            inputTexto.id = `questao-${questaoIndex}-alternativa-${altIndex}-texto`;
+            inputTexto.name = `questoes[${questaoIndex}][alternativas][${altIndex}][texto]`;
+        }
+        
+        if (inputCheckbox) {
+            inputCheckbox.id = `questao-${questaoIndex}-alternativa-${altIndex}-correta`;
+            inputCheckbox.name = `questoes[${questaoIndex}][alternativas][${altIndex}][correta]`;
+        }
+        
+        if (labelTexto) {
+            labelTexto.textContent = `Alternativa ${altIndex + 1}`;
+            labelTexto.setAttribute('for', `questao-${questaoIndex}-alternativa-${altIndex}-texto`);
+        }
+        
+        if (labelCheckbox) {
+            labelCheckbox.setAttribute('for', `questao-${questaoIndex}-alternativa-${altIndex}-correta`);
+        }
+        
+        if (btnExcluir) {
+            btnExcluir.setAttribute('onclick', `excluirAlternativa(this, ${questaoIndex})`);
+        }
+    });
 }
 
 function selecionarTipoQuestao(selectElement, questaoIndex) {

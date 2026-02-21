@@ -68,7 +68,10 @@
               <a class="nav-link" href="{% url 'list-livro' %}">Biblioteca</a>
             </li>
             <li class="nav-item ms-lg-2">
-              <a class="btn btn-cemag btn-sm" href="logout.html">Sair</a>
+              <form id="logout-form" action="{% url 'logout' %}" method="POST" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-cemag btn-sm" style="border: none;">Sair</button>
+              </form>
             </li>
             {% endif %}
           </ul>

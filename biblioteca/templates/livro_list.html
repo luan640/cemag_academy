@@ -254,20 +254,12 @@
 
                 <div class="book-rating mt-3" title="Avaliacao">
                   <span id="rating-{{ livro.pk }}" class="book-rating-interest-score">
-                    {% if request.user.type == 'ADM' %}
-                      {{ livro.media_ratings|floatformat:1 }}
-                    {% else %}
-                      {{ livro.user_rating|floatformat:1 }}
-                    {% endif %}
+                    {{ livro.user_rating|floatformat:1 }}
                   </span>
                   <span class="book-rating-quality-score">/ 5,0</span>
                   <div class="star-rating ms-2" data-livro-id="{{ livro.pk }}">
                     {% for i in 5|range_custom %}
-                      {% if request.user.type == 'ADM' %}
-                        <input type="radio" value="{{ i }}" {% if i <= livro.media_ratings %}checked{% endif %} disabled><i>&#9733;</i>
-                      {% else %}
-                        <input type="radio" name="rating-{{ livro.pk }}" id="rating-{{ livro.pk }}-{{ i }}" value="{{ i }}" {% if i <= livro.user_rating %}checked{% endif %}><i>&#9733;</i>
-                      {% endif %}
+                      <input type="radio" name="rating-{{ livro.pk }}" id="rating-{{ livro.pk }}-{{ i }}" value="{{ i }}" {% if i <= livro.user_rating %}checked{% endif %}><i>&#9733;</i>
                     {% endfor %}
                   </div>
                 </div>
@@ -365,6 +357,7 @@
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // Selecionar todos os inputs de rating
         var starRatings = document.querySelectorAll('.star-rating input');
     
         starRatings.forEach(function(input) {
@@ -372,29 +365,38 @@
                 var rating = this.value;
                 var livroId = this.closest('.star-rating').getAttribute('data-livro-id');
                 
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', '{% url "add-rating" %}', true);
-                xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-                xhr.setRequestHeader('X-CSRFToken', '{{ csrf_token }}');
-    
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4) {
-                        if (xhr.status === 200) {
-                            var response = JSON.parse(xhr.responseText);
-                            if (response.success) {
-                                alert('Avaliação enviada com sucesso!');
-                                // Atualizar dinamicamente a exibição do rating médio do livro
-                                var novoRating = parseFloat(response.rating).toFixed(1).toString().replace(".",",");
-                                updateRatingDisplay(livroId, novoRating);
-                            } else {
-                                alert('Erro ao enviar avaliação: ' + response.message);
-                            }
-                        } else {
-                            alert('Erro ao enviar avaliação. Código de status: ' + xhr.status);
-                        }
+                // Usar fetch API (mais moderno)
+                fetch('{% url "add-rating" %}', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: `livro_id=${livroId}&rating=${rating}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Atualizar dinamicamente a exibição do rating
+                        var novoRating = parseFloat(data.rating).toFixed(1);
+                        updateRatingDisplay(livroId, novoRating);
+                        
+                        // Feedback visual (animação)
+                        var starContainer = this.closest('.star-rating');
+                        starContainer.style.transition = 'filter 0.3s';
+                        starContainer.style.filter = 'brightness(1.3)';
+                        setTimeout(() => {
+                            starContainer.style.filter = 'brightness(1)';
+                        }, 300);
+                    } else {
+                        console.error('Erro ao enviar avaliação:', data.message);
+                        alert('Erro ao enviar avaliação: ' + (data.message || 'Erro desconhecido'));
                     }
-                };    
-                xhr.send('livro_id=' + livroId + '&rating=' + rating);
+                })
+                .catch(error => {
+                    console.error('Erro ao enviar avaliação:', error);
+                    alert('Erro ao enviar avaliação. Tente novamente.');
+                });
             });
         });
 

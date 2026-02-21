@@ -335,6 +335,9 @@ def editar_prova(request, pk):
         prova = get_object_or_404(Prova, pk=pk)
         questoes = prova.questao_prova.all().order_by('id')
         
+        # Verificar se alguém já realizou esta prova
+        prova_foi_realizada = ProvaRealizada.objects.filter(prova=prova).exists()
+        
         alternativas_dict = {}
 
         for questao in questoes:
@@ -348,6 +351,7 @@ def editar_prova(request, pk):
             'prova': prova,
             'questoes': questoes,
             'alternativas': alternativas_dict,
+            'prova_foi_realizada': prova_foi_realizada,
         })
 
 def editar_questoes_alternativas(request, pk_questoes):
@@ -366,21 +370,62 @@ def editar_questoes_alternativas(request, pk_questoes):
                 questao_alterada = Questao.objects.get(id=pk_questoes)
             except ObjectDoesNotExist:
                 return JsonResponse({"success": False, "error": "Questão não encontrada"}, status=404)
+            
+            # Verificar se a prova já foi realizada
+            prova_foi_realizada = ProvaRealizada.objects.filter(prova=questao_alterada.prova).exists()
+            if prova_foi_realizada:
+                return JsonResponse({"success": False, "error": "Não é possível editar. A prova já foi realizada por alguém."}, status=403)
 
             questao_alterada.enunciado = data.get('enunciado', questao_alterada.enunciado)
             questao_alterada.save()
 
-            # Atualiza as alternativas
-            alternativas_ids = [alt['id'] for alt in data.get('alternativas', [])]
-            alternativas_existentes = Alternativa.objects.filter(id__in=alternativas_ids)
-
-            if len(alternativas_existentes) != len(alternativas_ids):
-                return JsonResponse({"success": False, "error": "Uma ou mais alternativas não foram encontradas"}, status=404)
-
-            for alternativa in data.get('alternativas', []):
-                alternativa_alterada = alternativas_existentes.get(id=alternativa['id'])
-                alternativa_alterada.texto = alternativa.get('texto', alternativa_alterada.texto)
-                alternativa_alterada.save()
+            # Processar alternativas
+            alternativas_data = data.get('alternativas', [])
+            alternativas_ids_recebidos = [alt.get('id') for alt in alternativas_data if alt.get('id')]
+            
+            # Excluir alternativas que não estão mais na lista (foram removidas)
+            Alternativa.objects.filter(questao=questao_alterada).exclude(id__in=alternativas_ids_recebidos).delete()
+            
+            # Primeiro, desmarcar todas as alternativas como não corretas
+            Alternativa.objects.filter(questao=questao_alterada).update(correta=False)
+            
+            # Atualizar ou criar alternativas
+            alternativa_correta_id = data.get('alternativa_correta_id')
+            alternativas_criadas = {}  # Para mapear IDs temporários para IDs reais
+            
+            for alternativa_data in alternativas_data:
+                alternativa_id = alternativa_data.get('id')
+                texto = alternativa_data.get('texto', '').strip()
+                
+                if not texto:
+                    continue
+                
+                if alternativa_id:
+                    # Atualizar alternativa existente
+                    try:
+                        alternativa = Alternativa.objects.get(id=alternativa_id, questao=questao_alterada)
+                        alternativa.texto = texto
+                        alternativa.correta = (str(alternativa_id) == str(alternativa_correta_id))
+                        alternativa.save()
+                    except Alternativa.DoesNotExist:
+                        return JsonResponse({"success": False, "error": f"Alternativa {alternativa_id} não encontrada"}, status=404)
+                else:
+                    # Criar nova alternativa
+                    nova_alt = Alternativa.objects.create(
+                        questao=questao_alterada,
+                        texto=texto,
+                        correta=False
+                    )
+                    # Se esta alternativa tinha um ID temporário, mapear para o ID real
+                    temp_id = alternativa_data.get('temp_id')
+                    if temp_id:
+                        alternativas_criadas[temp_id] = nova_alt.id
+            
+            # Se a alternativa correta era nova, atualizar usando o mapeamento
+            if alternativa_correta_id and str(alternativa_correta_id).startswith('nova_'):
+                real_id = alternativas_criadas.get(alternativa_correta_id)
+                if real_id:
+                    Alternativa.objects.filter(id=real_id).update(correta=True)
 
             return JsonResponse({"success": True}, status=200)
 

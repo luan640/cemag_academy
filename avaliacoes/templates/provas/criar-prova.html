@@ -4,6 +4,47 @@
 
 {% block title %}Criar Prova{% endblock %}
 
+{% block links %}
+<style>
+    .questao {
+        position: relative;
+        transition: all 0.2s ease-out;
+    }
+    
+    .questao:hover {
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    
+    .questao h5 {
+        color: #0d6efd;
+        font-weight: 600;
+    }
+    
+    .alternativa {
+        padding: 12px;
+        border-left: 3px solid #e9ecef;
+        background-color: #f8f9fa;
+        border-radius: 4px;
+        transition: all 0.2s ease-out;
+    }
+    
+    .alternativa:hover {
+        border-left-color: #0d6efd;
+        background-color: #e7f1ff;
+    }
+    
+    .btn-outline-danger:hover {
+        transform: scale(1.05);
+    }
+    
+    .form-check-input {
+        width: 1.5em;
+        height: 1.5em;
+        cursor: pointer;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 
 <section class="page-header">
@@ -33,13 +74,24 @@
                         <input class="form-control" type="text" id="titulo" name="titulo" required>
                     </div>
                 </div>
+                
+                <div class="alert alert-info alert-dismissible fade show" role="alert">
+                    <i class="fa-solid fa-info-circle me-2"></i>
+                    <strong>Dica:</strong> Clique no botão de lixeira <i class="fa-solid fa-trash"></i> no canto superior direito de cada questão para excluí-la especificamente.
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
 
                 <div id="questoes-container" class="exam-question-list">
-                    <div class="questao exam-question-card">
+                    <div class="questao exam-question-card" data-questao-index="0">
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h5 class="mb-0">Questão 1</h5>
+                            <button class="btn btn-outline-danger btn-sm" type="button" onclick="excluirQuestao(this)" title="Excluir esta questão">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
                         <div class="row">
-                            <h5>Questao</h5>
                             <div class="col-sm-6 mb-4">
-                                <label for="questao-0-enunciado">Enunciado da questao</label>
+                                <label for="questao-0-enunciado">Enunciado da questão</label>
                                 <textarea class="form-control" id="questao-0-enunciado" name="questoes[0][enunciado]" required></textarea>
                             </div>
                             <div class="col-sm-5 mb-4">
@@ -55,7 +107,7 @@
                             <h5>Alternativas</h5>
                             <div class="d-flex flex-wrap gap-2 mb-3">
                                 <button class="btn btn-outline-secondary btn-sm" type="button" onclick="adicionarAlternativa(0)">Adicionar alternativa</button>
-                                <button class="btn btn-outline-danger btn-sm" type="button" onclick="excluirUltimaAlternativa(0)">Excluir ultima alternativa</button>
+                                <button class="btn btn-outline-danger btn-sm" type="button" onclick="excluirUltimaAlternativa(0)">Excluir última alternativa</button>
                             </div>
                             <div class="alternativas"></div>
                         </div>
@@ -67,11 +119,11 @@
                     <div class="d-flex flex-wrap gap-2">
                         <button class="btn btn-outline-secondary btn-sm" type="button" onclick="adicionarQuestao()">
                             <i class="fa-solid fa-plus me-1"></i>
-                            Adicionar questao
+                            Adicionar questão
                         </button>
                         <button class="btn btn-outline-danger btn-sm" type="button" onclick="excluirUltimaQuestao()">
                             <i class="fa-solid fa-trash me-1"></i>
-                            Excluir questao
+                            Excluir última questão
                         </button>
                     </div>
                     <button class="btn btn-cemag btn-sm" type="submit">

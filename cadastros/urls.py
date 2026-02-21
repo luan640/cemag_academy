@@ -7,6 +7,7 @@ urlpatterns = [
     path('funcionario/<int:pk>/edit', views.funcionario_edit, name='edit-funcionario'),
     path('funcionario/<int:pk>/delete', views.funcionario_delete, name='delete-funcionario'),
     path('funcionarios/importar/', views.importar_funcionarios, name='importar-funcionarios'),
+    path('funcionarios/template/', views.download_template_funcionarios, name='template-funcionarios'),
 
     path('setor', views.setor_cadastro, name='setores'),
     path('setor/<int:pk>/edit', views.setor_edit, name='edit-setor'),

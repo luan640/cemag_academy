@@ -1,6 +1,39 @@
 {% extends 'base.html' %}
 
+{% load static %}
+
 {% block title %}Lista trilhas{% endblock %}
+
+{% block links %}
+<link href="{% static 'css/smooth-navigation.css' %}" rel="stylesheet" />
+<style>
+  .pagination {
+    gap: 0.25rem;
+  }
+  
+  .pagination .page-link {
+    border-radius: 0.375rem;
+    border: 1px solid #dee2e6;
+    color: #495057;
+    transition: all 0.2s;
+  }
+  
+  .pagination .page-link:hover {
+    background-color: #e9ecef;
+    border-color: #adb5bd;
+  }
+  
+  .pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+  }
+  
+  .pagination .page-item.disabled .page-link {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
 
@@ -41,7 +74,7 @@
     <div class="content-panel">
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 filter-toolbar">
         <div class="input-group search-input">
-          <input class="form-control" id="inputSearch" type="text" placeholder="Pesquisar trilha..." aria-label="Pesquisar trilha..." aria-describedby="btnSearch" />
+          <input class="form-control" id="inputSearch" type="text" placeholder="Pesquisar trilha..." aria-label="Pesquisar trilha..." aria-describedby="btnSearch" value="{{ search_query|default:'' }}" />
           <button class="btn btn-outline-secondary" id="btnSearch" type="button"><i class="fas fa-search"></i></button>
         </div>
         {% if request.user.type == 'ADM' %}
@@ -161,6 +194,74 @@
           </div>
         {% endif %}
       </div>
+      
+      <!-- Paginação -->
+      {% if page_obj.has_other_pages %}
+      <div class="d-flex justify-content-center mt-4">
+        <nav aria-label="Navegação de trilhas">
+          <ul class="pagination pagination-sm mb-0">
+            {% if page_obj.has_previous %}
+              <li class="page-item">
+                <a class="page-link" href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if setor_filter %}&setor={{ setor_filter }}{% endif %}{% if creator_filter %}&criador={{ creator_filter }}{% endif %}{% if only_mine %}&minhas=true{% endif %}" aria-label="Primeira">
+                  <span aria-hidden="true">&laquo;&laquo;</span>
+                </a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if setor_filter %}&setor={{ setor_filter }}{% endif %}{% if creator_filter %}&criador={{ creator_filter }}{% endif %}{% if only_mine %}&minhas=true{% endif %}" aria-label="Anterior">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled">
+                <span class="page-link">&laquo;&laquo;</span>
+              </li>
+              <li class="page-item disabled">
+                <span class="page-link">&laquo;</span>
+              </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+              {% if page_obj.number == num %}
+                <li class="page-item active" aria-current="page">
+                  <span class="page-link">{{ num }}</span>
+                </li>
+              {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if setor_filter %}&setor={{ setor_filter }}{% endif %}{% if creator_filter %}&criador={{ creator_filter }}{% endif %}{% if only_mine %}&minhas=true{% endif %}">{{ num }}</a>
+                </li>
+              {% endif %}
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if setor_filter %}&setor={{ setor_filter }}{% endif %}{% if creator_filter %}&criador={{ creator_filter }}{% endif %}{% if only_mine %}&minhas=true{% endif %}" aria-label="Próxima">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+              <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if setor_filter %}&setor={{ setor_filter }}{% endif %}{% if creator_filter %}&criador={{ creator_filter }}{% endif %}{% if only_mine %}&minhas=true{% endif %}" aria-label="Última">
+                  <span aria-hidden="true">&raquo;&raquo;</span>
+                </a>
+              </li>
+            {% else %}
+              <li class="page-item disabled">
+                <span class="page-link">&raquo;</span>
+              </li>
+              <li class="page-item disabled">
+                <span class="page-link">&raquo;&raquo;</span>
+              </li>
+            {% endif %}
+          </ul>
+        </nav>
+      </div>
+      
+      <!-- Informações da paginação -->
+      <div class="text-center mt-2 text-muted small">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }} 
+        ({{ page_obj.paginator.count }} trilha{{ page_obj.paginator.count|pluralize }})
+      </div>
+      {% endif %}
+      
     </div>
   </div>
 </section>
@@ -169,6 +270,7 @@
 
 {% block scripts %}
 
+<script src="/static/js/lista_trilha/smooth-navigation.js"></script>
 <script src="/static/js/lista_trilha/trilha-list.js"></script>
 <script src="/static/js/adicionar_trilha/checkbox/toggle.js"></script>
 <script src="/static/js/adicionar_trilha/filtrar_setor_funcionario.js"></script>

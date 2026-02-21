@@ -42,9 +42,15 @@
                             <span class="badge {% if questao.tipo == 'objetiva' %}bg-light text-dark{% else %}bg-dark text-white{% endif %}">
                                 {{ questao.get_tipo_display }}
                             </span>
+                            {% if not prova_foi_realizada %}
                             <a id="editar_enunciado_{{ questao.id }}" class="text-primary small" style="text-decoration: underline; cursor: pointer;">
                                 <i class="fa-solid fa-pencil"></i> editar enunciado
                             </a>
+                            {% else %}
+                            <span class="text-muted small">
+                                <i class="fa-solid fa-lock"></i> Edição bloqueada (prova já realizada)
+                            </span>
+                            {% endif %}
                         </div>
                     </div>
 
@@ -52,6 +58,11 @@
                         <strong id="enunciado_{{ questao.id }}">{{ questao.enunciado|linebreaksbr }}</strong>
                         <textarea id="input_enunciado_{{ questao.id }}" style="width: 100%; display: none;" type="text" class="form-control mt-2" rows="4"></textarea>
                         <div id="botoes_edicao_{{ questao.id }}" class="mt-2" style="display: none;">
+                            {% if questao.tipo == 'objetiva' %}
+                            <div class="alert alert-info py-2 px-3 mb-2" style="font-size: 0.85rem;">
+                                <i class="fa-solid fa-circle-info"></i> Use os círculos à direita para marcar qual alternativa é a resposta correta
+                            </div>
+                            {% endif %}
                             <div class="d-flex gap-2 flex-wrap">
                                 <button id="salvar_edicao_{{ questao.id }}" type="button" class="btn btn-cemag btn-sm d-flex align-items-center gap-2">
                                     Editar
@@ -66,24 +77,53 @@
 
                     {% if questao.tipo == 'objetiva' %}
                         {% with questao.pk as questao_pk %}
-                        <div class="option-list">
+                        <div class="option-list" id="option-list-{{ questao.id }}">
                             {% for alternativa in alternativas|get_item:questao_pk %}
-                            <label class="option-item d-flex align-items-center gap-3">
+                            <label class="option-item d-flex align-items-center gap-3 alternativa" data-alternativa-id="{{ alternativa.id }}" data-correta="{{ alternativa.correta|yesno:'true,false' }}">
                                 <div class="option-marker">
                                     <input type="radio"
                                            id="alternativa_{{ alternativa.id }}"
                                            name="questao_{{ questao.id }}"
                                            value="{{ alternativa.id }}"
                                            {% if forloop.first %}required{% endif %}
-                                           {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id %}disabled{% endif %}>
+                                           {% if request.user.type == 'ADM' or request.user.id == pasta.created_by.id or prova_foi_realizada %}disabled{% endif %}>
                                 </div>
                                 <div class="option-body w-100">
-                                    <div id="label_alternativa_{{ alternativa.id }}" class="option-text">{{ alternativa.texto }}</div>
+                                    <div id="label_alternativa_{{ alternativa.id }}" class="option-text d-flex align-items-center gap-2">
+                                        {{ alternativa.texto }}
+                                        {% if alternativa.correta %}
+                                        <span class="badge bg-success">
+                                            <i class="fa-solid fa-check"></i> Correta
+                                        </span>
+                                        {% endif %}
+                                    </div>
                                     <textarea id="textarea_alternativa_{{ alternativa.id }}" type="text" class="form-control mt-2" rows="1" style="width: 100%; display: none;"></textarea>
                                 </div>
+                                {% if not prova_foi_realizada %}
+                                <div class="d-flex gap-2">
+                                    <input type="radio" 
+                                           class="form-check-input alternativa-correta-radio" 
+                                           name="alternativa_correta_{{ questao.id }}"
+                                           value="{{ alternativa.id }}"
+                                           data-questao-id="{{ questao.id }}"
+                                           {% if alternativa.correta %}checked{% endif %}
+                                           style="display: none; cursor: pointer; width: 20px; height: 20px;"
+                                           title="Marcar como resposta correta">
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-excluir-alternativa" data-alternativa-id="{{ alternativa.id }}" style="display: none;">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                                {% endif %}
                             </label>
                             {% endfor %}
                         </div>
+                        {% if not prova_foi_realizada %}
+                        <div id="botoes-alternativa-{{ questao.id }}" class="mt-2" style="display: none;">
+                            <button type="button" class="btn btn-sm btn-outline-primary btn-adicionar-alternativa" data-questao-id="{{ questao.id }}">
+                                <i class="fa-solid fa-plus"></i> Adicionar alternativa
+                            </button>
+                        </div>
+                        {% endif %}
                         {% endwith %}
                     {% elif questao.tipo == 'dissertativa' %}
                         <div class="dissertativa-box">

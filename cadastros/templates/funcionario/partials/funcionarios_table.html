@@ -1,0 +1,77 @@
+<div class="table-responsive" style="max-height: 480px; position: relative;">
+    <table class="table mb-0 align-middle">
+        <thead>
+            <tr>
+                <th scope="col">Matrícula</th>
+                <th scope="col">Nome</th>
+                <th scope="col">Setor</th>
+                <th scope="col" class="text-end">Ações</th>
+            </tr>
+        </thead>
+        <tbody id="lista_funcionarios">
+            {% for funcionario in funcionarios %}
+            <tr class="funcionarios_cadastrados">
+                <td>
+                    <span class="matricula_nome">{{ funcionario.matricula }}</span>
+                </td>
+                <td>{{ funcionario.nome }}</td>
+                <td>{{ funcionario.setor }}</td>
+                <td class="text-end">
+                    <button type="button"
+                            class="btn btn-outline-secondary btn-sm me-2 btn-edit-funcionario"
+                            data-bs-toggle="modal"
+                            data-bs-target="#editarFuncionarioModal"
+                            data-pk="{{ funcionario.pk }}"
+                            data-matricula="{{ funcionario.matricula }}"
+                            data-nome="{{ funcionario.nome }}"
+                            data-setor="{{ funcionario.setor.id|default_if_none:'' }}"
+                            data-edit-url="{% url 'edit-funcionario' funcionario.pk %}">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <a href="{% url 'delete-funcionario' funcionario.pk %}" class="btn btn-outline-danger btn-sm disable-link">
+                        <i class="fa-solid fa-user-slash me-1"></i> Desabilitar
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-muted text-center py-3">Nenhum funcionário cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% if funcionarios.has_other_pages %}
+    <nav class="p-3 table-pagination-sticky">
+        <ul class="pagination justify-content-end mb-0">
+            <li class="page-item {% if not funcionarios.has_previous %}disabled{% endif %}">
+                <a class="page-link" href="{% if funcionarios.has_previous %}?page={{ funcionarios.previous_page_number }}{% if search_term %}&q={{ search_term }}{% endif %}{% else %}#{% endif %}" aria-label="Anterior">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+            {% for num in page_window %}
+                {% if num == '...' %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% else %}
+                    <li class="page-item {% if funcionarios.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}{% if search_term %}&q={{ search_term }}{% endif %}">{{ num }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+            <li class="page-item {% if not funcionarios.has_next %}disabled{% endif %}">
+                <a class="page-link" href="{% if funcionarios.has_next %}?page={{ funcionarios.next_page_number }}{% if search_term %}&q={{ search_term }}{% endif %}{% else %}#{% endif %}" aria-label="Próximo">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+
+<style>
+.table-pagination-sticky {
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+    border-top: 1px solid #dee2e6;
+}
+</style>

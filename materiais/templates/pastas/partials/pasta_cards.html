@@ -1,0 +1,66 @@
+{% load static %}
+{% load custom_filters %}
+
+{% if pastas_com_criadores %}
+  {% for item in pastas_com_criadores %}
+  <div class="exam-card trilha-item" data-setores="{{ item.setores }}" data-criador="{{ item.criador_nome_completo|lower }}" data-destinada="{{ item.destinada_ao_usuario|yesno:'true,false' }}">
+    <div class="exam-card-header d-flex justify-content-between align-items-start gap-2">
+      <div>
+        <h3 class="exam-card-title mb-1">
+          <a href="{% url 'detail-pasta' item.pasta.pk %}" class="trilha-nome text-decoration-none text-dark">{{ item.pasta.nome }}</a>
+        </h3>
+        <p class="text-muted small mb-1 creator-name">{{ item.criador_nome_completo }}</p>
+        <p class="text-muted small mb-0">{{ item.pasta.descricao|truncatechars:100 }}</p>
+      </div>
+      {% if request.user.type != 'LEI' %}
+      <div class="d-flex flex-column align-items-end gap-2">
+        <a href="javascript:void(0);" class="btn btn-outline-secondary btn-sm" title="Ver inscritos" data-pasta-id="{{ item.pasta.pk }}" data-pasta-nome="{{ item.pasta.nome }}" onclick="openInscritosModal(event)">
+          <i class="fa-solid fa-users"></i>
+        </a>
+        {% if request.user.type == 'ADM' %}
+            <a title="Frequência da trilha" href="{% url 'frequencia-pasta' item.pasta.pk %}" class="btn btn-outline-secondary btn-sm">
+                <i class="fa-solid fa-clipboard-list" style="color: {% if item.possui_avaliacao %}#198754{% else %}#0d6efd{% endif %};font-size: 18px;"></i>
+            </a>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="exam-card-body">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        {% if item.pasta.is_norma_regulamentadora %}
+        <span class="badge bg-light text-dark">NR</span>
+        {% else %}
+        <span class="badge bg-light text-dark">Trilha</span>
+        {% endif %}
+        {% if item.pasta.carga_horaria %}
+        <span class="text-muted small">Carga horária: {{ item.pasta.carga_horaria }}h</span>
+        {% endif %}
+      </div>
+      {% with progresso=item.progresso|default:"0" %}
+      <div class="mb-2">
+        <div class="d-flex justify-content-between align-items-center small text-muted">
+          <span>Progresso</span>
+          <span class="fw-semibold text-dark">{{ progresso }}%</span>
+        </div>
+        <div class="progress" style="height: 6px;">
+          <div class="progress-bar bg-warning" style="width: {{ progresso }}%"></div>
+        </div>
+      </div>
+      {% endwith %}
+    </div>
+    <div class="exam-card-footer d-flex flex-column gap-2">
+      <a href="{% url 'detail-pasta' item.pasta.pk %}" class="btn btn-outline-secondary btn-sm w-100">Visualizar trilha</a>
+      {% if request.user.type == 'ADM' or request.user.id == item.pasta.created_by.id or item.progresso == 100 %}
+        <a href="{% url 'list-prova' item.pasta.pk %}" class="btn btn-cemag btn-sm w-100 btn-ambiente-prova" data-has-material="{{ item.has_material|yesno:'true,false' }}">
+          Ir para ambiente de prova
+        </a>
+      {% else %}
+        <button class="btn btn-outline-secondary btn-sm w-100" disabled title="Conclua a trilha para liberar a prova">
+          Ir para ambiente de prova
+        </button>
+      {% endif %}
+    </div>
+  </div>
+  {% include 'pastas/modal/pasta_list_avaliar_trilha.html' %}
+  {% endfor %}
+{% endif %}

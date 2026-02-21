@@ -6,6 +6,10 @@
 
 {% block title %}Home{% endblock %}
 
+{% block links %}
+<link href="{% static 'css/smooth-navigation.css' %}" rel="stylesheet" />
+{% endblock %}
+
 {% block content %}
 
 <!-- Header / Boas-vindas -->
@@ -63,13 +67,13 @@
     <section class="mb-5">
       <div class="section-head">
         <div>
-          <h2 class="section-title">Pendencias</h2>
-          <p class="section-subtitle">Trilhas, provas e avaliacoes que precisam da sua acao</p>
+          <h2 class="section-title">Pendências</h2>
+          <p class="section-subtitle">Trilhas, provas e avaliações que precisam da sua ação</p>
         </div>
         <div class="d-flex flex-wrap gap-2">
           <span class="badge text-bg-light border" id="badge-pendencias-trilhas">Trilhas: --</span>
           <span class="badge text-bg-light border">Provas: {{ pendencias_provas|default_if_none:""|length }}</span>
-          <span class="badge text-bg-light border" id="badge-pendencias-avaliacoes">Avaliacoes: --</span>
+          <span class="badge text-bg-light border" id="badge-pendencias-avaliacoes">Avaliações: --</span>
         </div>
       </div>
 
@@ -81,7 +85,7 @@
               <h3 class="h6 mb-0">Trilhas pendentes</h3>
               <span class="badge bg-light text-dark">--</span>
             </div>
-            <p class="text-muted small mb-0">Carregando pendencias...</p>
+            <p class="text-muted small mb-0">Carregando pendências...</p>
           </div>
         </div>
 
@@ -117,7 +121,7 @@
               <h3 class="h6 mb-0">Avaliacoes de eficácia pendentes</h3>
               <span class="badge bg-light text-dark">--</span>
             </div>
-            <p class="text-muted small mb-0">Carregando avaliacoes...</p>
+            <p class="text-muted small mb-0">Carregando avaliações...</p>
           </div>
         </div>
       </div>
@@ -130,7 +134,7 @@
           <div class="section-head">
             <div>
               <h2 class="section-title">Aguardando sua correção</h2>
-              <p class="section-subtitle">Provas com questoes dissertativas aguardando correcao</p>
+              <p class="section-subtitle">Provas com questões dissertativas aguardando correção</p>
             </div>
             <span class="badge text-bg-light border">
               Provas: {{ pendencias_correcao|default_if_none:""|length }}
@@ -156,7 +160,7 @@
                 </div>
               </article>
               {% empty %}
-              <p class="text-muted small mb-0">Nenhuma prova aguardando correcao.</p>
+              <p class="text-muted small mb-0">Nenhuma prova aguardando correção.</p>
               {% endfor %}
             </div>
           </div>
@@ -164,11 +168,11 @@
         <div class="col-md-6">
           <div class="section-head">
             <div>
-              <h2 class="section-title">Aprovacao de trilhas</h2>
-              <p class="section-subtitle">Aprovar conclusoes de trilhas apos prova final.</p>
+              <h2 class="section-title">Aprovação de trilhas</h2>
+              <p class="section-subtitle">Aprovar conclusões de trilhas após prova final.</p>
             </div>
             <span class="badge text-bg-light border">
-              Pendencias: {{ pendencias_aprovacao|default_if_none:""|length }}
+              Pendências: {{ pendencias_aprovacao|default_if_none:""|length }}
             </span>
           </div>
           <div class="content-panel">
@@ -186,7 +190,7 @@
                 </div>
               </article>
               {% empty %}
-              <p class="text-muted small mb-0">Nenhuma aprovacao pendente.</p>
+              <p class="text-muted small mb-0">Nenhuma aprovação pendente.</p>
               {% endfor %}
             </div>
           </div>
@@ -216,6 +220,23 @@
                 <h3 class="card-title h6 mb-1">{{ pasta.nome }}</h3>
                 <span class="badge text-bg-light border">{{ pasta.carga_horaria|default:'-' }}h</span>
               </div>
+              
+              <!-- Barra de Progresso -->
+              <div class="mb-2">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                  <small class="text-muted">Progresso</small>
+                  <small class="fw-semibold text-primary">{{ pasta.progresso|default:0 }}%</small>
+                </div>
+                <div class="progress" style="height: 6px;">
+                  <div class="progress-bar bg-primary" role="progressbar" 
+                       style="width: {{ pasta.progresso|default:0 }}%;" 
+                       aria-valuenow="{{ pasta.progresso|default:0 }}" 
+                       aria-valuemin="0" 
+                       aria-valuemax="100">
+                  </div>
+                </div>
+              </div>
+              
               <p class="card-text text-muted small mb-3">
                 {{ pasta.descricao|default:'Trilha sem descricao.'|truncatechars:90 }}
               </p>
@@ -249,11 +270,31 @@
         {% for livro in livros %}
         <div class="col-md-3">
           <div class="book-card">
-            <div class="book-cover"></div>
+            <div class="book-cover" {% if livro.capa %}style="background-image: url('{{ livro.capa.url }}'); background-size: cover; background-position: center;"{% endif %}>
+              {% if not livro.capa %}
+                <div class="d-flex align-items-center justify-content-center h-100 text-muted">
+                  <i class="fas fa-book fa-3x"></i>
+                </div>
+              {% endif %}
+            </div>
             <div class="book-info">
-              <div class="fw-semibold">{{livro.nome}}</div>
-              <div class="text-muted small mb-2">{{livro}}</div>
-              <a href="#" class="btn btn-outline-secondary btn-sm w-100">
+              <div class="fw-semibold">{{livro.titulo}}</div>
+              <div class="text-muted small mb-2">{{livro.autor}}</div>
+              
+              <!-- Rating Section -->
+              <div class="book-rating mt-2 mb-2 d-flex align-items-center" title="Avaliacao">
+                <span id="rating-{{ livro.pk }}" class="book-rating-score me-1">
+                  {{ livro.user_rating|floatformat:1 }}
+                </span>
+                <span class="text-muted small me-2">/ 5.0</span>
+                <div class="star-rating" data-livro-id="{{ livro.pk }}">
+                  {% for i in "12345" %}
+                    <input type="radio" name="rating-{{ livro.pk }}" id="rating-{{ livro.pk }}-{{ forloop.counter }}" value="{{ forloop.counter }}" {% if forloop.counter <= livro.user_rating %}checked{% endif %}><i>&#9733;</i>
+                  {% endfor %}
+                </div>
+              </div>
+              
+              <a href="{{ livro.arquivo_pdf.url }}" target="_blank" rel="noopener noreferrer" class="btn btn-outline-secondary btn-sm w-100">
                 Visualizar
               </a>
             </div>
@@ -276,6 +317,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{% static 'js/home-smooth-navigation.js' %}"></script>
 <script>
 function getCSRFToken() {
   const el = document.querySelector('[name=csrfmiddlewaretoken]');
@@ -361,6 +403,122 @@ document.addEventListener('DOMContentLoaded', () => {
       if (avaliacoesContainer) {
         avaliacoesContainer.innerHTML = '<div class="content-panel h-100"><p class="text-muted small mb-0">Nao foi possivel carregar as avaliacoes pendentes.</p></div>';
       }
+    });
+});
+</script>
+
+<!-- CSS para Star Rating -->
+<style>
+.star-rating {
+    font-size: 0;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    height: 20px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+}
+
+.star-rating i {
+    opacity: 0;
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    width: 20%;
+    z-index: 1;
+    background: 
+        url('data:image/svg+xml;base64,PHN2ZyB2ZXJzaW9uPSIxLjEiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB3aWR0aD0iMjBweCIgaGVpZ2h0PSIyMHB4IiB2aWV3Qm94PSIwIDAgMjAgMjAiIGVuYWJsZS1iYWNrZ3JvdW5kPSJuZXcgMCAwIDIwIDIwIiB4bWw6c3BhY2U9InByZXNlcnZlIj48cG9seWdvbiBmaWxsPSIjRkZERjg4IiBwb2ludHM9IjEwLDAgMTMuMDksNi41ODMgMjAsNy42MzkgMTUsMTIuNzY0IDE2LjE4LDIwIDEwLDE2LjU4MyAzLjgyLDIwIDUsMTIuNzY0IDAsNy42MzkgNi45MSw2LjU4MyAiLz48L3N2Zz4=');  
+    background-size: contain;
+}
+
+.star-rating input { 
+    opacity: 0;
+    display: inline-block;
+    width: 20%;
+    height: 100%; 
+    margin: 0;
+    padding: 0;
+    z-index: 2;
+    position: relative;
+    cursor: pointer;
+}
+
+.star-rating input:hover ~ i,
+.star-rating input:checked ~ i {
+    opacity: 1;
+}
+
+.star-rating i ~ i {
+    width: 40%;
+}
+
+.star-rating i ~ i ~ i {
+    width: 60%;
+}
+
+.star-rating i ~ i ~ i ~ i {
+    width: 80%;
+}
+
+.star-rating i ~ i ~ i ~ i ~ i {
+    width: 100%;
+}
+
+.star-rating:hover i {
+    opacity: 1;
+}
+
+.book-rating-score {
+    font-weight: bold;
+    font-size: 0.875rem;
+}
+</style>
+
+<!-- JavaScript para Star Rating -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const starRatings = document.querySelectorAll('.star-rating input');
+    
+    starRatings.forEach(function(input) {
+        input.addEventListener('change', function() {
+            const rating = this.value;
+            const livroId = this.closest('.star-rating').getAttribute('data-livro-id');
+            
+            // Enviar via AJAX para salvar no banco
+            fetch('{% url "add-rating" %}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: `livro_id=${livroId}&rating=${rating}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Atualizar o display do rating
+                    const ratingDisplay = document.getElementById(`rating-${livroId}`);
+                    if (ratingDisplay) {
+                        ratingDisplay.textContent = parseFloat(data.rating).toFixed(1);
+                    }
+                    
+                    // Feedback visual (opcional)
+                    const starContainer = this.closest('.star-rating');
+                    starContainer.style.filter = 'brightness(1.2)';
+                    setTimeout(() => {
+                        starContainer.style.filter = 'brightness(1)';
+                    }, 300);
+                } else {
+                    alert('Erro ao salvar avaliação: ' + (data.message || 'Erro desconhecido'));
+                }
+            })
+            .catch(error => {
+                console.error('Erro ao enviar avaliação:', error);
+                alert('Erro ao enviar avaliação. Tente novamente.');
+            });
+        });
     });
 });
 </script>

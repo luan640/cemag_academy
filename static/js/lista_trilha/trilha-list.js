@@ -24,33 +24,40 @@ const inputSearchEl = document.getElementById('inputSearch');
 function applyFilters() {
     const selectedSector = filterCategoryEl ? filterCategoryEl.value : '';
     const creatorsSelect = document.getElementById('creators');
-    const selectedCreatorName = creatorsSelect ? creatorsSelect.options[creatorsSelect.selectedIndex]?.text || '' : '';
-    const searchText = (inputSearchEl?.value || '').toLowerCase();
+    const selectedCreatorId = creatorsSelect ? creatorsSelect.value : '';
+    const searchText = (inputSearchEl?.value || '').trim();
     const onlyMine = filterMineEl ? filterMineEl.checked : false;
 
-    document.querySelectorAll('.trilha-item').forEach(item => {
-        const setores = item.getAttribute('data-setores') || '';
-        const creatorName = item.querySelector('.creator-name')?.textContent.trim() || '';
-        const nome = item.querySelector('.trilha-nome')?.textContent.toLowerCase() || '';
-        const criador = creatorName.toLowerCase();
-        const destinada = item.getAttribute('data-destinada') === 'true';
-
-        let visible = true;
-        if (selectedSector) {
-            visible = visible && setores.includes(selectedSector);
-        }
-        if (selectedCreatorName && selectedCreatorName !== 'Todos os Criadores') {
-            visible = visible && creatorName === selectedCreatorName;
-        }
-        if (onlyMine) {
-            visible = visible && destinada;
-        }
-        if (searchText) {
-            visible = visible && (nome.includes(searchText) || criador.includes(searchText));
-        }
-
-        item.style.display = visible ? '' : 'none';
-    });
+    // Construir URL com parâmetros de filtro
+    const url = new URL(window.location.href);
+    url.searchParams.delete('page'); // Reset para página 1 ao filtrar
+    
+    if (searchText) {
+        url.searchParams.set('search', searchText);
+    } else {
+        url.searchParams.delete('search');
+    }
+    
+    if (selectedSector) {
+        url.searchParams.set('setor', selectedSector);
+    } else {
+        url.searchParams.delete('setor');
+    }
+    
+    if (selectedCreatorId) {
+        url.searchParams.set('criador', selectedCreatorId);
+    } else {
+        url.searchParams.delete('criador');
+    }
+    
+    if (onlyMine) {
+        url.searchParams.set('minhas', 'true');
+    } else {
+        url.searchParams.delete('minhas');
+    }
+    
+    // Redirecionar para a URL com os filtros
+    window.location.href = url.toString();
 }
 
 filterCategoryEl?.addEventListener('change', function () {
@@ -63,28 +70,28 @@ filterCategoryEl?.addEventListener('change', function () {
 });
 
 clearFilterEl?.addEventListener('click', function () {
-    if (!filterCategoryEl) return;
-    filterCategoryEl.selectedIndex = 0;
-    filterButtonTextEl.textContent = 'Filtros';
-    this.classList.add('d-none');
-
-    if (filterMineEl) {
-        filterMineEl.checked = false;
-    }
-    if (inputSearchEl) {
-        inputSearchEl.value = '';
-    }
-    const creatorsSelect = document.getElementById('creators');
-    if (creatorsSelect) {
-        creatorsSelect.selectedIndex = 0;
-    }
-    applyFilters();
+    // Redirecionar para a URL base sem filtros
+    const url = new URL(window.location.href);
+    url.searchParams.delete('page');
+    url.searchParams.delete('search');
+    url.searchParams.delete('setor');
+    url.searchParams.delete('criador');
+    url.searchParams.delete('minhas');
+    window.location.href = url.pathname;
 });
 
 filterCategoryEl?.addEventListener('change', applyFilters);
 
 document.getElementById('btnSearch')?.addEventListener('click',function(){
     applyFilters();
+});
+
+// Adicionar evento para Enter no input de busca
+inputSearchEl?.addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        applyFilters();
+    }
 });
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -110,6 +117,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 option.textContent = creator.name;
                 creatorsSelect.appendChild(option);
             });
+            
+            // Restaurar valor selecionado da URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const creatorParam = urlParams.get('criador');
+            if (creatorParam) {
+                creatorsSelect.value = creatorParam;
+            }
 
         } catch (error) {
             console.error('Erro:', error);
@@ -120,6 +134,28 @@ document.addEventListener('DOMContentLoaded', function() {
     loadCreators();
 
     creatorsSelect.addEventListener('change', applyFilters);
+    
+    // Restaurar outros filtros da URL
+    const urlParams = new URLSearchParams(window.location.search);
+    
+    // Restaurar setor
+    const setorParam = urlParams.get('setor');
+    if (setorParam && filterCategoryEl) {
+        filterCategoryEl.value = setorParam;
+        const selectedOption = filterCategoryEl.options[filterCategoryEl.selectedIndex]?.text || '';
+        if (selectedOption && filterButtonTextEl) {
+            filterButtonTextEl.textContent = selectedOption;
+        }
+        if (clearFilterEl) {
+            clearFilterEl.classList.remove('d-none');
+        }
+    }
+    
+    // Restaurar checkbox "minhas trilhas"
+    const minhasParam = urlParams.get('minhas');
+    if (minhasParam === 'true' && filterMineEl) {
+        filterMineEl.checked = true;
+    }
 });
 
 filterMineEl?.addEventListener('change', applyFilters);

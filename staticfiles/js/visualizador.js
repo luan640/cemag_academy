@@ -5,13 +5,11 @@ document.addEventListener('DOMContentLoaded', function() {
         checkbox.addEventListener('change', function() {
             const materialId = this.dataset.materialId;
             const pastaId = this.dataset.pastaId;
-            const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
 
             fetch(this.dataset.url, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': csrfToken
                 },
                 body: new URLSearchParams({
                     'material_id': materialId,

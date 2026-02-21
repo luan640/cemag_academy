@@ -11,12 +11,12 @@
     <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
       <div>
         <p class="text-muted mb-1 small">Cadastros</p>
-        <h1 class="page-title mb-1">Adicionar novo usuario</h1>
-        <p class="page-subtitle">Crie acesso para colaboradores ja cadastrados.</p>
+        <h1 class="page-title mb-1">Adicionar novo usuário</h1>
+        <p class="page-subtitle">Crie acesso para colaboradores já cadastrados.</p>
       </div>
       <a class="btn btn-ghost btn-sm d-flex align-items-center gap-2" href="{% url 'funcionarios' %}">
         <i class="fa-solid fa-arrow-left"></i>
-        Voltar para funcionarios
+        Voltar para funcionários
       </a>
     </div>
   </div>
@@ -55,12 +55,12 @@
         <table class="table table-sm align-middle">
           <thead>
             <tr>
-              <th>Matricula</th>
+              <th>Matrícula</th>
               <th>Nome</th>
               <th>Tipo</th>
               <th>Email</th>
               <th>Status</th>
-              <th class="text-end">Acoes</th>
+              <th class="text-end">Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -125,7 +125,7 @@
             </div>
             {% empty %}
             <tr>
-              <td colspan="6" class="text-muted">Nenhum usuario cadastrado.</td>
+              <td colspan="6" class="text-muted">Nenhum usuário cadastrado.</td>
             </tr>
             {% endfor %}
           </tbody>
@@ -139,14 +139,14 @@
   <div class="modal-dialog modal-lg" style="margin-top: 60px;">
     <div class="modal-content">
       <div class="modal-header">
-        <h1 class="modal-title fs-5" id="modal-create-user-label">Adicionar usuario</h1>
+        <h1 class="modal-title fs-5" id="modal-create-user-label">Adicionar usuário</h1>
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <form id="form-create" method="post">
         {% csrf_token %}
         <div class="modal-body">
           <div class="alert alert-info mb-3">
-            Nao encontrou o funcionario? Cadastre primeiro em Cadastros &gt; Funcionarios.
+            Não encontrou o funcionário? Cadastre primeiro em Cadastros &gt; Funcionários.
           </div>
           <div class="row">
             <div class="col-sm-12 mt-3">

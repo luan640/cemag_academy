@@ -1,0 +1,21 @@
+<div class="content-panel h-100">
+  <div class="d-flex justify-content-between align-items-center mb-2">
+    <h3 class="h6 mb-0">Trilhas pendentes</h3>
+    <span class="badge bg-light text-dark">{{ pendencias_trilhas|default_if_none:""|length }}</span>
+  </div>
+  <div class="exam-question-list pending-list">
+    {% for trilha in pendencias_trilhas %}
+    <article class="exam-question-card">
+      <div class="d-flex justify-content-between align-items-start gap-2">
+        <div>
+          <div class="fw-semibold">{{ trilha.nome }}</div>
+          <div class="text-muted small">Responsavel: {{ trilha.created_by.first_name }} {{ trilha.created_by.last_name }}</div>
+        </div>
+        <a href="{% url 'detail-pasta' trilha.pk %}" class="btn btn-cemag btn-sm">Continuar</a>
+      </div>
+    </article>
+    {% empty %}
+    <p class="text-muted small mb-0">Nenhuma trilha pendente.</p>
+    {% endfor %}
+  </div>
+</div>
